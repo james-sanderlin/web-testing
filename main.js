@@ -14,7 +14,7 @@ function renderNav(filter = "") {
     .filter(f => f.name.toLowerCase().includes(filter.toLowerCase()))
     .forEach(f => {
       const item = document.createElement("md-list-item");
-      item.innerHTML = `<a href="\${f.route}">\${f.name}</a>`;
+      item.innerHTML = `<a href="${f.route}">${f.name}</a>`;
       navList.appendChild(item);
     });
 }
