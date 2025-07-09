@@ -23,6 +23,30 @@
   <div id="observeMe">MutationObserver Target</div>
   <button onclick="document.getElementById('observeMe').textContent += ' ✨'">Trigger Mutation</button>
 
+  <h2>📥 Download a File</h2>
+
+  <!-- Download a pre-defined file -->
+  <a href="test-file.txt" download class="dontPrint">Download Test File (.txt)</a>
+
+  <!-- OR: Trigger download via JavaScript -->
+  <button onclick="downloadBlob()" class="dontPrint">Download Blob (Dynamic File)</button>
+
+  <script>
+    function downloadBlob() {
+      const blob = new Blob(["Hello world! This is a dynamic file."], {
+        type: "text/plain"
+      });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dynamic-file.txt";
+      a.click();
+
+      URL.revokeObjectURL(url); // Clean up
+    }
+  </script>
+
   <script>
     const target = document.getElementById('observeMe');
     const observer = new MutationObserver(mutations => {
