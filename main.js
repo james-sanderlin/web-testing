@@ -15,8 +15,8 @@ function renderNav(filter = "") {
   navList.innerHTML = "";
   filteredFeatures = features.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
   filteredFeatures.forEach((f, i) => {
-    const item = document.createElement("md-list-item");
-    item.innerHTML = `<a href="${f.route}">${f.name}</a>`;
+    const item = document.createElement("li");
+    item.textContent = f.name;
     item.tabIndex = 0;
     if (i === 0) {
       item.classList.add('selected');
@@ -38,7 +38,7 @@ search.addEventListener("input", e => {
 });
 
 search.addEventListener("keydown", e => {
-  const items = navList.querySelectorAll('md-list-item');
+  const items = navList.querySelectorAll('li');
   if (!items.length) return;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
@@ -47,7 +47,7 @@ search.addEventListener("keydown", e => {
     selectedIdx = (selectedIdx + 1) % items.length;
     items[selectedIdx].classList.add('selected');
     items[selectedIdx].setAttribute('aria-selected', 'true');
-    items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    items[selectedIdx].focus();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     items[selectedIdx]?.classList.remove('selected');
@@ -55,7 +55,7 @@ search.addEventListener("keydown", e => {
     selectedIdx = (selectedIdx - 1 + items.length) % items.length;
     items[selectedIdx].classList.add('selected');
     items[selectedIdx].setAttribute('aria-selected', 'true');
-    items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    items[selectedIdx].focus();
   } else if (e.key === 'Enter') {
     e.preventDefault();
     items[selectedIdx]?.click();
