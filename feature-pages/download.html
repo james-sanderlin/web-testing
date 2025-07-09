@@ -1,16 +1,11 @@
 <h2>📥 File Download</h2>
 
-<md-outlined-button href="assets/test-file.txt" download>
-  <span class="material-icons" slot="icon">file_download</span>
+<a href="assets/test-file.txt" download style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #333; font-family: inherit; font-size: 1rem; cursor: pointer;">
+  <span class="material-icons" style="margin-right: 8px;">file_download</span>
   Download Static File
-</md-outlined-button>
+</a>
 
 <br><br>
-
-<md-filled-button onclick="downloadBlob()">
-  <span class="material-icons" slot="icon">download</span>
-  Download Dynamic File
-</md-filled-button>
 
 <script>
   function downloadBlob() {
@@ -23,3 +18,8 @@
     URL.revokeObjectURL(url);
   }
 </script>
+
+<md-filled-button onclick="downloadBlob()">
+  <span class="material-icons" slot="icon">download</span>
+  Download Dynamic File
+</md-filled-button>
