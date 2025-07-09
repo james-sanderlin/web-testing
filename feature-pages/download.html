@@ -1,0 +1,25 @@
+<h2>📥 File Download</h2>
+
+<md-outlined-button href="test-file.txt" download>
+  <span class="material-icons" slot="icon">file_download</span>
+  Download Static File
+</md-outlined-button>
+
+<br><br>
+
+<md-filled-button onclick="downloadBlob()">
+  <span class="material-icons" slot="icon">download</span>
+  Download Dynamic File
+</md-filled-button>
+
+<script>
+  function downloadBlob() {
+    const blob = new Blob(["Hello from Material Design!"], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "material-download.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>

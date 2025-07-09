@@ -2,57 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Browser Playground</title>
+  <title>🧪 Browser Test Lab</title>
+  <script type="module" src="https://unpkg.com/@material/web/all.js?module"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    button { margin: 0.5rem 0; }
-    .dontPrint { background: red; color: white; }
-    @media print {
-      .dontPrint { display: none; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      background: #f5f5f5;
+    }
+    nav {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #ddd;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    #content {
+      flex-grow: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    md-outlined-text-field {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    md-list-item {
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>🧪 Browser Feature Playground</h1>
+  <nav>
+    <md-outlined-text-field
+      id="search"
+      label="Search features"
+      type="search"
+    ></md-outlined-text-field>
+    <md-list id="nav-links"></md-list>
+  </nav>
 
-  <button onclick="window.print()" class="dontPrint">🖨️ Print Page</button>
+  <main id="content">Loading…</main>
 
-  <button onclick="localStorage.setItem('testKey', 'testValue')">Set localStorage</button>
-  <button onclick="alert(localStorage.getItem('testKey'))">Get localStorage</button>
-
-  <div id="observeMe">MutationObserver Target</div>
-  <button onclick="document.getElementById('observeMe').textContent += ' ✨'">Trigger Mutation</button>
-
-  <h2>📥 Download a File</h2>
-
-  <!-- Download a pre-defined file -->
-  <a href="test-file.txt" download class="dontPrint">Download Test File (.txt)</a>
-
-  <!-- OR: Trigger download via JavaScript -->
-  <button onclick="downloadBlob()" class="dontPrint">Download Blob (Dynamic File)</button>
-
-  <script>
-    function downloadBlob() {
-      const blob = new Blob(["Hello world! This is a dynamic file."], {
-        type: "text/plain"
-      });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "dynamic-file.txt";
-      a.click();
-
-      URL.revokeObjectURL(url); // Clean up
-    }
-  </script>
-
-  <script>
-    const target = document.getElementById('observeMe');
-    const observer = new MutationObserver(mutations => {
-      console.log('Mutation detected:', mutations);
-    });
-    observer.observe(target, { childList: true, characterData: true, subtree: true });
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>
