@@ -42,3 +42,17 @@ function loadPage() {
 
 window.addEventListener("hashchange", loadPage);
 window.addEventListener("load", loadPage);
+
+// Make downloadBlob globally available for dynamic pages
+window.downloadBlob = function() {
+  const now = Math.floor(Date.now() / 1000);
+  const blob = new Blob([
+    `Hello from Material Design!\nCurrent time (seconds): ${now}`
+  ], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "material-download.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+};
