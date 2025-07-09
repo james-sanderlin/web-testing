@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browser Playground</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    button { margin: 0.5rem 0; }
+    .dontPrint { background: red; color: white; }
+    @media print {
+      .dontPrint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Browser Feature Playground</h1>
+
+  <button onclick="window.print()" class="dontPrint">🖨️ Print Page</button>
+
+  <button onclick="localStorage.setItem('testKey', 'testValue')">Set localStorage</button>
+  <button onclick="alert(localStorage.getItem('testKey'))">Get localStorage</button>
+
+  <div id="observeMe">MutationObserver Target</div>
+  <button onclick="document.getElementById('observeMe').textContent += ' ✨'">Trigger Mutation</button>
+
+  <script>
+    const target = document.getElementById('observeMe');
+    const observer = new MutationObserver(mutations => {
+      console.log('Mutation detected:', mutations);
+    });
+    observer.observe(target, { childList: true, characterData: true, subtree: true });
+  </script>
+</body>
+</html>
