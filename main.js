@@ -20,11 +20,14 @@ function renderNav(filter = "") {
   filteredFeatures.forEach((f, i) => {
     const item = document.createElement("li");
     item.textContent = f.name;
-    item.tabIndex = 0;
+    // Only the selected item should be tabbable
     if (f.route === currentRoute) {
       item.classList.add('selected');
       item.setAttribute('aria-selected', 'true');
+      item.tabIndex = 0;
       selectedIdx = i; // Set selectedIdx to the current route
+    } else {
+      item.tabIndex = -1;
     }
     item.addEventListener('click', () => {
       location.hash = f.route;
@@ -40,9 +43,11 @@ function renderNav(filter = "") {
     items.forEach((el, i) => {
       el.classList.remove('selected');
       el.removeAttribute('aria-selected');
+      el.tabIndex = -1;
     });
     items[0].classList.add('selected');
     items[0].setAttribute('aria-selected', 'true');
+    items[0].tabIndex = 0;
     selectedIdx = 0;
   }
 }
