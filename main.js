@@ -43,6 +43,9 @@ function loadPage() {
     .then(res => res.text())
     .then(html => {
       content.innerHTML = html;
+      // Remove any previously loaded feature page script
+      const prevScript = document.getElementById('feature-page-script');
+      if (prevScript) prevScript.remove();
       // Dynamically load page-specific JS if it exists
       const jsPath = match.file.replace(/\.html$/, '.js');
       fetch(jsPath, { method: 'HEAD' })
@@ -51,6 +54,7 @@ function loadPage() {
             const script = document.createElement('script');
             script.src = jsPath;
             script.type = 'module';
+            script.id = 'feature-page-script';
             document.body.appendChild(script);
           }
         });

@@ -3,29 +3,31 @@
   align-items: center;
   justify-content: flex-start;
   min-width: 0;
-  width: 220px;
-  height: 40px;
+  width: auto;
+  height: auto;
   font-size: 1rem;
   font-weight: 400;
   border: none;
-  border-radius: 8px;
-  background: #f3f4f6;
-  color: #1e293b;
+  border-radius: 0;
+  background: none;
+  color: #2563eb;
   box-shadow: none;
   margin: 0;
-  padding: 0 1.25em;
+  padding: 0;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s, transform 0.10s;
+  transition: color 0.15s, text-decoration 0.15s;
   outline: none;
   gap: 0.5em;
   text-align: left;
   letter-spacing: 0.01em;
+  text-decoration: underline transparent;
 }
 .recent-material-btn:hover, .recent-material-btn:focus {
-  background: #e0e7ef;
-  color: #3730a3;
-  box-shadow: 0 1px 4px rgba(30,41,59,0.06);
-  transform: translateY(-1px) scale(1.01);
+  color: #1d4ed8;
+  text-decoration: underline;
+  background: none;
+  box-shadow: none;
+  transform: none;
 }
 #recent-links {
   display: flex;
