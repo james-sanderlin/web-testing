@@ -55,6 +55,7 @@ function loadPage() {
             script.src = jsPath;
             script.type = 'module';
             script.id = 'feature-page-script';
+            script.onload = null;
             document.body.appendChild(script);
           }
         });

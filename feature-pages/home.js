@@ -34,5 +34,13 @@ import { features } from '../features.js';
     });
   }
 
+  // Re-render recent links whenever Home is visible
+  function onHashChange() {
+    if (location.hash === '#/home') {
+      renderRecent();
+    }
+  }
+  window.addEventListener('hashchange', onHashChange);
+
   renderRecent();
 })();
