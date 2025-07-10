@@ -14,6 +14,7 @@ import { features } from '../features.js';
   }
 
   function renderRecent() {
+    console.log('Rendering recent links');
     const recent = getRecent();
     recentLinks.innerHTML = '';
     if (!recent.length) {
