@@ -16,6 +16,7 @@
   const result = document.getElementById('upload-result');
 
   form.addEventListener('submit', function(e) {
+    console.log('Upload form submitted');
     e.preventDefault();
     const file = fileInput.files[0];
     if (!file) {
