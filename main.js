@@ -14,11 +14,12 @@ let selectedIdx = 0;
 function renderNav(filter = "") {
   navList.innerHTML = "";
   filteredFeatures = features.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
+  const currentRoute = location.hash || "#/print";
   filteredFeatures.forEach((f, i) => {
     const item = document.createElement("li");
     item.textContent = f.name;
     item.tabIndex = 0;
-    if (i === 0) {
+    if (f.route === currentRoute) {
       item.classList.add('selected');
       item.setAttribute('aria-selected', 'true');
     }
@@ -30,7 +31,13 @@ function renderNav(filter = "") {
     });
     navList.appendChild(item);
   });
+  // If filtering, auto-select first for keyboard nav
   selectedIdx = 0;
+  const items = navList.querySelectorAll('li');
+  if (items.length && filter) {
+    items[0].classList.add('selected');
+    items[0].setAttribute('aria-selected', 'true');
+  }
 }
 
 search.addEventListener("input", e => {
@@ -82,7 +89,10 @@ function loadPage() {
     });
 }
 
-window.addEventListener("hashchange", loadPage);
+window.addEventListener("hashchange", () => {
+  loadPage();
+  renderNav(search.value);
+});
 window.addEventListener("load", loadPage);
 
 // Make downloadBlob globally available for dynamic pages
