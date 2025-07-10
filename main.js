@@ -1,6 +1,7 @@
 import { setupNav } from './nav.js';
 
 const features = [
+  { name: "Home", route: "#/home", file: "feature-pages/home.html" },
   { name: "Print", route: "#/print", file: "feature-pages/print.html" },
   { name: "Local Storage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
@@ -12,20 +13,39 @@ const navList = document.getElementById('nav-links');
 const search = document.getElementById('search');
 const content = document.getElementById('content');
 
+function addRecent(route) {
+  if (route === '#/home') return;
+  const key = 'recent-pages';
+  let recent = [];
+  try {
+    recent = JSON.parse(localStorage.getItem(key)) || [];
+  } catch {}
+  // Remove if already present, then add to front
+  recent = recent.filter(r => r !== route);
+  recent.unshift(route);
+  // Limit to 5
+  if (recent.length > 5) recent = recent.slice(0, 5);
+  localStorage.setItem(key, JSON.stringify(recent));
+}
+
 const nav = setupNav(features, navList, search, (route) => {
   location.hash = route;
   search.value = '';
   nav.renderNav('');
   search.blur();
+  addRecent(route);
 });
 
 function loadPage() {
-  const route = location.hash || "#/print";
+  const route = location.hash || "#/home";
   const match = features.find(f => f.route === route);
   if (!match) {
     content.innerHTML = "<h2>Page not found</h2>";
     return;
   }
+
+  // Track recent page on navigation (for direct hash changes/bookmarks)
+  if (route !== '#/home') addRecent(route);
 
   fetch(match.file)
     .then(res => res.text())
