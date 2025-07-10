@@ -22,13 +22,19 @@
       result.textContent = 'Please select a file.';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      result.innerHTML = `<strong>File name:</strong> ${file.name}<br><strong>Size:</strong> ${file.size} bytes<br><strong>Type:</strong> ${file.type || 'n/a'}<br><strong>Preview:</strong><br><pre style='max-height:200px;overflow:auto;background:#f5f5f5;padding:1em;'>${evt.target.result.replace(/</g, '&lt;')}</pre>`;
-    };
-    reader.onerror = function() {
-      result.textContent = 'Error reading file.';
-    };
-    reader.readAsText(file);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      result.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+    })
+    .catch(err => {
+      result.textContent = 'Upload failed: ' + err;
+    });
   });
 </script>
