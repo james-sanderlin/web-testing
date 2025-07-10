@@ -28,6 +28,8 @@ const nav = setupNav(features, navList, search, (route) => {
   addRecent(route);
 });
 
+window.featurePageHandlers = window.featurePageHandlers || {};
+
 function loadPage() {
   const route = location.hash || "#/home";
   const match = features.find(f => f.route === route);
@@ -53,17 +55,16 @@ function loadPage() {
               script.src = jsPath;
               script.type = 'module';
               document.body.appendChild(script);
-              // If this is home.js, call renderRecentLinks after script loads
-              if (jsPath.endsWith('home.js')) {
-                script.onload = () => {
-                  if (window.renderRecentLinks) window.renderRecentLinks();
-                };
-              }
+              script.onload = () => {
+                if (window.featurePageHandlers[route]) {
+                  window.featurePageHandlers[route]();
+                }
+              };
             }
           });
-      } else if (jsPath.endsWith('home.js') && window.renderRecentLinks) {
-        // If script already loaded, call renderRecentLinks immediately
-        window.renderRecentLinks();
+      } else if (window.featurePageHandlers[route]) {
+        // If script already loaded, call handler immediately
+        window.featurePageHandlers[route]();
       }
     })
     .catch(err => {
