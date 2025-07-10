@@ -3,7 +3,6 @@ import { features } from '../features.js';
 
 (function() {
   const recentKey = 'recent-pages';
-  const recentLinks = document.getElementById('recent-links');
 
   function getRecent() {
     try {
@@ -15,6 +14,8 @@ import { features } from '../features.js';
 
   function renderRecent() {
     console.log('Rendering recent links');
+    const recentLinks = document.getElementById('recent-links');
+    if (!recentLinks) return;
     const recent = getRecent();
     recentLinks.innerHTML = '';
     if (!recent.length) {
