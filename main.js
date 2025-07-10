@@ -3,6 +3,7 @@ const features = [
   { name: "LocalStorage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
+  { name: "PDF Demo", route: "#/pdf", file: "feature-pages/pdf.html" },
 ];
 
 const navList = document.getElementById('nav-links');
