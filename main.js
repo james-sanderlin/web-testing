@@ -63,18 +63,22 @@ search.addEventListener("keydown", e => {
     e.preventDefault();
     items[selectedIdx]?.classList.remove('selected');
     items[selectedIdx]?.removeAttribute('aria-selected');
+    items[selectedIdx].tabIndex = -1;
     selectedIdx = (selectedIdx + 1) % items.length;
     items[selectedIdx].classList.add('selected');
     items[selectedIdx].setAttribute('aria-selected', 'true');
-    items[selectedIdx].focus();
+    items[selectedIdx].tabIndex = 0;
+    // Do NOT move focus to nav item; keep focus in search
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     items[selectedIdx]?.classList.remove('selected');
     items[selectedIdx]?.removeAttribute('aria-selected');
+    items[selectedIdx].tabIndex = -1;
     selectedIdx = (selectedIdx - 1 + items.length) % items.length;
     items[selectedIdx].classList.add('selected');
     items[selectedIdx].setAttribute('aria-selected', 'true');
-    items[selectedIdx].focus();
+    items[selectedIdx].tabIndex = 0;
+    // Do NOT move focus to nav item; keep focus in search
   } else if (e.key === 'Enter') {
     e.preventDefault();
     items[selectedIdx]?.click();
