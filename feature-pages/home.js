@@ -1,14 +1,9 @@
 // Home page logic: show recently accessed pages from localStorage
+import { features } from '../features.js';
+
 (function() {
   const recentKey = 'recent-pages';
   const recentLinks = document.getElementById('recent-links');
-  const features = [
-    { name: "Print", route: "#/print" },
-    { name: "Local Storage", route: "#/localstorage" },
-    { name: "Download", route: "#/download" },
-    { name: "Upload", route: "#/upload" },
-    { name: "PDF Demo", route: "#/pdf" },
-  ];
 
   function getRecent() {
     try {
@@ -22,18 +17,19 @@
     const recent = getRecent();
     recentLinks.innerHTML = '';
     if (!recent.length) {
-      recentLinks.innerHTML = '<li style="color:#888;">No recent pages yet.</li>';
+      recentLinks.innerHTML = '<div style="color:#888;">No recent pages yet.</div>';
       return;
     }
     recent.forEach(route => {
       const feature = features.find(f => f.route === route);
       if (feature) {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = feature.route;
-        a.textContent = feature.name;
-        li.appendChild(a);
-        recentLinks.appendChild(li);
+        // Create a Material-style button (md-filled-button)
+        const btn = document.createElement('button');
+        btn.className = 'recent-material-btn';
+        btn.textContent = feature.name;
+        btn.onclick = () => { location.hash = feature.route; };
+        btn.setAttribute('aria-label', `Go to ${feature.name}`);
+        recentLinks.appendChild(btn);
       }
     });
   }
