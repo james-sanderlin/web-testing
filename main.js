@@ -2,6 +2,7 @@ const features = [
   { name: "Print", route: "#/print", file: "feature-pages/print.html" },
   { name: "LocalStorage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
+  { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
 ];
 
 const navList = document.getElementById('nav-links');
