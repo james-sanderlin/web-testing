@@ -82,6 +82,9 @@ search.addEventListener("keydown", e => {
   } else if (e.key === 'Enter') {
     e.preventDefault();
     items[selectedIdx]?.click();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    search.blur();
   }
 });
 
