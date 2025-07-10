@@ -36,6 +36,6 @@ import { features } from '../features.js';
     });
   }
 
-  window.onNavigate__home = renderRecent;
+  window.onNavigate_home = renderRecent;
   renderRecent();
 })();
