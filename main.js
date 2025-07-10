@@ -24,6 +24,7 @@ function renderNav(filter = "") {
     if (f.route === currentRoute) {
       item.classList.add('selected');
       item.setAttribute('aria-selected', 'true');
+      selectedIdx = i; // Set selectedIdx to the current route
     }
     item.addEventListener('click', () => {
       location.hash = f.route;
@@ -34,11 +35,15 @@ function renderNav(filter = "") {
     navList.appendChild(item);
   });
   // If filtering, auto-select first for keyboard nav
-  selectedIdx = 0;
   const items = navList.querySelectorAll('li');
   if (items.length && filter) {
+    items.forEach((el, i) => {
+      el.classList.remove('selected');
+      el.removeAttribute('aria-selected');
+    });
     items[0].classList.add('selected');
     items[0].setAttribute('aria-selected', 'true');
+    selectedIdx = 0;
   }
 }
 
