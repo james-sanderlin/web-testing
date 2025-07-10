@@ -85,6 +85,15 @@ search.addEventListener("keydown", e => {
   }
 });
 
+// Keyboard shortcut: Cmd+K (Mac) or Ctrl+K (Win/Linux) focuses the search box
+window.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    search.focus();
+    search.select && search.select();
+  }
+});
+
 renderNav();
 
 function loadPage() {
