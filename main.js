@@ -28,8 +28,6 @@ const nav = setupNav(features, navList, search, (route) => {
   addRecent(route);
 });
 
-window.featurePageHandlers = window.featurePageHandlers || {};
-
 function loadPage() {
   const route = location.hash || "#/home";
   const match = features.find(f => f.route === route);
@@ -47,6 +45,7 @@ function loadPage() {
       content.innerHTML = html;
       // Only lazy load page-specific JS if it hasn't been loaded yet
       const jsPath = match.file.replace(/\.html$/, '.js');
+      const handlerName = 'onNavigate_' + route.replace('#/', '').replace(/[^a-zA-Z0-9_]/g, '_');
       if (!document.querySelector(`script[src="${jsPath}"]`)) {
         fetch(jsPath, { method: 'HEAD' })
           .then(r => {
@@ -56,15 +55,14 @@ function loadPage() {
               script.type = 'module';
               document.body.appendChild(script);
               script.onload = () => {
-                if (window.featurePageHandlers[route]) {
-                  window.featurePageHandlers[route]();
+                if (window[handlerName]) {
+                  window[handlerName]();
                 }
               };
             }
           });
-      } else if (window.featurePageHandlers[route]) {
-        // If script already loaded, call handler immediately
-        window.featurePageHandlers[route]();
+      } else if (window[handlerName]) {
+        window[handlerName]();
       }
     })
     .catch(err => {
