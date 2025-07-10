@@ -35,5 +35,6 @@ import { features } from '../features.js';
     });
   }
 
+  window.renderRecentLinks = renderRecent;
   renderRecent();
 })();

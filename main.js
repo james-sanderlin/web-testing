@@ -43,22 +43,28 @@ function loadPage() {
     .then(res => res.text())
     .then(html => {
       content.innerHTML = html;
-      // Remove any previously loaded feature page script
-      const prevScript = document.getElementById('feature-page-script');
-      if (prevScript) prevScript.remove();
-      // Dynamically load page-specific JS if it exists
+      // Only lazy load page-specific JS if it hasn't been loaded yet
       const jsPath = match.file.replace(/\.html$/, '.js');
-      fetch(jsPath, { method: 'HEAD' })
-        .then(r => {
-          if (r.ok) {
-            const script = document.createElement('script');
-            script.src = jsPath;
-            script.type = 'module';
-            script.id = 'feature-page-script';
-            script.onload = null;
-            document.body.appendChild(script);
-          }
-        });
+      if (!document.querySelector(`script[src="${jsPath}"]`)) {
+        fetch(jsPath, { method: 'HEAD' })
+          .then(r => {
+            if (r.ok) {
+              const script = document.createElement('script');
+              script.src = jsPath;
+              script.type = 'module';
+              document.body.appendChild(script);
+              // If this is home.js, call renderRecentLinks after script loads
+              if (jsPath.endsWith('home.js')) {
+                script.onload = () => {
+                  if (window.renderRecentLinks) window.renderRecentLinks();
+                };
+              }
+            }
+          });
+      } else if (jsPath.endsWith('home.js') && window.renderRecentLinks) {
+        // If script already loaded, call renderRecentLinks immediately
+        window.renderRecentLinks();
+      }
     })
     .catch(err => {
       content.innerHTML = `<p>Error loading page: ${err}</p>`;
