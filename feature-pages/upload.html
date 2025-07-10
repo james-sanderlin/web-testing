@@ -9,33 +9,3 @@
 </form>
 
 <div id="upload-result" style="margin-top: 1.5rem;"></div>
-
-<script>
-  const form = document.getElementById('upload-form');
-  const fileInput = document.getElementById('file-input');
-  const result = document.getElementById('upload-result');
-
-  form.addEventListener('submit', function(e) {
-    console.log('Upload form submitted');
-    e.preventDefault();
-    const file = fileInput.files[0];
-    if (!file) {
-      result.textContent = 'Please select a file.';
-      return;
-    }
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      result.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-    })
-    .catch(err => {
-      result.textContent = 'Upload failed: ' + err;
-    });
-  });
-</script>
