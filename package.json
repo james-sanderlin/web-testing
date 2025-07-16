@@ -1,0 +1,11 @@
+{
+  "name": "web-testing",
+  "version": "1.0.0",
+  "description": "Browser Test Lab",
+  "scripts": {
+    "start": "yarn run serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

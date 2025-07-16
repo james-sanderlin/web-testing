@@ -1,0 +1,31 @@
+# Node/Yarn
+node_modules/
+yarn-error.log
+yarn-debug.log*
+
+# Local server output
+.DS_Store
+*.log
+
+# VS Code
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# Serve cache
+.serve
+
+# OS junk
+Thumbs.db
+
+# Misc
+.env
+.env.*
+
+# Ignore build output (if any)
+dist/
+build/
+
+# Ignore vendor if you want to keep it out of git (uncomment if needed)
+# vendor/
