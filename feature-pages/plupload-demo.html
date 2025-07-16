@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plupload Drag & Drop Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/plupload@3.1.9/js/plupload.full.min.js"></script>
+</head>
+<body>
+  <h2>Drag & Drop Upload Demo</h2>
+  <div id="filelist">Your browser does not support drag & drop.</div>
+  <br />
+  <button id="pickfiles">Select Files</button>
+  <button id="uploadfiles">Upload Files</button>
+
+  <script>
+    const uploader = new plupload.Uploader({
+      runtimes: 'html5',
+      browse_button: 'pickfiles',
+      drop_element: 'filelist',
+      url: '/upload', // doesn't need to actually work for repro
+      init: {
+        PostInit: function () {
+          document.getElementById('filelist').innerHTML = '';
+          document.getElementById('uploadfiles').onclick = function () {
+            uploader.start();
+            return false;
+          };
+        },
+
+        FilesAdded: function (up, files) {
+          for (let i = 0; i < files.length; i++) {
+            console.log('Added file:', files[i]);
+            document.getElementById('filelist').innerHTML +=
+              `<div>${files[i].name} (${plupload.formatSize(files[i].size)})</div>`;
+          }
+        },
+
+        Error: function (up, err) {
+          console.error('Plupload Error:', err);
+        }
+      }
+    });
+
+    uploader.init();
+  </script>
+</body>
+</html>

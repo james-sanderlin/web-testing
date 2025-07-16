@@ -6,4 +6,5 @@ export const features = [
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
   { name: "PDF Demo", route: "#/pdf", file: "feature-pages/pdf.html" },
+  { name: "Plupload Demo", route: "#/plupload-demo", file: "feature-pages/plupload-demo.html" },
 ];
