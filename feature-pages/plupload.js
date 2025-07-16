@@ -2,22 +2,39 @@
 
 function loadPluploadScript(callback) {
   console.log('[Plupload] Checking if plupload is already loaded...');
+  // Loads moxie.js and then plupload.dev.js in order, for SPA navigation
+  const moxieUrl = '/vendor/plupload/js/moxie.js';
+  const pluploadUrl = '/vendor/plupload/js/plupload.dev.js';
+
+  function loadScript(url, onload) {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = onload;
+    script.onerror = function(e) {
+      console.error('Failed to load script:', url, e);
+    };
+    document.head.appendChild(script);
+  }
+
+  // If plupload is already loaded, just callback
   if (window.plupload) {
-    console.log('[Plupload] plupload already loaded.');
-    callback();
+    callback && callback();
     return;
   }
-  console.log('[Plupload] Loading plupload script from local vendor directory...');
-  const script = document.createElement('script');
-  script.src = '/vendor/plupload/js/plupload.dev.js';
-  script.onload = function() {
-    console.log('[Plupload] plupload script loaded.');
-    callback();
-  };
-  script.onerror = function() {
-    console.error('[Plupload] Failed to load plupload script.');
-  };
-  document.head.appendChild(script);
+
+  // If moxie is not loaded, load it first, then plupload
+  if (!window.moxie && !window.Moxie) {
+    loadScript(moxieUrl, function() {
+      loadScript(pluploadUrl, function() {
+        callback && callback();
+      });
+    });
+  } else {
+    // moxie is already present, just load plupload
+    loadScript(pluploadUrl, function() {
+      callback && callback();
+    });
+  }
 }
 
 function initPlupload() {
