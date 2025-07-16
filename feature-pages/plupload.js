@@ -7,9 +7,9 @@ function loadPluploadScript(callback) {
     callback();
     return;
   }
-  console.log('[Plupload] Loading plupload script...');
+  console.log('[Plupload] Loading plupload script from local vendor directory...');
   const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/plupload@3.1.9/js/plupload.full.min.js';
+  script.src = '/vendor/plupload/js/plupload.full.min.js';
   script.onload = function() {
     console.log('[Plupload] plupload script loaded.');
     callback();
