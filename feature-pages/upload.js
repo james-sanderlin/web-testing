@@ -1,9 +1,37 @@
 // Upload page logic
 (function() {
+  // Single file upload (existing)
   const form = document.getElementById('upload-form');
   const fileInput = document.getElementById('file-input');
   const result = document.getElementById('upload-result');
+  const uploadButton = form?.querySelector('md-filled-button[type="submit"]');
+  
+  // Initially hide the upload button
+  if (uploadButton) {
+    uploadButton.style.visibility = 'hidden';
+    uploadButton.style.height = '0';
+    uploadButton.style.margin = '0';
+    uploadButton.style.overflow = 'hidden';
+  }
+  
   if (form && fileInput && result) {
+    // Show/hide upload button based on file selection
+    fileInput.addEventListener('change', function() {
+      if (uploadButton) {
+        if (this.files.length > 0) {
+          uploadButton.style.visibility = 'visible';
+          uploadButton.style.height = '';
+          uploadButton.style.margin = '';
+          uploadButton.style.overflow = '';
+        } else {
+          uploadButton.style.visibility = 'hidden';
+          uploadButton.style.height = '0';
+          uploadButton.style.margin = '0';
+          uploadButton.style.overflow = 'hidden';
+        }
+      }
+    });
+    
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const file = fileInput.files[0];
@@ -24,6 +52,193 @@
       .catch(err => {
         result.textContent = 'Upload failed: ' + err;
       });
+    });
+  }
+
+  // Multi-file upload
+  const multiForm = document.getElementById('multi-upload-form');
+  const multiFileInput = document.getElementById('multi-file-input');
+  const multiFileList = document.getElementById('multi-file-list');
+  const multiResult = document.getElementById('multi-upload-result');
+  const multiUploadButton = multiForm?.querySelector('md-filled-button[type="submit"]');
+  
+  // Initially hide the multi-upload button
+  if (multiUploadButton) {
+    multiUploadButton.style.visibility = 'hidden';
+    multiUploadButton.style.height = '0';
+    multiUploadButton.style.margin = '0';
+    multiUploadButton.style.overflow = 'hidden';
+  }
+  
+  if (multiFileInput && multiFileList) {
+    multiFileInput.addEventListener('change', function() {
+      const files = Array.from(this.files);
+      
+      // Show/hide upload button based on file selection
+      if (multiUploadButton) {
+        if (files.length > 0) {
+          multiUploadButton.style.visibility = 'visible';
+          multiUploadButton.style.height = '';
+          multiUploadButton.style.margin = '';
+          multiUploadButton.style.overflow = '';
+        } else {
+          multiUploadButton.style.visibility = 'hidden';
+          multiUploadButton.style.height = '0';
+          multiUploadButton.style.margin = '0';
+          multiUploadButton.style.overflow = 'hidden';
+        }
+      }
+      
+      if (files.length === 0) {
+        multiFileList.innerHTML = '';
+        return;
+      }
+      
+      multiFileList.innerHTML = '<h4>Selected Files:</h4>' + 
+        files.map(file => 
+          `<div style="padding: 5px; border: 1px solid #ddd; margin: 2px; border-radius: 4px;">
+            <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)
+          </div>`
+        ).join('');
+    });
+  }
+
+  if (multiForm && multiFileInput && multiResult) {
+    multiForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const files = Array.from(multiFileInput.files);
+      if (files.length === 0) {
+        multiResult.textContent = 'Please select one or more files.';
+        return;
+      }
+      
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`file${index}`, file);
+      });
+      
+      multiResult.textContent = 'Uploading...';
+      
+      fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        multiResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      })
+      .catch(err => {
+        multiResult.textContent = 'Multi-upload failed: ' + err;
+      });
+    });
+  }
+
+  // File System Access API
+  const fsResult = document.getElementById('fs-result');
+  
+  // Check if File System Access API is supported
+  const isFileSystemAccessSupported = 'showOpenFilePicker' in window;
+  
+  if (!isFileSystemAccessSupported && fsResult) {
+    fsResult.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
+  }
+
+  // Open single file
+  const fsOpenFile = document.getElementById('fs-open-file');
+  if (fsOpenFile && fsResult) {
+    fsOpenFile.addEventListener('click', async function() {
+      if (!isFileSystemAccessSupported) {
+        fsResult.textContent = 'File System Access API not supported';
+        return;
+      }
+      
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'All files',
+            accept: {'*/*': []}
+          }]
+        });
+        
+        const file = await fileHandle.getFile();
+        fsResult.innerHTML = `<strong>Selected file:</strong><br>
+          Name: ${file.name}<br>
+          Size: ${(file.size / 1024).toFixed(1)} KB<br>
+          Type: ${file.type || 'unknown'}<br>
+          Last Modified: ${new Date(file.lastModified).toLocaleString()}`;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          fsResult.textContent = 'Error: ' + err.message;
+        }
+      }
+    });
+  }
+
+  // Open multiple files
+  const fsOpenMultiple = document.getElementById('fs-open-multiple');
+  if (fsOpenMultiple && fsResult) {
+    fsOpenMultiple.addEventListener('click', async function() {
+      if (!isFileSystemAccessSupported) {
+        fsResult.textContent = 'File System Access API not supported';
+        return;
+      }
+      
+      try {
+        const fileHandles = await window.showOpenFilePicker({
+          multiple: true,
+          types: [{
+            description: 'All files',
+            accept: {'*/*': []}
+          }]
+        });
+        
+        const files = await Promise.all(
+          fileHandles.map(handle => handle.getFile())
+        );
+        
+        fsResult.innerHTML = `<strong>Selected ${files.length} files:</strong><br>` +
+          files.map(file => 
+            `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+          ).join('<br>');
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          fsResult.textContent = 'Error: ' + err.message;
+        }
+      }
+    });
+  }
+
+  // Save file
+  const fsSaveFile = document.getElementById('fs-save-file');
+  if (fsSaveFile && fsResult) {
+    fsSaveFile.addEventListener('click', async function() {
+      if (!isFileSystemAccessSupported) {
+        fsResult.textContent = 'File System Access API not supported';
+        return;
+      }
+      
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: 'test-file.txt',
+          types: [{
+            description: 'Text files',
+            accept: {'text/plain': ['.txt']}
+          }]
+        });
+        
+        const writable = await fileHandle.createWritable();
+        const content = `Test file created at ${new Date().toISOString()}\n\nThis file was created using the File System Access API.`;
+        await writable.write(content);
+        await writable.close();
+        
+        fsResult.innerHTML = `<strong>File saved successfully!</strong><br>
+          File: ${fileHandle.name}<br>
+          Content: ${content.length} characters`;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          fsResult.textContent = 'Error: ' + err.message;
+        }
+      }
     });
   }
 })();

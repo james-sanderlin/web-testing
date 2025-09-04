@@ -1,11 +1,53 @@
 <h2>⬆️ File Upload</h2>
 
-<form id="upload-form" style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px;">
-  <input type="file" id="file-input" />
-  <md-filled-button type="submit">
-    <span class="material-icons" slot="icon">upload</span>
-    Upload
-  </md-filled-button>
-</form>
+<div style="display: flex; flex-direction: column; gap: 2rem; max-width: 600px;">
+  <!-- Single File Upload -->
+  <section>
+    <h3>Single File Upload</h3>
+    <form id="upload-form" style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px;">
+      <input type="file" id="file-input" />
+      <md-filled-button type="submit">
+        <span class="material-icons" slot="icon">upload</span>
+        Upload
+      </md-filled-button>
+    </form>
+    <div id="upload-result" style="margin-top: 1rem;"></div>
+  </section>
 
-<div id="upload-result" style="margin-top: 1.5rem;"></div>
+  <!-- Multi-File Upload -->
+  <section>
+    <h3>Multi-File Upload</h3>
+    <form id="multi-upload-form" style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px;">
+      <input type="file" id="multi-file-input" multiple />
+      <md-filled-button type="submit">
+        <span class="material-icons" slot="icon">file_upload</span>
+        Upload Multiple Files
+      </md-filled-button>
+    </form>
+    <div id="multi-file-list" style="margin-top: 1rem;"></div>
+    <div id="multi-upload-result" style="margin-top: 1rem;"></div>
+  </section>
+
+  <!-- File System Access API -->
+  <section>
+    <h3>File System Access API</h3>
+    <p style="font-size: 0.9em; color: #666; margin-bottom: 1rem;">
+      Modern browsers only. Allows direct file system access with better UX.
+    </p>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <md-filled-button id="fs-open-file">
+        <span class="material-icons" slot="icon">folder_open</span>
+        Open File
+      </md-filled-button>
+      <md-filled-button id="fs-open-multiple">
+        <span class="material-icons" slot="icon">folder_open</span>
+        Open Multiple Files
+      </md-filled-button>
+      <md-filled-button id="fs-save-file">
+        <span class="material-icons" slot="icon">save</span>
+        Save File
+      </md-filled-button>
+    </div>
+    <div id="fs-result" style="margin-top: 1rem;"></div>
+  </section>
+</div>
