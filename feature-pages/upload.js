@@ -103,6 +103,107 @@
     });
   }
 
+  // Image only upload
+  const imageForm = document.getElementById('image-upload-form');
+  const imageFileInput = document.getElementById('image-file-input');
+  const imagePreview = document.getElementById('image-preview');
+  const imageResult = document.getElementById('image-upload-result');
+  const imageUploadButton = imageForm?.querySelector('md-filled-button[type="submit"]');
+  
+  // Initially hide the image upload button
+  if (imageUploadButton) {
+    imageUploadButton.style.visibility = 'hidden';
+    imageUploadButton.style.height = '0';
+    imageUploadButton.style.margin = '0';
+    imageUploadButton.style.overflow = 'hidden';
+  }
+  
+  if (imageFileInput && imagePreview) {
+    imageFileInput.addEventListener('change', function() {
+      const files = Array.from(this.files);
+      
+      // Show/hide upload button based on file selection
+      if (imageUploadButton) {
+        if (files.length > 0) {
+          imageUploadButton.style.visibility = 'visible';
+          imageUploadButton.style.height = '';
+          imageUploadButton.style.margin = '';
+          imageUploadButton.style.overflow = '';
+        } else {
+          imageUploadButton.style.visibility = 'hidden';
+          imageUploadButton.style.height = '0';
+          imageUploadButton.style.margin = '0';
+          imageUploadButton.style.overflow = 'hidden';
+        }
+      }
+      
+      if (files.length === 0) {
+        imagePreview.innerHTML = '';
+        return;
+      }
+      
+      imagePreview.innerHTML = '<h4>Image Preview:</h4>';
+      
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const imageContainer = document.createElement('div');
+            imageContainer.style.cssText = 'display: inline-block; margin: 5px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center;';
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'max-width: 150px; max-height: 150px; object-fit: cover; border-radius: 4px;';
+            
+            const fileName = document.createElement('div');
+            fileName.textContent = file.name;
+            fileName.style.cssText = 'margin-top: 5px; font-size: 0.8em; color: #666;';
+            
+            const fileSize = document.createElement('div');
+            fileSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            fileSize.style.cssText = 'font-size: 0.7em; color: #999;';
+            
+            imageContainer.appendChild(img);
+            imageContainer.appendChild(fileName);
+            imageContainer.appendChild(fileSize);
+            imagePreview.appendChild(imageContainer);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+  }
+
+  if (imageForm && imageFileInput && imageResult) {
+    imageForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const files = Array.from(imageFileInput.files);
+      if (files.length === 0) {
+        imageResult.textContent = 'Please select one or more image files.';
+        return;
+      }
+      
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`image${index}`, file);
+      });
+      
+      imageResult.textContent = 'Uploading images...';
+      
+      fetch('/api/upload-images', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        imageResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      })
+      .catch(err => {
+        imageResult.textContent = 'Image upload failed: ' + err;
+      });
+    });
+  }
+
   if (multiForm && multiFileInput && multiResult) {
     multiForm.addEventListener('submit', function(e) {
       e.preventDefault();
