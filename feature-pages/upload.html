@@ -28,6 +28,23 @@
     <div id="multi-upload-result" style="margin-top: 1rem;"></div>
   </section>
 
+  <!-- Directory Upload -->
+  <section>
+    <h3>Directory Upload</h3>
+    <p style="font-size: 0.9em; color: #666; margin-bottom: 1rem;">
+      Select an entire folder/directory to upload all files within it.
+    </p>
+    <form id="directory-upload-form" style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px;">
+      <input type="file" id="directory-file-input" webkitdirectory directory multiple />
+      <md-filled-button type="submit">
+        <span class="material-icons" slot="icon">folder</span>
+        Upload Directory
+      </md-filled-button>
+    </form>
+    <div id="directory-file-list" style="margin-top: 1rem;"></div>
+    <div id="directory-upload-result" style="margin-top: 1rem;"></div>
+  </section>
+
   <!-- Image Only Upload -->
   <section>
     <h3>Image Only Upload</h3>

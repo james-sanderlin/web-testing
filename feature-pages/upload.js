@@ -103,6 +103,119 @@
     });
   }
 
+  // Directory upload
+  const directoryForm = document.getElementById('directory-upload-form');
+  const directoryFileInput = document.getElementById('directory-file-input');
+  const directoryFileList = document.getElementById('directory-file-list');
+  const directoryResult = document.getElementById('directory-upload-result');
+  const directoryUploadButton = directoryForm?.querySelector('md-filled-button[type="submit"]');
+  
+  // Initially hide the directory upload button
+  if (directoryUploadButton) {
+    directoryUploadButton.style.visibility = 'hidden';
+    directoryUploadButton.style.height = '0';
+    directoryUploadButton.style.margin = '0';
+    directoryUploadButton.style.overflow = 'hidden';
+  }
+  
+  if (directoryFileInput && directoryFileList) {
+    directoryFileInput.addEventListener('change', function() {
+      const files = Array.from(this.files);
+      
+      // Show/hide upload button based on file selection
+      if (directoryUploadButton) {
+        if (files.length > 0) {
+          directoryUploadButton.style.visibility = 'visible';
+          directoryUploadButton.style.height = '';
+          directoryUploadButton.style.margin = '';
+          directoryUploadButton.style.overflow = '';
+        } else {
+          directoryUploadButton.style.visibility = 'hidden';
+          directoryUploadButton.style.height = '0';
+          directoryUploadButton.style.margin = '0';
+          directoryUploadButton.style.overflow = 'hidden';
+        }
+      }
+      
+      if (files.length === 0) {
+        directoryFileList.innerHTML = '';
+        return;
+      }
+      
+      // Group files by directory
+      const filesByDirectory = {};
+      files.forEach(file => {
+        const pathParts = file.webkitRelativePath.split('/');
+        const directory = pathParts.slice(0, -1).join('/') || 'Root';
+        if (!filesByDirectory[directory]) {
+          filesByDirectory[directory] = [];
+        }
+        filesByDirectory[directory].push(file);
+      });
+      
+      let totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      
+      directoryFileList.innerHTML = `
+        <h4>Selected Directory Contents:</h4>
+        <div style="margin-bottom: 10px; font-weight: bold;">
+          Total: ${files.length} files (${(totalSize / 1024).toFixed(1)} KB)
+        </div>
+      `;
+      
+      // Display files grouped by directory
+      Object.keys(filesByDirectory).sort().forEach(directory => {
+        const directoryDiv = document.createElement('div');
+        directoryDiv.style.cssText = 'margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;';
+        
+        const directoryHeader = document.createElement('div');
+        directoryHeader.style.cssText = 'font-weight: bold; margin-bottom: 5px; color: #333;';
+        directoryHeader.innerHTML = `📁 ${directory} (${filesByDirectory[directory].length} files)`;
+        directoryDiv.appendChild(directoryHeader);
+        
+        filesByDirectory[directory].forEach(file => {
+          const fileDiv = document.createElement('div');
+          fileDiv.style.cssText = 'padding: 2px 0 2px 20px; font-size: 0.9em; color: #666;';
+          fileDiv.innerHTML = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          directoryDiv.appendChild(fileDiv);
+        });
+        
+        directoryFileList.appendChild(directoryDiv);
+      });
+    });
+  }
+
+  if (directoryForm && directoryFileInput && directoryResult) {
+    directoryForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const files = Array.from(directoryFileInput.files);
+      if (files.length === 0) {
+        directoryResult.textContent = 'Please select a directory.';
+        return;
+      }
+      
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        // Include the relative path in the form data
+        formData.append(`file${index}`, file);
+        formData.append(`path${index}`, file.webkitRelativePath);
+      });
+      
+      directoryResult.textContent = 'Uploading directory...';
+      
+      fetch('/api/upload-directory', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        directoryResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      })
+      .catch(err => {
+        directoryResult.textContent = 'Directory upload failed: ' + err;
+      });
+    });
+  }
+
   // Image only upload
   const imageForm = document.getElementById('image-upload-form');
   const imageFileInput = document.getElementById('image-file-input');
