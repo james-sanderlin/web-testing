@@ -7,4 +7,5 @@ export const features = [
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
   { name: "PDF Demo", route: "#/pdf", file: "feature-pages/pdf.html" },
   { name: "Plupload Demo", route: "#/plupload", file: "feature-pages/plupload.html" },
+  { name: "DLP", route: "#/dlp", file: "feature-pages/dlp.html" },
 ];
