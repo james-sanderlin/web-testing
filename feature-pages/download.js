@@ -56,8 +56,17 @@ window.onNavigate_download = function() {
 };
 
 // If loaded directly, auto-init
-if (document.getElementById('file-search')) {
-  initializeDownloadPage();
+function checkAndInitialize() {
+  if (document.getElementById('file-search')) {
+    initializeDownloadPage();
+  }
+}
+
+// Check if DOM is already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', checkAndInitialize);
+} else {
+  checkAndInitialize();
 }
 
 // Download functions

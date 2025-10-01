@@ -540,6 +540,15 @@ window.onNavigate_upload = function() {
 };
 
 // If loaded directly, auto-init
-if (document.getElementById('upload-search')) {
-  initializeUploadPage();
+function checkAndInitialize() {
+  if (document.getElementById('upload-search')) {
+    initializeUploadPage();
+  }
+}
+
+// Check if DOM is already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', checkAndInitialize);
+} else {
+  checkAndInitialize();
 }

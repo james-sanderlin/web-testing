@@ -28,7 +28,7 @@ const nav = setupNav(features, navList, search, (route) => {
   addRecent(route);
 });
 
-function loadPage() {
+function loadPage(isNavigation = false) {
   const route = location.hash || "#/home";
   const match = features.find(f => f.route === route);
   if (!match) {
@@ -36,11 +36,13 @@ function loadPage() {
     return;
   }
 
-  // Clear any search parameters when navigating to a new page
-  const url = new URL(window.location);
-  if (url.searchParams.has('search')) {
-    url.searchParams.delete('search');
-    window.history.replaceState({}, '', url);
+  // Only clear search parameters when navigating between different pages, not on page load/refresh
+  if (isNavigation) {
+    const url = new URL(window.location);
+    if (url.searchParams.has('search')) {
+      url.searchParams.delete('search');
+      window.history.replaceState({}, '', url);
+    }
   }
 
   // Track recent page on navigation (for direct hash changes/bookmarks)
@@ -78,7 +80,7 @@ function loadPage() {
 }
 
 window.addEventListener("hashchange", () => {
-  loadPage();
+  loadPage(true); // This is navigation between pages
   nav.renderNav(search.value);
 });
-window.addEventListener("load", loadPage);
+window.addEventListener("load", () => loadPage(false)); // This is initial load/refresh
