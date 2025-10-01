@@ -1,5 +1,5 @@
 // Download page logic
-(function() {
+function initializeDownloadPage() {
   // Search functionality
   const searchInput = document.getElementById('file-search');
   const fileCards = document.querySelectorAll('.file-card');
@@ -48,7 +48,17 @@
       card.classList.toggle('hidden', !matches);
     });
   }
-})();
+}
+
+// SPA navigation handler
+window.onNavigate_download = function() {
+  initializeDownloadPage();
+};
+
+// If loaded directly, auto-init
+if (document.getElementById('file-search')) {
+  initializeDownloadPage();
+}
 
 // Download functions
 window.downloadTinyFile = function() {

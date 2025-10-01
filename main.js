@@ -36,6 +36,13 @@ function loadPage() {
     return;
   }
 
+  // Clear any search parameters when navigating to a new page
+  const url = new URL(window.location);
+  if (url.searchParams.has('search')) {
+    url.searchParams.delete('search');
+    window.history.replaceState({}, '', url);
+  }
+
   // Track recent page on navigation (for direct hash changes/bookmarks)
   if (route !== '#/home') addRecent(route);
 
