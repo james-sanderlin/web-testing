@@ -1,34 +1,96 @@
 // Upload page logic
-(function() {
-  // Single file upload (existing)
-  const form = document.getElementById('upload-form');
-  const fileInput = document.getElementById('file-input');
-  const result = document.getElementById('upload-result');
-  const uploadButton = form?.querySelector('md-filled-button[type="submit"]');
+function initializeUploadPage() {
+  // Search functionality
+  const searchInput = document.getElementById('upload-search');
+  const uploadCards = document.querySelectorAll('.upload-card');
   
-  // Initially hide the upload button
-  if (uploadButton) {
-    uploadButton.style.visibility = 'hidden';
-    uploadButton.style.height = '0';
-    uploadButton.style.margin = '0';
-    uploadButton.style.overflow = 'hidden';
+  if (searchInput) {
+    // Handle URL parameters for deep-linkable searches
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('search');
+    if (searchTerm) {
+      searchInput.value = searchTerm;
+      filterUploads(searchTerm);
+    }
+    
+    searchInput.addEventListener('input', function(e) {
+      const term = e.target.value;
+      filterUploads(term);
+      
+      // Update URL for deep-linking
+      if (term) {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('search', term);
+        window.history.replaceState({}, '', newUrl);
+      } else {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('search');
+        window.history.replaceState({}, '', newUrl);
+      }
+    });
   }
   
-  if (form && fileInput && result) {
-    // Show/hide upload button based on file selection
+  function filterUploads(searchTerm) {
+    const term = searchTerm.toLowerCase();
+    uploadCards.forEach(card => {
+      const name = card.dataset.name?.toLowerCase() || '';
+      const type = card.dataset.type?.toLowerCase() || '';
+      const method = card.dataset.method?.toLowerCase() || '';
+      const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+      const description = card.querySelector('p')?.textContent.toLowerCase() || '';
+      
+      const matches = name.includes(term) || 
+                     type.includes(term) || 
+                     method.includes(term) || 
+                     title.includes(term) || 
+                     description.includes(term);
+      
+      card.classList.toggle('hidden', !matches);
+    });
+  }
+
+  // Initialize upload functionality
+  initializeSingleFileUpload();
+  initializeMultiFileUpload();
+  initializeDirectoryUpload();
+  initializeImageUpload();
+  initializeFileSystemAPI();
+}
+
+function initializeSingleFileUpload() {
+  const form = document.getElementById('upload-form');
+  const fileInput = document.getElementById('file-input');
+  const fileInputBtn = document.querySelector('label[for="file-input"]');
+  const result = document.getElementById('upload-result');
+  const uploadButton = form?.querySelector('button[type="submit"]');
+  
+  if (form && fileInput && result && uploadButton && fileInputBtn) {
+    // Show/hide upload button and update file input button appearance
     fileInput.addEventListener('change', function() {
-      if (uploadButton) {
-        if (this.files.length > 0) {
-          uploadButton.style.visibility = 'visible';
-          uploadButton.style.height = '';
-          uploadButton.style.margin = '';
-          uploadButton.style.overflow = '';
-        } else {
-          uploadButton.style.visibility = 'hidden';
-          uploadButton.style.height = '0';
-          uploadButton.style.margin = '0';
-          uploadButton.style.overflow = 'hidden';
-        }
+      const hasFiles = this.files.length > 0;
+      
+      // Update upload button visibility
+      if (hasFiles) {
+        uploadButton.style.visibility = 'visible';
+        uploadButton.style.height = '';
+        uploadButton.style.margin = '';
+        uploadButton.style.overflow = '';
+      } else {
+        uploadButton.style.visibility = 'hidden';
+        uploadButton.style.height = '0';
+        uploadButton.style.margin = '0';
+        uploadButton.style.overflow = 'hidden';
+      }
+      
+      // Update file input button appearance and text
+      if (hasFiles) {
+        fileInputBtn.classList.add('has-files');
+        const fileName = this.files[0].name;
+        const truncatedName = fileName.length > 20 ? fileName.substring(0, 20) + '...' : fileName;
+        fileInputBtn.innerHTML = `<span class="material-icons">check_circle</span>${truncatedName}`;
+      } else {
+        fileInputBtn.classList.remove('has-files');
+        fileInputBtn.innerHTML = `<span class="material-icons">attach_file</span>Choose File`;
       }
     });
     
@@ -54,39 +116,41 @@
       });
     });
   }
+}
 
-  // Multi-file upload
+function initializeMultiFileUpload() {
   const multiForm = document.getElementById('multi-upload-form');
   const multiFileInput = document.getElementById('multi-file-input');
+  const multiFileInputBtn = document.querySelector('label[for="multi-file-input"]');
   const multiFileList = document.getElementById('multi-file-list');
   const multiResult = document.getElementById('multi-upload-result');
-  const multiUploadButton = multiForm?.querySelector('md-filled-button[type="submit"]');
+  const multiUploadButton = multiForm?.querySelector('button[type="submit"]');
   
-  // Initially hide the multi-upload button
-  if (multiUploadButton) {
-    multiUploadButton.style.visibility = 'hidden';
-    multiUploadButton.style.height = '0';
-    multiUploadButton.style.margin = '0';
-    multiUploadButton.style.overflow = 'hidden';
-  }
-  
-  if (multiFileInput && multiFileList) {
+  if (multiFileInput && multiFileList && multiUploadButton && multiFileInputBtn) {
     multiFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
+      const hasFiles = files.length > 0;
       
       // Show/hide upload button based on file selection
-      if (multiUploadButton) {
-        if (files.length > 0) {
-          multiUploadButton.style.visibility = 'visible';
-          multiUploadButton.style.height = '';
-          multiUploadButton.style.margin = '';
-          multiUploadButton.style.overflow = '';
-        } else {
-          multiUploadButton.style.visibility = 'hidden';
-          multiUploadButton.style.height = '0';
-          multiUploadButton.style.margin = '0';
-          multiUploadButton.style.overflow = 'hidden';
-        }
+      if (hasFiles) {
+        multiUploadButton.style.visibility = 'visible';
+        multiUploadButton.style.height = '';
+        multiUploadButton.style.margin = '';
+        multiUploadButton.style.overflow = '';
+      } else {
+        multiUploadButton.style.visibility = 'hidden';
+        multiUploadButton.style.height = '0';
+        multiUploadButton.style.margin = '0';
+        multiUploadButton.style.overflow = 'hidden';
+      }
+      
+      // Update file input button appearance and text
+      if (hasFiles) {
+        multiFileInputBtn.classList.add('has-files');
+        multiFileInputBtn.innerHTML = `<span class="material-icons">check_circle</span>${files.length} file${files.length !== 1 ? 's' : ''} selected`;
+      } else {
+        multiFileInputBtn.classList.remove('has-files');
+        multiFileInputBtn.innerHTML = `<span class="material-icons">library_add</span>Choose Multiple Files`;
       }
       
       if (files.length === 0) {
@@ -103,38 +167,75 @@
     });
   }
 
-  // Directory upload
+  if (multiForm && multiFileInput && multiResult) {
+    multiForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const files = Array.from(multiFileInput.files);
+      if (files.length === 0) {
+        multiResult.textContent = 'Please select one or more files.';
+        return;
+      }
+      
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`file${index}`, file);
+      });
+      
+      multiResult.textContent = 'Uploading...';
+      
+      fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        multiResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      })
+      .catch(err => {
+        multiResult.textContent = 'Multi-upload failed: ' + err;
+      });
+    });
+  }
+}
+
+function initializeDirectoryUpload() {
   const directoryForm = document.getElementById('directory-upload-form');
   const directoryFileInput = document.getElementById('directory-file-input');
+  const directoryFileInputBtn = document.querySelector('label[for="directory-file-input"]');
   const directoryFileList = document.getElementById('directory-file-list');
   const directoryResult = document.getElementById('directory-upload-result');
-  const directoryUploadButton = directoryForm?.querySelector('md-filled-button[type="submit"]');
+  const directoryUploadButton = directoryForm?.querySelector('button[type="submit"]');
   
-  // Initially hide the directory upload button
-  if (directoryUploadButton) {
-    directoryUploadButton.style.visibility = 'hidden';
-    directoryUploadButton.style.height = '0';
-    directoryUploadButton.style.margin = '0';
-    directoryUploadButton.style.overflow = 'hidden';
-  }
-  
-  if (directoryFileInput && directoryFileList) {
+  if (directoryFileInput && directoryFileList && directoryUploadButton && directoryFileInputBtn) {
     directoryFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
+      const hasFiles = files.length > 0;
       
       // Show/hide upload button based on file selection
-      if (directoryUploadButton) {
-        if (files.length > 0) {
-          directoryUploadButton.style.visibility = 'visible';
-          directoryUploadButton.style.height = '';
-          directoryUploadButton.style.margin = '';
-          directoryUploadButton.style.overflow = '';
-        } else {
-          directoryUploadButton.style.visibility = 'hidden';
-          directoryUploadButton.style.height = '0';
-          directoryUploadButton.style.margin = '0';
-          directoryUploadButton.style.overflow = 'hidden';
-        }
+      if (hasFiles) {
+        directoryUploadButton.style.visibility = 'visible';
+        directoryUploadButton.style.height = '';
+        directoryUploadButton.style.margin = '';
+        directoryUploadButton.style.overflow = '';
+      } else {
+        directoryUploadButton.style.visibility = 'hidden';
+        directoryUploadButton.style.height = '0';
+        directoryUploadButton.style.margin = '0';
+        directoryUploadButton.style.overflow = 'hidden';
+      }
+      
+      // Update file input button appearance and text
+      if (hasFiles) {
+        directoryFileInputBtn.classList.add('has-files');
+        // Get directory name from first file's path
+        const firstFile = files[0];
+        const pathParts = firstFile.webkitRelativePath.split('/');
+        const dirName = pathParts[0] || 'Directory';
+        const truncatedName = dirName.length > 15 ? dirName.substring(0, 15) + '...' : dirName;
+        directoryFileInputBtn.innerHTML = `<span class="material-icons">check_circle</span>${truncatedName} (${files.length} files)`;
+      } else {
+        directoryFileInputBtn.classList.remove('has-files');
+        directoryFileInputBtn.innerHTML = `<span class="material-icons">folder_open</span>Choose Directory`;
       }
       
       if (files.length === 0) {
@@ -195,7 +296,6 @@
       
       const formData = new FormData();
       files.forEach((file, index) => {
-        // Include the relative path in the form data
         formData.append(`file${index}`, file);
         formData.append(`path${index}`, file.webkitRelativePath);
       });
@@ -215,39 +315,41 @@
       });
     });
   }
+}
 
-  // Image only upload
+function initializeImageUpload() {
   const imageForm = document.getElementById('image-upload-form');
   const imageFileInput = document.getElementById('image-file-input');
+  const imageFileInputBtn = document.querySelector('label[for="image-file-input"]');
   const imagePreview = document.getElementById('image-preview');
   const imageResult = document.getElementById('image-upload-result');
-  const imageUploadButton = imageForm?.querySelector('md-filled-button[type="submit"]');
+  const imageUploadButton = imageForm?.querySelector('button[type="submit"]');
   
-  // Initially hide the image upload button
-  if (imageUploadButton) {
-    imageUploadButton.style.visibility = 'hidden';
-    imageUploadButton.style.height = '0';
-    imageUploadButton.style.margin = '0';
-    imageUploadButton.style.overflow = 'hidden';
-  }
-  
-  if (imageFileInput && imagePreview) {
+  if (imageFileInput && imagePreview && imageUploadButton && imageFileInputBtn) {
     imageFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
+      const hasFiles = files.length > 0;
       
       // Show/hide upload button based on file selection
-      if (imageUploadButton) {
-        if (files.length > 0) {
-          imageUploadButton.style.visibility = 'visible';
-          imageUploadButton.style.height = '';
-          imageUploadButton.style.margin = '';
-          imageUploadButton.style.overflow = '';
-        } else {
-          imageUploadButton.style.visibility = 'hidden';
-          imageUploadButton.style.height = '0';
-          imageUploadButton.style.margin = '0';
-          imageUploadButton.style.overflow = 'hidden';
-        }
+      if (hasFiles) {
+        imageUploadButton.style.visibility = 'visible';
+        imageUploadButton.style.height = '';
+        imageUploadButton.style.margin = '';
+        imageUploadButton.style.overflow = '';
+      } else {
+        imageUploadButton.style.visibility = 'hidden';
+        imageUploadButton.style.height = '0';
+        imageUploadButton.style.margin = '0';
+        imageUploadButton.style.overflow = 'hidden';
+      }
+      
+      // Update file input button appearance and text
+      if (hasFiles) {
+        imageFileInputBtn.classList.add('has-files');
+        imageFileInputBtn.innerHTML = `<span class="material-icons">check_circle</span>${files.length} image${files.length !== 1 ? 's' : ''} selected`;
+      } else {
+        imageFileInputBtn.classList.remove('has-files');
+        imageFileInputBtn.innerHTML = `<span class="material-icons">add_photo_alternate</span>Choose Images`;
       }
       
       if (files.length === 0) {
@@ -316,53 +418,28 @@
       });
     });
   }
+}
 
-  if (multiForm && multiFileInput && multiResult) {
-    multiForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const files = Array.from(multiFileInput.files);
-      if (files.length === 0) {
-        multiResult.textContent = 'Please select one or more files.';
-        return;
-      }
-      
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append(`file${index}`, file);
-      });
-      
-      multiResult.textContent = 'Uploading...';
-      
-      fetch('/api/upload-multiple', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        multiResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-      })
-      .catch(err => {
-        multiResult.textContent = 'Multi-upload failed: ' + err;
-      });
-    });
-  }
-
-  // File System Access API
-  const fsResult = document.getElementById('fs-result');
+function initializeFileSystemAPI() {
+  const fsResultSingle = document.getElementById('fs-result-single');
+  const fsResultMultiple = document.getElementById('fs-result-multiple');
+  const fsResultSave = document.getElementById('fs-result-save');
   
   // Check if File System Access API is supported
   const isFileSystemAccessSupported = 'showOpenFilePicker' in window;
   
-  if (!isFileSystemAccessSupported && fsResult) {
-    fsResult.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
+  if (!isFileSystemAccessSupported) {
+    if (fsResultSingle) fsResultSingle.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
+    if (fsResultMultiple) fsResultMultiple.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
+    if (fsResultSave) fsResultSave.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
   }
 
   // Open single file
   const fsOpenFile = document.getElementById('fs-open-file');
-  if (fsOpenFile && fsResult) {
+  if (fsOpenFile && fsResultSingle) {
     fsOpenFile.addEventListener('click', async function() {
       if (!isFileSystemAccessSupported) {
-        fsResult.textContent = 'File System Access API not supported';
+        fsResultSingle.textContent = 'File System Access API not supported';
         return;
       }
       
@@ -375,14 +452,14 @@
         });
         
         const file = await fileHandle.getFile();
-        fsResult.innerHTML = `<strong>Selected file:</strong><br>
+        fsResultSingle.innerHTML = `<strong>Selected file:</strong><br>
           Name: ${file.name}<br>
           Size: ${(file.size / 1024).toFixed(1)} KB<br>
           Type: ${file.type || 'unknown'}<br>
           Last Modified: ${new Date(file.lastModified).toLocaleString()}`;
       } catch (err) {
         if (err.name !== 'AbortError') {
-          fsResult.textContent = 'Error: ' + err.message;
+          fsResultSingle.textContent = 'Error: ' + err.message;
         }
       }
     });
@@ -390,10 +467,10 @@
 
   // Open multiple files
   const fsOpenMultiple = document.getElementById('fs-open-multiple');
-  if (fsOpenMultiple && fsResult) {
+  if (fsOpenMultiple && fsResultMultiple) {
     fsOpenMultiple.addEventListener('click', async function() {
       if (!isFileSystemAccessSupported) {
-        fsResult.textContent = 'File System Access API not supported';
+        fsResultMultiple.textContent = 'File System Access API not supported';
         return;
       }
       
@@ -410,13 +487,13 @@
           fileHandles.map(handle => handle.getFile())
         );
         
-        fsResult.innerHTML = `<strong>Selected ${files.length} files:</strong><br>` +
+        fsResultMultiple.innerHTML = `<strong>Selected ${files.length} files:</strong><br>` +
           files.map(file => 
             `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
           ).join('<br>');
       } catch (err) {
         if (err.name !== 'AbortError') {
-          fsResult.textContent = 'Error: ' + err.message;
+          fsResultMultiple.textContent = 'Error: ' + err.message;
         }
       }
     });
@@ -424,10 +501,10 @@
 
   // Save file
   const fsSaveFile = document.getElementById('fs-save-file');
-  if (fsSaveFile && fsResult) {
+  if (fsSaveFile && fsResultSave) {
     fsSaveFile.addEventListener('click', async function() {
       if (!isFileSystemAccessSupported) {
-        fsResult.textContent = 'File System Access API not supported';
+        fsResultSave.textContent = 'File System Access API not supported';
         return;
       }
       
@@ -445,14 +522,24 @@
         await writable.write(content);
         await writable.close();
         
-        fsResult.innerHTML = `<strong>File saved successfully!</strong><br>
+        fsResultSave.innerHTML = `<strong>File saved successfully!</strong><br>
           File: ${fileHandle.name}<br>
           Content: ${content.length} characters`;
       } catch (err) {
         if (err.name !== 'AbortError') {
-          fsResult.textContent = 'Error: ' + err.message;
+          fsResultSave.textContent = 'Error: ' + err.message;
         }
       }
     });
   }
-})();
+}
+
+// SPA navigation handler
+window.onNavigate_upload = function() {
+  initializeUploadPage();
+};
+
+// If loaded directly, auto-init
+if (document.getElementById('upload-search')) {
+  initializeUploadPage();
+}
