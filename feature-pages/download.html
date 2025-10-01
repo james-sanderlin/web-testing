@@ -9,13 +9,31 @@
 <!-- File grid container -->
 <div id="file-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
   
+  <!-- Dynamic timestamped file -->
+  <div class="file-card" data-filename="timestamp.txt" data-type="text" data-size="dynamic">
+    <div class="file-content">
+      <div class="file-icon">⏰</div>
+      <div class="file-info">
+        <h3>Dynamic File</h3>
+        <p>Generated with current timestamp</p>
+        <span class="file-meta">TXT • &lt;1KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadTimestampFile()">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
   <!-- Small text file -->
   <div class="file-card" data-filename="tiny-file.txt" data-type="text" data-size="tiny">
-    <div class="file-icon">📄</div>
-    <div class="file-info">
-      <h3>Tiny Text File</h3>
-      <p>Small sample text file (&lt;1KB)</p>
-      <span class="file-meta">TXT • &lt;1KB</span>
+    <div class="file-content">
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <h3>Tiny Text File</h3>
+        <p>Small sample text file (&lt;1KB)</p>
+        <span class="file-meta">TXT • &lt;1KB</span>
+      </div>
     </div>
     <button class="download-btn" onclick="downloadTinyFile()">
       <span class="material-icons">download</span>
@@ -25,11 +43,13 @@
 
   <!-- Large text file -->
   <div class="file-card" data-filename="large-file.txt" data-type="text" data-size="large">
-    <div class="file-icon">📄</div>
-    <div class="file-info">
-      <h3>Large Text File</h3>
-      <p>10MB text file for testing large downloads</p>
-      <span class="file-meta">TXT • 10MB</span>
+    <div class="file-content">
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <h3>Large Text File</h3>
+        <p>Larger text file</p>
+        <span class="file-meta">TXT • 10MB</span>
+      </div>
     </div>
     <button class="download-btn" onclick="downloadLargeFile()">
       <span class="material-icons">download</span>
@@ -37,27 +57,15 @@
     </button>
   </div>
 
-  <!-- Dynamic timestamped file -->
-  <div class="file-card" data-filename="timestamp.txt" data-type="text" data-size="dynamic">
-    <div class="file-icon">⏰</div>
-    <div class="file-info">
-      <h3>Dynamic Timestamp File</h3>
-      <p>Generated with current timestamp</p>
-      <span class="file-meta">TXT • Dynamic</span>
-    </div>
-    <button class="download-btn" onclick="downloadTimestampFile()">
-      <span class="material-icons">download</span>
-      Download
-    </button>
-  </div>
-
   <!-- Sample image -->
   <div class="file-card" data-filename="sample.png" data-type="image" data-size="medium">
-    <div class="file-icon">🖼️</div>
-    <div class="file-info">
-      <h3>Sample Image</h3>
-      <p>PNG image file for testing</p>
-      <span class="file-meta">PNG • 150KB</span>
+    <div class="file-content">
+      <div class="file-icon">🖼️</div>
+      <div class="file-info">
+        <h3>Sample Image</h3>
+        <p>PNG image file for testing</p>
+        <span class="file-meta">PNG • 150KB</span>
+      </div>
     </div>
     <button class="download-btn" onclick="downloadSampleImage()">
       <span class="material-icons">download</span>
@@ -67,11 +75,13 @@
 
   <!-- Sample video -->
   <div class="file-card" data-filename="sample.mp4" data-type="video" data-size="large">
-    <div class="file-icon">🎥</div>
-    <div class="file-info">
-      <h3>Sample Video</h3>
-      <p>MP4 video file for testing</p>
-      <span class="file-meta">MP4 • 70KB</span>
+    <div class="file-content">
+      <div class="file-icon">🎥</div>
+      <div class="file-info">
+        <h3>Sample Video</h3>
+        <p>MP4 video file for testing</p>
+        <span class="file-meta">MP4 • 70KB</span>
+      </div>
     </div>
     <a href="assets/sample_video.mp4" download class="download-btn">
       <span class="material-icons">download</span>
@@ -81,11 +91,13 @@
 
   <!-- Sample PDF -->
   <div class="file-card" data-filename="sample.pdf" data-type="pdf" data-size="medium">
-    <div class="file-icon">📋</div>
-    <div class="file-info">
-      <h3>Sample PDF</h3>
-      <p>PDF document for testing</p>
-      <span class="file-meta">PDF • 2MB</span>
+    <div class="file-content">
+      <div class="file-icon">📋</div>
+      <div class="file-info">
+        <h3>Sample PDF</h3>
+        <p>PDF document for testing</p>
+        <span class="file-meta">PDF • 2MB</span>
+      </div>
     </div>
     <button class="download-btn" onclick="downloadSamplePDF()">
       <span class="material-icons">download</span>
@@ -98,7 +110,7 @@
 .file-card {
   border: 1px solid #e0e0e0;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -107,36 +119,39 @@
   gap: 1rem;
 }
 
-.file-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+.file-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
 }
 
 .file-icon {
-  font-size: 3rem;
-  text-align: center;
-  padding: 1rem 0;
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  align-self: baseline;
 }
 
 .file-info {
   flex: 1;
+  min-width: 0;
 }
 
 .file-info h3 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
   font-size: 1.1rem;
   color: #333;
 }
 
 .file-info p {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
   color: #666;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  line-height: 1.3;
 }
 
 .file-meta {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
   font-weight: 500;
   text-transform: uppercase;
@@ -148,12 +163,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.6rem;
   background: #007cba;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
