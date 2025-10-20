@@ -20,6 +20,15 @@
     </div>
 
     <div>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">MIME Type Override:</label>
+      <select id="mimeTypeOverride" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="correct">Correct MIME Type</option>
+        <option value="octet-stream">application/octet-stream (Problematic)</option>
+        <option value="plain">text/plain (Wrong)</option>
+      </select>
+    </div>
+
+    <div>
       <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">X-Download-Options:</label>
       <select id="downloadOptions" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
         <option value="noopen">noopen (Problematic)</option>

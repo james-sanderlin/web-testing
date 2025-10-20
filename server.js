@@ -18,7 +18,18 @@ app.use(express.static('.', {
 
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
-  const { file, headers, disposition, test } = req.query;
+  const { file, headers, disposition, mimeType, test } = req.query;
+  
+  // Log the download request
+  console.log(`📥 Download request received:`, {
+    file,
+    headers,
+    disposition,
+    mimeType,
+    test,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
+  });
   
   // Map file types to actual files
   const fileMap = {
@@ -43,8 +54,20 @@ app.get('/api/download-test', (req, res) => {
     'txt': 'text/plain'
   };
   
+  // Determine Content-Type based on MIME type override
+  let contentType = mimeTypes[file] || 'application/octet-stream';
+  
+  if (mimeType === 'octet-stream') {
+    contentType = 'application/octet-stream';
+    console.log(`🚨 MIME Type Override: Using application/octet-stream instead of ${mimeTypes[file]}`);
+  } else if (mimeType === 'plain') {
+    contentType = 'text/plain';
+    console.log(`⚠️ MIME Type Override: Using text/plain instead of ${mimeTypes[file]}`);
+  }
+  
   // Set Content-Type
-  res.setHeader('Content-Type', mimeTypes[file] || 'application/octet-stream');
+  console.log(`🔥 Setting Content-Type: ${contentType} for ${fileName}`);
+  res.setHeader('Content-Type', contentType);
   
   // Set Content-Disposition
   const dispositionType = disposition || 'attachment';
@@ -53,10 +76,18 @@ app.get('/api/download-test', (req, res) => {
   // Set X-Download-Options header (the key part!)
   if (headers && headers !== 'none') {
     res.setHeader('X-Download-Options', headers);
-    console.log(`Setting X-Download-Options: ${headers} for ${fileName}`);
+    console.log(`🔥 Setting X-Download-Options: ${headers} for ${fileName}`);
   } else {
-    console.log(`No X-Download-Options header for ${fileName}`);
+    console.log(`📝 No X-Download-Options header for ${fileName}`);
   }
+  
+  // Log all response headers being sent
+  console.log(`📤 Response headers:`, {
+    'Content-Type': res.get('Content-Type'),
+    'Content-Disposition': res.get('Content-Disposition'),
+    'X-Download-Options': res.get('X-Download-Options') || 'Not Set',
+    'Cache-Control': res.get('Cache-Control')
+  });
   
   // Set other security headers
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

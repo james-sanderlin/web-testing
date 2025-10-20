@@ -1,9 +1,10 @@
-// Download Headers Test Logic
+// Download Headers Test Logic - Clean version with network visibility
 function initializeDownloadHeadersTest() {
   // Get DOM elements
   const fileTypeSelect = document.getElementById('fileType');
   const downloadOptionsSelect = document.getElementById('downloadOptions');
   const contentDispositionSelect = document.getElementById('contentDisposition');
+  const mimeTypeOverrideSelect = document.getElementById('mimeTypeOverride');
   const testDownloadBtn = document.getElementById('testDownload');
   const testRedirectBtn = document.getElementById('testRedirect');
   const clearResultsBtn = document.getElementById('clearResults');
@@ -38,10 +39,19 @@ function initializeDownloadHeadersTest() {
       : `attachment; filename="${filename}"`;
   }
 
-  function updateHeadersDisplay(config, downloadOption, contentDisposition) {
+  function updateHeadersDisplay(config, downloadOption, contentDisposition, mimeTypeOverride) {
     const filename = `test-${testCounter}${config.extension}`;
+    
+    // Apply MIME type override
+    let actualMimeType = config.mimeType;
+    if (mimeTypeOverride === 'octet-stream') {
+      actualMimeType = 'application/octet-stream';
+    } else if (mimeTypeOverride === 'plain') {
+      actualMimeType = 'text/plain';
+    }
+    
     const headers = {
-      'Content-Type': config.mimeType,
+      'Content-Type': actualMimeType,
       'Content-Disposition': getContentDispositionHeader(contentDisposition, filename),
       'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
       'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -56,29 +66,67 @@ function initializeDownloadHeadersTest() {
 
   async function checkServerAvailability() {
     try {
+      console.log('🔍 Checking server health at /api/health...');
       const response = await fetch('/api/health');
+      console.log('📡 Health check response:', response.status, response.statusText);
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Server data:', data);
         addResult('success', `✅ Express server detected: ${data.message}`, new Date().toLocaleTimeString());
         return true;
       }
     } catch (error) {
+      console.log('❌ Health check failed:', error);
       addResult('warning', `⚠️ Express server not available. Using static file server fallback.`, new Date().toLocaleTimeString());
       addResult('info', `To test real X-Download-Options headers, run: npm run server`, new Date().toLocaleTimeString());
     }
     return false;
   }
 
-  function performRealServerDownload(config, downloadOption, contentDisposition, testId) {
+  async function performRealServerDownload(config, downloadOption, contentDisposition, testId) {
+    const mimeTypeOverride = mimeTypeOverrideSelect.value;
+    
     const params = new URLSearchParams({
       file: config.extension.substring(1),
       headers: downloadOption,
       disposition: contentDisposition,
+      mimeType: mimeTypeOverride,
       test: testId
     });
     
     const serverUrl = `/api/download-test?${params.toString()}`;
+    console.log('🚀 Making download request to:', serverUrl);
     addResult('info', `🔥 Using Express server endpoint: ${serverUrl}`, new Date().toLocaleTimeString());
+    
+    // Add MIME type warning for problematic configurations
+    if (mimeTypeOverride === 'octet-stream') {
+      addResult('warning', `⚠️ MIME Type Override: application/octet-stream - This should reproduce the customer issue!`, new Date().toLocaleTimeString());
+    } else if (mimeTypeOverride === 'plain') {
+      addResult('warning', `⚠️ MIME Type Override: text/plain - Wrong MIME type for testing`, new Date().toLocaleTimeString());
+    }
+
+    // Make a HEAD request first to inspect headers (visible in Network tab)
+    try {
+      addResult('info', `🔍 Inspecting headers first (check Network tab for HEAD request)...`, new Date().toLocaleTimeString());
+      
+      const headResponse = await fetch(serverUrl, { method: 'HEAD' });
+      console.log('📡 HEAD response status:', headResponse.status);
+      console.log('📡 HEAD response headers:', [...headResponse.headers.entries()]);
+      
+      const headersList = [...headResponse.headers.entries()]
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n');
+      
+      addResult('success', `📋 Server response headers (from HEAD request):\n${headersList}`, new Date().toLocaleTimeString());
+      
+    } catch (error) {
+      console.error('❌ HEAD request failed:', error);
+      addResult('warning', `HEAD request failed: ${error.message}`, new Date().toLocaleTimeString());
+    }
+
+    // Now trigger the actual download
+    console.log('💾 Triggering actual download...');
+    addResult('info', `💾 Starting download: ${serverUrl}`, new Date().toLocaleTimeString());
     
     const link = document.createElement('a');
     link.href = serverUrl;
@@ -90,21 +138,10 @@ function initializeDownloadHeadersTest() {
     
     addResult('success', `✅ Real server download with X-Download-Options: ${downloadOption}`, new Date().toLocaleTimeString());
     
-    const headerInfo = {
-      'Content-Type': config.mimeType,
-      'Content-Disposition': getContentDispositionHeader(contentDisposition, link.download),
-      'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
-      'Cache-Control': 'no-cache, no-store, must-revalidate'
-    };
-    
-    const headerText = Object.entries(headerInfo)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('\n');
-    
-    addResult('info', `🌐 Real HTTP headers being sent:\n${headerText}`, new Date().toLocaleTimeString());
-    
-    if (downloadOption === 'noopen') {
-      addResult('warning', `🚨 X-Download-Options: noopen header is now active! This should reproduce the customer issue in Chromium browsers.`, new Date().toLocaleTimeString());
+    // Special warning for the customer's exact issue
+    if (mimeTypeOverride === 'octet-stream' && config.extension === '.docx') {
+      addResult('error', `💥 CUSTOMER ISSUE REPRODUCTION: Word document served as application/octet-stream! This should cause the exact issue - Word won't open properly from download bubble.`, new Date().toLocaleTimeString());
+      addResult('info', `Expected behavior: Download bubble shows generic file icon, "Open" button may be disabled or launch wrong app, Word shows permission/corruption errors.`, new Date().toLocaleTimeString());
     }
   }
 
@@ -127,19 +164,6 @@ function initializeDownloadHeadersTest() {
       document.body.removeChild(link);
       
       addResult('success', `Real Word document downloaded: ${filename}`, new Date().toLocaleTimeString());
-      
-      const headerInfo = {
-        'Content-Type': config.mimeType,
-        'Content-Disposition': getContentDispositionHeader(contentDisposition, filename),
-        'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      };
-      
-      const headerText = Object.entries(headerInfo)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n');
-      
-      addResult('info', `Headers that would be set on real server:\n${headerText}`, new Date().toLocaleTimeString());
       
     } catch (error) {
       addResult('error', `Asset download failed: ${error.message}`, new Date().toLocaleTimeString());
@@ -173,12 +197,6 @@ function initializeDownloadHeadersTest() {
       const link = document.createElement('a');
       link.href = url;
       link.download = `test-${testId}${config.extension}`;
-      
-      const headerInfo = {
-        'Content-Type': config.mimeType,
-        'Content-Disposition': getContentDispositionHeader(contentDisposition, link.download),
-        'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption
-      };
       
       document.body.appendChild(link);
       link.click();
@@ -295,10 +313,16 @@ For more information about this issue, check the browser console and network tab
     const fileType = fileTypeSelect.value;
     const downloadOption = downloadOptionsSelect.value;
     const contentDisposition = contentDispositionSelect.value;
+    const mimeTypeOverride = mimeTypeOverrideSelect.value;
     const config = fileConfigs[fileType];
     
-    addResult('info', `Test #${testCounter} started: ${config.description} with X-Download-Options: ${downloadOption}`, timestamp);
-    updateHeadersDisplay(config, downloadOption, contentDisposition);
+    let testDescription = `${config.description} with X-Download-Options: ${downloadOption}`;
+    if (mimeTypeOverride !== 'correct') {
+      testDescription += ` and MIME type: ${mimeTypeOverride === 'octet-stream' ? 'application/octet-stream' : 'text/plain'}`;
+    }
+    
+    addResult('info', `Test #${testCounter} started: ${testDescription}`, timestamp);
+    updateHeadersDisplay(config, downloadOption, contentDisposition, mimeTypeOverride);
     
     if (useRedirect) {
       performRedirectDownload(config, downloadOption, contentDisposition, testCounter);
