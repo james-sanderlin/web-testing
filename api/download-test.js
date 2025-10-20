@@ -1,6 +1,9 @@
 // Download Headers Test API
 // This simulates the X-Download-Options header issue
 
+import fs from 'fs';
+import path from 'path';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.status(405).send('Method Not Allowed');
@@ -9,27 +12,27 @@ export default async function handler(req, res) {
 
   const { file = 'docx', headers = 'noopen', disposition = 'attachment', test = '1' } = req.query;
   
-  // File configurations
+  // File configurations with actual asset files
   const fileConfigs = {
     docx: {
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       extension: '.docx',
-      content: generateWordContent()
+      assetFile: 'word-test.docx'
     },
     pdf: {
       mimeType: 'application/pdf',
       extension: '.pdf',
-      content: generatePDFContent()
+      content: generatePDFContent() // Keep generated PDF for now
     },
     txt: {
       mimeType: 'text/plain',
       extension: '.txt',
-      content: generateTextContent()
+      content: generateTextContent() // Keep generated text
     },
     zip: {
       mimeType: 'application/zip',
       extension: '.zip',
-      content: generateZipContent()
+      assetFile: 'hello-world.zip' // Use existing ZIP file
     }
   };
 
@@ -69,8 +72,26 @@ export default async function handler(req, res) {
   // Log the test for debugging
   console.log(`Download test: ${filename}, X-Download-Options: ${headers}, Content-Disposition: ${disposition}`);
 
-  // Send the file content
-  res.status(200).send(config.content);
+  try {
+    // Send file content - either from assets or generated
+    if (config.assetFile) {
+      // Serve actual file from assets directory
+      const assetPath = path.join(process.cwd(), 'assets', config.assetFile);
+      
+      if (fs.existsSync(assetPath)) {
+        const fileBuffer = fs.readFileSync(assetPath);
+        res.status(200).send(fileBuffer);
+      } else {
+        res.status(404).send(`Asset file not found: ${config.assetFile}`);
+      }
+    } else {
+      // Send generated content
+      res.status(200).send(config.content);
+    }
+  } catch (error) {
+    console.error('Error serving file:', error);
+    res.status(500).send('Error serving file');
+  }
 }
 
 function generateWordContent() {

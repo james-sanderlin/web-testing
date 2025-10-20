@@ -1,5 +1,6 @@
 // Download Headers Test Logic
 function initializeDownloadHeadersTest() {
+  // Get DOM elements
   const fileTypeSelect = document.getElementById('fileType');
   const downloadOptionsSelect = document.getElementById('downloadOptions');
   const contentDispositionSelect = document.getElementById('contentDisposition');
@@ -11,183 +12,7 @@ function initializeDownloadHeadersTest() {
   
   let testCounter = 0;
 
-  // Test configurations
-  const fileConfigs = {
-    docx: {
-      extension: '.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      content: generateWordContent(),
-      description: 'Word Document'
-    },
-    pdf: {
-      extension: '.pdf',
-      mimeType: 'application/pdf',
-      content: generatePDFContent(),
-      description: 'PDF Document'
-    },
-    txt: {
-      extension: '.txt',
-      mimeType: 'text/plain',
-      content: generateTextContent(),
-      description: 'Text File'
-    },
-    zip: {
-      extension: '.zip',
-      mimeType: 'application/zip',
-      content: generateZipContent(),
-      description: 'ZIP Archive'
-    }
-  };
-
-  // Event listeners
-  testDownloadBtn?.addEventListener('click', () => performDownloadTest(false));
-  testRedirectBtn?.addEventListener('click', () => performDownloadTest(true));
-  clearResultsBtn?.addEventListener('click', clearResults);
-
-  function performDownloadTest(useRedirect = false) {
-    testCounter++;
-    const timestamp = new Date().toLocaleTimeString();
-    
-    const fileType = fileTypeSelect.value;
-    const downloadOption = downloadOptionsSelect.value;
-    const contentDisposition = contentDispositionSelect.value;
-    const config = fileConfigs[fileType];
-    
-    // Log test start
-    addResult('info', `Test #${testCounter} started: ${config.description} with X-Download-Options: ${downloadOption}`, timestamp);
-    
-    // Update headers display
-    updateHeadersDisplay(config, downloadOption, contentDisposition);
-    
-    if (useRedirect) {
-      performRedirectDownload(config, downloadOption, contentDisposition, testCounter);
-    } else {
-      performDirectDownload(config, downloadOption, contentDisposition, testCounter);
-    }
-  }
-
-  function performDirectDownload(config, downloadOption, contentDisposition, testId) {
-    try {
-      // Create blob with appropriate content
-      const blob = new Blob([config.content], { type: config.mimeType });
-      const url = URL.createObjectURL(blob);
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `test-${testId}${config.extension}`;
-      
-      // Simulate headers by adding them to the filename or using a service worker
-      // Note: In a real scenario, these headers would be set by the server
-      const headerInfo = {
-        'Content-Type': config.mimeType,
-        'Content-Disposition': getContentDispositionHeader(contentDisposition, link.download),
-        'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption
-      };
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up blob URL after a delay
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      
-      addResult('success', `Download initiated: ${link.download}`, new Date().toLocaleTimeString());
-      addResult('info', `Note: This is a client-side simulation. For full testing, use the server endpoints below.`, new Date().toLocaleTimeString());
-      
-      // Show server-side testing suggestion
-      showServerSideOptions(config, downloadOption, contentDisposition, testId);
-      
-    } catch (error) {
-      addResult('error', `Download failed: ${error.message}`, new Date().toLocaleTimeString());
-    }
-  }
-
-  function performRedirectDownload(config, downloadOption, contentDisposition, testId) {
-    // Create a URL that would simulate a redirect scenario
-    const params = new URLSearchParams({
-      file: config.extension.substring(1), // Remove the dot
-      headers: downloadOption,
-      disposition: contentDisposition,
-      test: testId
-    });
-    
-    // In a real scenario, this would be a server endpoint
-    const redirectUrl = `/api/download-test?${params.toString()}`;
-    
-    addResult('info', `Redirect download would use: ${redirectUrl}`, new Date().toLocaleTimeString());
-    addResult('info', `For full testing, implement server endpoint with proper headers`, new Date().toLocaleTimeString());
-    
-    // Fallback to direct download for demo
-    performDirectDownload(config, downloadOption, contentDisposition, testId);
-  }
-
-  function showServerSideOptions(config, downloadOption, contentDisposition, testId) {
-    const serverCode = generateServerCode(config, downloadOption, contentDisposition, testId);
-    addResult('info', `Server implementation needed for full header testing:`, new Date().toLocaleTimeString());
-    
-    const codeBlock = document.createElement('div');
-    codeBlock.style.cssText = 'background: #f5f5f5; padding: 1rem; margin: 0.5rem 0; border-radius: 4px; font-family: monospace; font-size: 0.8em; white-space: pre-wrap; overflow-x: auto;';
-    codeBlock.textContent = serverCode;
-    
-    const lastResult = resultsContent.lastElementChild;
-    if (lastResult) {
-      lastResult.appendChild(codeBlock);
-    }
-  }
-
-  function generateServerCode(config, downloadOption, contentDisposition, testId) {
-    return `// Node.js/Express endpoint
-app.get('/api/download-test', (req, res) => {
-  const headers = {
-    'Content-Type': '${config.mimeType}',
-    'Content-Disposition': '${getContentDispositionHeader(contentDisposition, `test-${testId}${config.extension}`)}',
-    ${downloadOption !== 'none' ? `'X-Download-Options': '${downloadOption}',` : '// X-Download-Options not set'}
-    'Cache-Control': 'no-cache',
-    'Content-Security-Policy': "default-src 'self'"
-  };
-  
-  res.set(headers);
-  res.sendFile(path.join(__dirname, 'test-files/sample${config.extension}'));
-});
-
-// Test this endpoint by visiting:
-// ${window.location.origin}/api/download-test?file=${config.extension.substring(1)}&headers=${downloadOption}&disposition=${contentDisposition}&test=${testId}`;
-  }
-
-  function getContentDispositionHeader(disposition, filename) {
-    switch (disposition) {
-      case 'attachment':
-        return 'attachment';
-      case 'inline':
-        return 'inline';
-      case 'attachment-filename':
-        return `attachment; filename="${filename}"`;
-      default:
-        return 'attachment';
-    }
-  }
-
-  function updateHeadersDisplay(config, downloadOption, contentDisposition) {
-    const headers = {
-      'Content-Type': config.mimeType,
-      'Content-Disposition': getContentDispositionHeader(contentDisposition, `test${config.extension}`),
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    };
-    
-    if (downloadOption !== 'none') {
-      headers['X-Download-Options'] = downloadOption;
-    }
-    
-    const headerText = Object.entries(headers)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('\n');
-    
-    currentHeaders.textContent = `Response Headers:\n${headerText}`;
-  }
+  // ====== HELPER FUNCTIONS ======
 
   function addResult(type, message, time) {
     const resultDiv = document.createElement('div');
@@ -198,8 +23,6 @@ app.get('/api/download-test', (req, res) => {
     `;
     
     resultsContent.appendChild(resultDiv);
-    
-    // Scroll to bottom
     resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -209,10 +32,170 @@ app.get('/api/download-test', (req, res) => {
     testCounter = 0;
   }
 
-  // File content generators
+  function getContentDispositionHeader(disposition, filename) {
+    return disposition === 'inline' 
+      ? `inline; filename="${filename}"` 
+      : `attachment; filename="${filename}"`;
+  }
+
+  function updateHeadersDisplay(config, downloadOption, contentDisposition) {
+    const filename = `test-${testCounter}${config.extension}`;
+    const headers = {
+      'Content-Type': config.mimeType,
+      'Content-Disposition': getContentDispositionHeader(contentDisposition, filename),
+      'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    };
+    
+    const headerText = Object.entries(headers)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+    
+    currentHeaders.textContent = `Response Headers:\n${headerText}`;
+  }
+
+  async function checkServerAvailability() {
+    try {
+      const response = await fetch('/api/health');
+      if (response.ok) {
+        const data = await response.json();
+        addResult('success', `✅ Express server detected: ${data.message}`, new Date().toLocaleTimeString());
+        return true;
+      }
+    } catch (error) {
+      addResult('warning', `⚠️ Express server not available. Using static file server fallback.`, new Date().toLocaleTimeString());
+      addResult('info', `To test real X-Download-Options headers, run: npm run server`, new Date().toLocaleTimeString());
+    }
+    return false;
+  }
+
+  function performRealServerDownload(config, downloadOption, contentDisposition, testId) {
+    const params = new URLSearchParams({
+      file: config.extension.substring(1),
+      headers: downloadOption,
+      disposition: contentDisposition,
+      test: testId
+    });
+    
+    const serverUrl = `/api/download-test?${params.toString()}`;
+    addResult('info', `🔥 Using Express server endpoint: ${serverUrl}`, new Date().toLocaleTimeString());
+    
+    const link = document.createElement('a');
+    link.href = serverUrl;
+    link.download = `test-${testId}${config.extension}`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    addResult('success', `✅ Real server download with X-Download-Options: ${downloadOption}`, new Date().toLocaleTimeString());
+    
+    const headerInfo = {
+      'Content-Type': config.mimeType,
+      'Content-Disposition': getContentDispositionHeader(contentDisposition, link.download),
+      'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    };
+    
+    const headerText = Object.entries(headerInfo)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+    
+    addResult('info', `🌐 Real HTTP headers being sent:\n${headerText}`, new Date().toLocaleTimeString());
+    
+    if (downloadOption === 'noopen') {
+      addResult('warning', `🚨 X-Download-Options: noopen header is now active! This should reproduce the customer issue in Chromium browsers.`, new Date().toLocaleTimeString());
+    }
+  }
+
+  function performAssetFileDownload(config, downloadOption, contentDisposition, testId) {
+    try {
+      const assetUrl = 'assets/word-test.docx';
+      const filename = `test-${testId}${config.extension}`;
+      
+      addResult('info', `Downloading real Word document: ${assetUrl}`, new Date().toLocaleTimeString());
+      
+      const link = document.createElement('a');
+      link.href = assetUrl;
+      link.download = filename;
+      
+      const headerNote = `Note: This downloads the real DOCX file, but cannot set custom headers like X-Download-Options: ${downloadOption} due to static file server limitations.`;
+      addResult('info', headerNote, new Date().toLocaleTimeString());
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      addResult('success', `Real Word document downloaded: ${filename}`, new Date().toLocaleTimeString());
+      
+      const headerInfo = {
+        'Content-Type': config.mimeType,
+        'Content-Disposition': getContentDispositionHeader(contentDisposition, filename),
+        'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption,
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      };
+      
+      const headerText = Object.entries(headerInfo)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n');
+      
+      addResult('info', `Headers that would be set on real server:\n${headerText}`, new Date().toLocaleTimeString());
+      
+    } catch (error) {
+      addResult('error', `Asset download failed: ${error.message}`, new Date().toLocaleTimeString());
+    }
+  }
+
+  function performFallbackDownload(config, downloadOption, contentDisposition, testId) {
+    if (config.extension === '.docx') {
+      return performAssetFileDownload(config, downloadOption, contentDisposition, testId);
+    }
+    
+    addResult('info', `Since we're using static file server, falling back to client-side download`, new Date().toLocaleTimeString());
+    performDirectDownload(config, downloadOption, contentDisposition, testId);
+  }
+
+  async function performRedirectDownload(config, downloadOption, contentDisposition, testId) {
+    const hasExpressServer = await checkServerAvailability();
+    
+    if (hasExpressServer) {
+      return performRealServerDownload(config, downloadOption, contentDisposition, testId);
+    } else {
+      return performFallbackDownload(config, downloadOption, contentDisposition, testId);
+    }
+  }
+
+  function performDirectDownload(config, downloadOption, contentDisposition, testId) {
+    try {
+      const blob = new Blob([config.content()], { type: config.mimeType });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `test-${testId}${config.extension}`;
+      
+      const headerInfo = {
+        'Content-Type': config.mimeType,
+        'Content-Disposition': getContentDispositionHeader(contentDisposition, link.download),
+        'X-Download-Options': downloadOption === 'none' ? 'Not Set' : downloadOption
+      };
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
+      addResult('success', `Client-side download completed: ${link.download}`, new Date().toLocaleTimeString());
+      addResult('info', `Note: Client-side downloads cannot set real HTTP headers. Server test recommended for accurate reproduction.`, new Date().toLocaleTimeString());
+      
+    } catch (error) {
+      addResult('error', `Download failed: ${error.message}`, new Date().toLocaleTimeString());
+    }
+  }
+
+  // Content generators
   function generateWordContent() {
-    // Minimal DOCX structure (this is a simplified version)
-    // In practice, you'd want to use a proper DOCX generator or have a real file
     return `This is a test Word document for X-Download-Options header testing.
 
 Content: Test document created at ${new Date().toISOString()}
@@ -222,86 +205,31 @@ Issue: X-Download-Options: noopen prevents direct opening from download bubble
 Instructions:
 1. Download this file with X-Download-Options: noopen header
 2. Try to open directly from browser download bubble
-3. Observe if Word shows "file permissions" error
-4. Repeat test without the header to see difference
+3. Observe any permission errors or restrictions
+4. Compare with downloads without the header
 
 Technical Details:
 - Browser: ${navigator.userAgent}
 - Timestamp: ${Date.now()}
-- Test Environment: Web Testing Lab`;
+
+Note: This is a simplified text version. For real testing, use actual DOCX files.`;
   }
 
   function generatePDFContent() {
-    // Minimal PDF structure
     return `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
->>
->>
->>
-endobj
-
-4 0 obj
-<<
-/Length 85
->>
-stream
-BT
-/F1 12 Tf
-100 700 Td
-(X-Download-Options Header Test PDF) Tj
-0 -20 Td
-(Created: ${new Date().toISOString()}) Tj
-ET
-endstream
-endobj
-
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-
-xref
-0 6
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R>>endobj
+4 0 obj<</Length 55>>stream
+BT/F1 12 Tf 100 700 Td(X-Download-Options Test PDF)Tj ET
+endstream endobj
+xref 0 5
 0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000110 00000 n 
-0000000297 00000 n 
-0000000431 00000 n 
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-528
-%%EOF`;
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000214 00000 n 
+trailer<</Size 5/Root 1 0 R>>startxref 300 %%EOF`;
   }
 
   function generateTextContent() {
@@ -318,51 +246,85 @@ Test Details:
 
 The Issue:
 When the X-Download-Options: noopen header is present, Chromium-based browsers
-prevent direct opening of downloaded files from the download bubble. This can
-cause "file permissions" errors, especially with Office documents.
+prevent direct opening of downloaded files from the download bubble.
 
-Test Steps:
-1. Download this file with the problematic header
-2. Try opening from download bubble
-3. Compare with version without header
-
-Expected Results:
-- With header: May show restrictions or warnings
-- Without header: Normal opening behavior
-
-For more information about this issue, check the browser console and
-network tab to see the actual headers being sent.`;
+For more information about this issue, check the browser console and network tab.`;
   }
 
   function generateZipContent() {
-    // Simple ZIP file header (empty ZIP)
-    const zipHeader = new Uint8Array([
-      0x50, 0x4B, 0x05, 0x06, // End of central directory signature
-      0x00, 0x00,             // Number of this disk
-      0x00, 0x00,             // Disk where central directory starts
-      0x00, 0x00,             // Number of central directory records on this disk
-      0x00, 0x00,             // Total number of central directory records
-      0x00, 0x00, 0x00, 0x00, // Size of central directory
-      0x00, 0x00, 0x00, 0x00, // Offset of central directory
-      0x00, 0x00              // ZIP file comment length
+    return new Uint8Array([
+      0x50, 0x4B, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     ]);
-    return zipHeader;
   }
+
+  // ====== MAIN LOGIC ======
+
+  const fileConfigs = {
+    docx: {
+      extension: '.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      content: () => generateWordContent(),
+      description: 'Word Document'
+    },
+    pdf: {
+      extension: '.pdf',
+      mimeType: 'application/pdf',
+      content: () => generatePDFContent(),
+      description: 'PDF Document'
+    },
+    txt: {
+      extension: '.txt',
+      mimeType: 'text/plain',
+      content: () => generateTextContent(),
+      description: 'Text File'
+    },
+    zip: {
+      extension: '.zip',
+      mimeType: 'application/zip',
+      content: () => generateZipContent(),
+      description: 'ZIP Archive'
+    }
+  };
+
+  function performDownloadTest(useRedirect = false) {
+    testCounter++;
+    const timestamp = new Date().toLocaleTimeString();
+    
+    const fileType = fileTypeSelect.value;
+    const downloadOption = downloadOptionsSelect.value;
+    const contentDisposition = contentDispositionSelect.value;
+    const config = fileConfigs[fileType];
+    
+    addResult('info', `Test #${testCounter} started: ${config.description} with X-Download-Options: ${downloadOption}`, timestamp);
+    updateHeadersDisplay(config, downloadOption, contentDisposition);
+    
+    if (useRedirect) {
+      performRedirectDownload(config, downloadOption, contentDisposition, testCounter);
+    } else {
+      performDirectDownload(config, downloadOption, contentDisposition, testCounter);
+    }
+  }
+
+  // Event listeners
+  testDownloadBtn?.addEventListener('click', () => performDownloadTest(false));
+  testRedirectBtn?.addEventListener('click', () => performDownloadTest(true));
+  clearResultsBtn?.addEventListener('click', clearResults);
 }
 
-// SPA navigation handler
-window.onNavigate_downloadheaders = function() {
+// Export function for navigation handler
+window.onNavigate_download_headers = function() {
   initializeDownloadHeadersTest();
 };
 
-// If loaded directly, auto-init
+// Initialize if DOM is ready
 function checkAndInitialize() {
   if (document.getElementById('testDownload')) {
     initializeDownloadHeadersTest();
   }
 }
 
-// Check if DOM is already loaded
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', checkAndInitialize);
 } else {

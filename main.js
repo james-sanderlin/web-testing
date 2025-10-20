@@ -61,7 +61,7 @@ function loadPage(isNavigation = false) {
             if (r.ok) {
               const script = document.createElement('script');
               script.src = jsPath;
-              script.type = 'module';
+              // Don't set type='module' since page scripts are regular scripts
               document.body.appendChild(script);
               script.onload = () => {
                 if (window[handlerName]) {

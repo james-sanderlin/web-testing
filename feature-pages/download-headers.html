@@ -42,16 +42,22 @@
   <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
     <button id="testDownload" class="test-btn primary">
       <span class="material-icons">download</span>
-      Test Download
+      Client-side Test
     </button>
     <button id="testRedirect" class="test-btn">
-      <span class="material-icons">launch</span>
-      Test with Redirect
+      <span class="material-icons">cloud_download</span>
+      Server Test (Real Headers)*
     </button>
     <button id="clearResults" class="test-btn secondary">
       <span class="material-icons">clear</span>
       Clear Results
     </button>
+  </div>
+  
+  <div style="margin-top: 1rem; padding: 0.75rem; background: #f0f7ff; border: 1px solid #0969da; border-radius: 6px; font-size: 0.875rem;">
+    <strong>*Server Test Note:</strong> Currently using static file server. 
+    The Server Test will download the actual Word document and show what headers would be set, 
+    but cannot set real HTTP headers. For full header testing, switch to an Express.js server.
   </div>
 </div>
 
@@ -100,15 +106,15 @@
   <h3>🧪 How to Test</h3>
   <ol style="margin: 0;">
     <li><strong>Set X-Download-Options to "noopen"</strong> and select Word Document</li>
-    <li><strong>Click "Test Download"</strong> to download a test file</li>
+    <li><strong>Click "Server Test (Real Headers)"</strong> to download the actual Word document and see what headers would be set in a real server environment</li>
     <li><strong>Try to open the file</strong> directly from the browser's download bubble</li>
     <li><strong>Observe the error</strong> - Word should show "file permissions" error</li>
-    <li><strong>Change setting to "Not Set"</strong> and repeat</li>
+    <li><strong>Change setting to "Not Set"</strong> and repeat the server test</li>
     <li><strong>Compare behavior</strong> - file should open normally without the header</li>
   </ol>
   
   <div style="margin-top: 1rem; padding: 0.5rem; background: #fff; border-radius: 4px;">
-    <strong>💡 Pro Tip:</strong> Test in Chrome/Edge for best reproduction. The issue is most visible with Office documents.
+    <strong>💡 Pro Tip:</strong> Use "Server Test" for Word documents to get real DOCX files. The client-side test uses generated content for demonstration only.
   </div>
 </div>
 
