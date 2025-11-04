@@ -136,29 +136,35 @@
         function triggerDownload() {
             downloadCount++;
             
-            const fileName = `auto_download_${Date.now()}.txt`;
-            const content = `Auto-download file from popup!\nDownload #${downloadCount}\nTimestamp: ${new Date().toISOString()}\nWindow: ${window.name}\n\nThis mimics ServiceNow's tearOffAttachment behavior.`;
+            // Use actual files from assets folder instead of blob
+            const availableFiles = [
+                { url: '../assets/word-test.docx', name: 'word-test.docx' },
+                { url: '../assets/sample-email.eml', name: 'sample-email.eml' },
+                { url: '../assets/test.mp3', name: 'test.mp3' }
+            ];
             
-            logMessage(`Triggering auto-download #${downloadCount}: ${fileName}`);
-            updateStatus('📥 Downloading file...', 'downloading');
+            // Cycle through files or pick randomly
+            const fileIndex = (downloadCount - 1) % availableFiles.length;
+            const selectedFile = availableFiles[fileIndex];
             
-            // Create blob and download
-            const blob = new Blob([content], {type: "text/plain"});
-            const url = URL.createObjectURL(blob);
+            logMessage(`Triggering auto-download #${downloadCount}: ${selectedFile.name}`);
+            updateStatus(`📥 Downloading ${selectedFile.name}...`, 'downloading');
+            
+            // Create download link for actual file
             const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName;
+            a.href = selectedFile.url;
+            a.download = selectedFile.name;
+            a.style.display = 'none';
             
             // Add to DOM, click, then remove
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             
-            // Clean up blob URL and update UI
+            // Update UI
             setTimeout(() => {
-                URL.revokeObjectURL(url);
-                logMessage(`Download completed: ${fileName}`);
-                updateStatus('✅ Download completed!', 'completed');
+                logMessage(`Download initiated: ${selectedFile.name}`);
+                updateStatus(`✅ Download initiated: ${selectedFile.name}`, 'completed');
                 
                 // Show controls for additional testing
                 document.getElementById('controls').style.display = 'block';

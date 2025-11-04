@@ -87,41 +87,55 @@
         function triggerDownload(fileName = null) {
             downloadCount++;
             
-            const actualFileName = fileName || `test_${Date.now()}.txt`;
-            const content = `Hello world from popup download!\nDownload #${downloadCount}\nTimestamp: ${new Date().toISOString()}\nWindow: ${window.name}`;
+            // Use actual files from assets folder instead of blob
+            const availableFiles = [
+                { url: '../assets/test-file.txt', name: 'test-file.txt' },
+                { url: '../assets/hello-world.zip', name: 'hello-world.zip' },
+                { url: '../assets/word-test.docx', name: 'word-test.docx' },
+                { url: '../assets/sample-email.eml', name: 'sample-email.eml' },
+                { url: '../assets/test.mp3', name: 'test.mp3' }
+            ];
             
-            logMessage(`Triggering download #${downloadCount}: ${actualFileName}`);
+            let selectedFile;
+            if (fileName) {
+                // If specific fileName provided, try to find it or use first file
+                selectedFile = availableFiles.find(f => f.name === fileName) || availableFiles[0];
+            } else {
+                // Cycle through files
+                const fileIndex = (downloadCount - 1) % availableFiles.length;
+                selectedFile = availableFiles[fileIndex];
+            }
             
-            // Create blob and download
-            const blob = new Blob([content], {type: "text/plain"});
-            const url = URL.createObjectURL(blob);
+            logMessage(`Triggering download #${downloadCount}: ${selectedFile.name}`);
+            
+            // Create download link for actual file
             const a = document.createElement("a");
-            a.href = url;
-            a.download = actualFileName;
+            a.href = selectedFile.url;
+            a.download = selectedFile.name;
+            a.style.display = 'none';
             
-            // Add to DOM, click, then remove (some browsers require this)
+            // Add to DOM, click, then remove
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             
-            // Clean up blob URL
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-                logMessage(`Cleaned up blob URL for ${actualFileName}`);
-            }, 1000);
-            
             // Update UI
-            document.getElementById('fileName').textContent = actualFileName;
-            document.getElementById('fileSize').textContent = `~${content.length} bytes`;
+            setTimeout(() => {
+                logMessage(`Download initiated: ${selectedFile.name}`);
+                
+                // Update UI
+                document.getElementById('fileName').textContent = selectedFile.name;
+                document.getElementById('fileSize').textContent = 'Actual file from assets';
+            }, 100);
         }
         
         function downloadMultiple() {
             logMessage('Starting multiple downloads...');
             
-            // Download 3 files with small delays (to test rapid downloads)
-            setTimeout(() => triggerDownload('file1_multiple.txt'), 100);
-            setTimeout(() => triggerDownload('file2_multiple.txt'), 300);
-            setTimeout(() => triggerDownload('file3_multiple.txt'), 500);
+            // Download 3 different files with small delays (to test rapid downloads)
+            setTimeout(() => triggerDownload('hello-world.zip'), 100);
+            setTimeout(() => triggerDownload('word-test.docx'), 300);
+            setTimeout(() => triggerDownload('test.mp3'), 500);
         }
         
         // Set up event listeners when page loads
