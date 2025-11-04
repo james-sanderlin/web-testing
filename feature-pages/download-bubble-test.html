@@ -1,32 +1,21 @@
-<h2>📥 Download Bubble Test</h2>
-<p>This page reproduces the ServiceNow download popup behavior to test custom download bubble issues.</p>
+<h2>📥 ServiceNow Download Test</h2>
+<p>This page reproduces ServiceNow's tearOffAttachment download behavior to test custom download bubble issues.</p>
 
 <div class="instructions">
     <h3>🧠 Testing Instructions:</h3>
     <ol>
-        <li><strong>Baseline Test:</strong> Click "Open Download Popup" multiple times. Each creates a new popup window.</li>
-        <li><strong>Reuse Test:</strong> Click "Open Download Popup (Reused Window)" multiple times. Same window is reused.</li>
-        <li><strong>Auto Test:</strong> Click "Auto-Download Popup" - downloads immediately when popup opens.</li>
+        <li><strong>Click the button below</strong> to open a popup that immediately downloads a file (like ServiceNow).</li>
+        <li><strong>Test multiple times</strong> to reproduce the download bubble issue.</li>
         <li><strong>Observe:</strong> Watch where your custom download bubble appears and if it shows empty on subsequent downloads.</li>
+        <li><strong>Check console</strong> for extension logs and error messages.</li>
     </ol>
 </div>
 
 <div class="test-section">
-    <h3>🔧 Test 1: Baseline (New Window Each Time)</h3>
-    <p>Each click opens a new popup window. Click counter: <span class="counter" id="newWindowCounter">0</span></p>
-    <button class="test-button" onclick="tearOffDownload()">Open Download Popup</button>
-</div>
-
-<div class="test-section">
-    <h3>🔄 Test 2: Window Reuse (Same Window Name)</h3>
-    <p>Reuses the same popup window. This often triggers the bug. Click counter: <span class="counter" id="reuseCounter">0</span></p>
-    <button class="test-button variation-button" onclick="tearOffDownloadReuse()">Open Download Popup (Reused Window)</button>
-</div>
-
-<div class="test-section">
-    <h3>⚡ Test 3: Auto-Download (ServiceNow Style)</h3>
-    <p>Downloads immediately when popup opens (like ServiceNow). Click counter: <span class="counter" id="autoCounter">0</span></p>
-    <button class="test-button auto-button" onclick="tearOffAutoDownload()">Auto-Download Popup</button>
+    <h3>⚡ ServiceNow Auto-Download Test</h3>
+    <p>Mimics ServiceNow's tearOffAttachment behavior - popup opens and immediately downloads a file.</p>
+    <p>Downloads performed: <span class="counter" id="autoCounter">0</span></p>
+    <button class="test-button auto-button" onclick="tearOffAutoDownload()">Test ServiceNow Download</button>
 </div>
 
 <div class="test-section">
@@ -64,14 +53,6 @@
     
     .test-button:hover {
         background-color: #0056b3;
-    }
-    
-    .variation-button {
-        background-color: #28a745;
-    }
-    
-    .variation-button:hover {
-        background-color: #1e7e34;
     }
     
     .auto-button {
