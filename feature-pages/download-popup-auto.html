@@ -180,13 +180,12 @@
             if (!autoDownloadTriggered) {
                 autoDownloadTriggered = true;
                 
-                // Small delay to mimic ServiceNow's behavior
-                updateStatus('⏳ Initializing download...', 'downloading');
+                // Immediate download to reproduce ServiceNow's behavior faster
+                updateStatus('⚡ Starting download immediately...', 'downloading');
                 
-                startCountdown(3, () => {
-                    logMessage('Auto-triggering download (ServiceNow style)...');
-                    triggerDownload();
-                });
+                // Trigger download immediately instead of countdown
+                logMessage('Auto-triggering download immediately (ServiceNow style)...');
+                triggerDownload();
             }
         };
         
