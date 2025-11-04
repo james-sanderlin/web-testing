@@ -1,6 +1,9 @@
 import { features } from './features.js';
 import { setupNav } from './nav.js';
 
+// Make features available globally for page scripts
+window.features = features;
+
 const navList = document.getElementById('nav-links');
 const search = document.getElementById('search');
 const content = document.getElementById('content');
@@ -82,5 +85,10 @@ function loadPage(isNavigation = false) {
 window.addEventListener("hashchange", () => {
   loadPage(true); // This is navigation between pages
   nav.renderNav(search.value);
+  
+  // If we're navigating to home, update recent links
+  if (location.hash === '#/home' && window.onNavigate_home) {
+    setTimeout(window.onNavigate_home, 100); // Small delay to ensure DOM is ready
+  }
 });
 window.addEventListener("load", () => loadPage(false)); // This is initial load/refresh
