@@ -1,0 +1,96 @@
+<h2>📥 Download Bubble Test</h2>
+<p>This page reproduces the ServiceNow download popup behavior to test custom download bubble issues.</p>
+
+<div class="instructions">
+    <h3>🧠 Testing Instructions:</h3>
+    <ol>
+        <li><strong>Baseline Test:</strong> Click "Open Download Popup" multiple times. Each creates a new popup window.</li>
+        <li><strong>Reuse Test:</strong> Click "Open Download Popup (Reused Window)" multiple times. Same window is reused.</li>
+        <li><strong>Auto Test:</strong> Click "Auto-Download Popup" - downloads immediately when popup opens.</li>
+        <li><strong>Observe:</strong> Watch where your custom download bubble appears and if it shows empty on subsequent downloads.</li>
+    </ol>
+</div>
+
+<div class="test-section">
+    <h3>🔧 Test 1: Baseline (New Window Each Time)</h3>
+    <p>Each click opens a new popup window. Click counter: <span class="counter" id="newWindowCounter">0</span></p>
+    <button class="test-button" onclick="tearOffDownload()">Open Download Popup</button>
+</div>
+
+<div class="test-section">
+    <h3>🔄 Test 2: Window Reuse (Same Window Name)</h3>
+    <p>Reuses the same popup window. This often triggers the bug. Click counter: <span class="counter" id="reuseCounter">0</span></p>
+    <button class="test-button variation-button" onclick="tearOffDownloadReuse()">Open Download Popup (Reused Window)</button>
+</div>
+
+<div class="test-section">
+    <h3>⚡ Test 3: Auto-Download (ServiceNow Style)</h3>
+    <p>Downloads immediately when popup opens (like ServiceNow). Click counter: <span class="counter" id="autoCounter">0</span></p>
+    <button class="test-button auto-button" onclick="tearOffAutoDownload()">Auto-Download Popup</button>
+</div>
+
+<div class="test-section">
+    <h3>📊 Test Results</h3>
+    <div id="testResults">
+        <p>Open browser console to see detailed logs. Extension logs will help identify the issue.</p>
+        <p><strong>What to look for:</strong></p>
+        <ul>
+            <li>First download: bubble appears correctly</li>
+            <li>Subsequent downloads: bubble appears empty or doesn't appear</li>
+            <li>Console errors or extension background script logs</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+    
+    .test-button {
+        margin: 10px;
+        padding: 12px 24px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .test-button:hover {
+        background-color: #0056b3;
+    }
+    
+    .variation-button {
+        background-color: #28a745;
+    }
+    
+    .variation-button:hover {
+        background-color: #1e7e34;
+    }
+    
+    .auto-button {
+        background-color: #dc3545;
+    }
+    
+    .auto-button:hover {
+        background-color: #c82333;
+    }
+    
+    .instructions {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+    
+    .counter {
+        font-weight: bold;
+        color: #007bff;
+    }
+</style>

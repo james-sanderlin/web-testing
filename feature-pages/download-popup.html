@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Popup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .popup-content {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .download-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .file-info {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .close-button {
+            background-color: #6c757d;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        .close-button:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-content">
+        <h3>📁 Download Popup Window</h3>
+        <p>Click the button below to trigger a download and test your custom download bubble behavior.</p>
+        
+        <div class="file-info">
+            <strong>File:</strong> <span id="fileName">test_file.txt</span><br>
+            <strong>Size:</strong> <span id="fileSize">~50 bytes</span><br>
+            <strong>Type:</strong> Text file
+        </div>
+        
+        <button class="download-button" id="downloadBtn">📥 Download File</button>
+        <button class="download-button" onclick="downloadMultiple()">📥 Download 3 Files</button>
+        
+        <br><br>
+        <button class="download-button close-button" onclick="window.close()">❌ Close Window</button>
+        
+        <div id="downloadLog" style="margin-top: 20px; text-align: left; font-family: monospace; font-size: 12px; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">
+            <strong>Download Log:</strong><br>
+        </div>
+    </div>
+
+    <script>
+        let downloadCount = 0;
+        
+        function logMessage(message) {
+            const log = document.getElementById('downloadLog');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}<br>`;
+            console.log(`[Download Popup] ${message}`);
+        }
+        
+        function triggerDownload(fileName = null) {
+            downloadCount++;
+            
+            const actualFileName = fileName || `test_${Date.now()}.txt`;
+            const content = `Hello world from popup download!\nDownload #${downloadCount}\nTimestamp: ${new Date().toISOString()}\nWindow: ${window.name}`;
+            
+            logMessage(`Triggering download #${downloadCount}: ${actualFileName}`);
+            
+            // Create blob and download
+            const blob = new Blob([content], {type: "text/plain"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = actualFileName;
+            
+            // Add to DOM, click, then remove (some browsers require this)
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Clean up blob URL
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                logMessage(`Cleaned up blob URL for ${actualFileName}`);
+            }, 1000);
+            
+            // Update UI
+            document.getElementById('fileName').textContent = actualFileName;
+            document.getElementById('fileSize').textContent = `~${content.length} bytes`;
+        }
+        
+        function downloadMultiple() {
+            logMessage('Starting multiple downloads...');
+            
+            // Download 3 files with small delays (to test rapid downloads)
+            setTimeout(() => triggerDownload('file1_multiple.txt'), 100);
+            setTimeout(() => triggerDownload('file2_multiple.txt'), 300);
+            setTimeout(() => triggerDownload('file3_multiple.txt'), 500);
+        }
+        
+        // Set up event listeners when page loads
+        window.onload = () => {
+            logMessage(`Popup window loaded. Window name: "${window.name}"`);
+            
+            document.getElementById("downloadBtn").addEventListener("click", () => {
+                triggerDownload();
+            });
+            
+            // Focus the download button for easier testing
+            document.getElementById("downloadBtn").focus();
+            
+            // Log window details for debugging
+            logMessage(`Window dimensions: ${window.innerWidth}x${window.innerHeight}`);
+            logMessage(`Window opener exists: ${!!window.opener}`);
+        };
+        
+        // Log when window is about to close
+        window.addEventListener('beforeunload', () => {
+            logMessage('Popup window closing...');
+        });
+        
+        // Listen for focus events (helps debug window switching issues)
+        window.addEventListener('focus', () => {
+            logMessage('Popup window gained focus');
+        });
+        
+        window.addEventListener('blur', () => {
+            logMessage('Popup window lost focus');
+        });
+    </script>
+</body>
+</html>
