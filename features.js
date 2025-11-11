@@ -6,6 +6,7 @@ export const features = [
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
   { name: "ServiceNow Download Test", route: "#/download-bubble-test", file: "feature-pages/download-bubble-test.html" },
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
+  { name: "Fine Uploader Test", route: "#/fine-uploader", file: "feature-pages/fine-uploader.html" },
   { name: "Download Headers", route: "#/download-headers", file: "feature-pages/download-headers.html" },
   { name: "Download Headers (Simple)", route: "#/download-simple", file: "feature-pages/download-simple.html" },
   { name: "PDF Demo", route: "#/pdf", file: "feature-pages/pdf.html" },
