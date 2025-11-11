@@ -104,9 +104,23 @@ function setupDragEventListeners() {
         return;
     }
     
+    // Debounce timer for dragover events
+    let dragoverTimer = null;
+    let lastDragoverLog = 0;
+    const DRAGOVER_DEBOUNCE_MS = 500;
+    
     // Monitor all drag events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, function(e) {
+            // Debounce dragover events
+            if (eventName === 'dragover') {
+                const now = Date.now();
+                if (now - lastDragoverLog < DRAGOVER_DEBOUNCE_MS) {
+                    return;
+                }
+                lastDragoverLog = now;
+            }
+            
             console.log(`Drag Event [${eventName}]:`, {
                 type: e.type,
                 dataTransfer: e.dataTransfer,
@@ -121,7 +135,14 @@ function setupDragEventListeners() {
     });
     
     // Monitor document-level drag events (in case extension interferes)
+    let lastDocDragoverLog = 0;
     document.addEventListener('dragover', function(e) {
+        const now = Date.now();
+        if (now - lastDocDragoverLog < DRAGOVER_DEBOUNCE_MS) {
+            return;
+        }
+        lastDocDragoverLog = now;
+        
         console.log('Document dragover event:', {
             defaultPrevented: e.defaultPrevented,
             dataTransfer: !!e.dataTransfer
