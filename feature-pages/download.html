@@ -1,9 +1,29 @@
 <h2>📥 File Download</h2>
 
-<!-- Search functionality -->
-<div style="margin-bottom: 2rem;">
-  <input type="text" id="file-search" placeholder="Search by name or file type..." 
-         style="width: 100%; max-width: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;" />
+<!-- Header section with search and collapsible resources side-by-side -->
+<div style="display: flex; justify-content: space-between; align-items: start; gap: 1.5rem; margin-bottom: 2rem;">
+  
+  <!-- Search functionality -->
+  <div style="flex: 0 0 auto;">
+    <input type="text" id="file-search" placeholder="Search by name or file type..." 
+           style="width: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;" />
+  </div>
+
+  <!-- Collapsible External Resources -->
+  <details style="padding: 12px; background-color: #e9f5ff; border-left: 4px solid #007bff; border-radius: 4px; width: 500px; margin-left: auto;">
+    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+      🔗 External Resources
+    </summary>
+    <div style="margin-top: 10px; padding-left: 10px; font-size: 0.9rem;">
+      <a href="http://demo.borland.com/testsite/download_testpage.php" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">
+        Borland Download Test Page
+      </a> - Useful page for testing downloads in a variety of scenarios<br>
+      <a href="https://dlptest.com/sample-data/" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">
+        DLP Test
+      </a> - Test downloads with various file sizes and types
+    </div>
+  </details>
+
 </div>
 
 <!-- File grid container -->
