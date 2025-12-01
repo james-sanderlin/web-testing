@@ -5,18 +5,16 @@ const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
-// Serve static files locally only (Vercel serves from public/ automatically)
-if (process.env.VERCEL !== '1') {
-  app.use(express.static(path.join(__dirname), {
-    setHeaders: (res, filePath, stat) => {
-      if (filePath.endsWith('.js')) {
-        res.set('Content-Type', 'application/javascript');
-      } else if (filePath.endsWith('.mjs')) {
-        res.set('Content-Type', 'application/javascript');
-      }
+// Serve static files from public/ directory (works both locally and on Vercel)
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.set('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.mjs')) {
+      res.set('Content-Type', 'application/javascript');
     }
-  }));
-}
+  }
+}));
 
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
@@ -37,15 +35,8 @@ app.get('/api/download-test', (req, res) => {
     timestamp: new Date().toISOString()
   });
   
-  // Construct file path - support both assets/ and pdfs/ directories
-  // In Vercel, files are in public/, locally they're in root
-  const baseDir = process.env.VERCEL === '1' ? path.join(__dirname, 'public') : __dirname;
-  let filePath;
-  if (filename.endsWith('.pdf')) {
-    filePath = path.join(baseDir, 'pdfs', filename);
-  } else {
-    filePath = path.join(baseDir, 'assets', filename);
-  }
+  // Construct file path from assets directory
+  const filePath = path.join(__dirname, 'assets', filename);
   
   if (!fs.existsSync(filePath)) {
     console.error(`❌ File not found: ${filePath}`);
