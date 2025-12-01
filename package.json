@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Browser Test Lab",
   "scripts": {
-    "start": "yarn run serve .",
+    "start": "node server.js",
     "server": "node server.js",
     "dev": "node server.js"
   },

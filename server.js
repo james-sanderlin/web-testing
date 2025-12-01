@@ -35,34 +35,94 @@ app.get('/api/download-test', (req, res) => {
   const fileMap = {
     'docx': 'assets/word-test.docx',
     'pdf': 'pdfs/editable-form.pdf',
-    'txt': 'assets/test-file.txt'
+    'txt': 'assets/test-file.txt',
+    'png': 'assets/sample.png',
+    'apng': 'assets/sample-apng.png',
+    'jpg': 'assets/sample.jpg',
+    'gif': 'assets/sample.gif',
+    'tiff': 'assets/sample.tiff',
+    'avif': 'assets/sample.avif',
+    'jxl': 'assets/sample.jxl',
+    'bmp': 'assets/sample.bmp',
+    'webp': 'assets/sample.webp',
+    'xbm': 'assets/sample.xbm',
+    'mp4': 'assets/sample-video.mp4',
+    'webm': 'assets/sample-video.webm',
+    'mpg': 'assets/sample-video.mpg',
+    'zip': 'assets/hello-world.zip',
+    'eml': 'assets/sample-email.eml',
+    'exe': 'assets/test-exe.exe',
+    'csv': 'assets/hidden-exe.csv',
+    'svg': 'assets/hexagon.svg',
+    'heic': 'assets/cat.HEIC',
+    'mp3': 'assets/test.mp3',
+    'wav': 'assets/test.wav',
+    'm4a': 'assets/test.m4a',
+    'wma': 'assets/test.wma',
+    'ogg': 'assets/test.ogg',
+    'flac': 'assets/test.flac',
+    'xlsb': 'assets/XLSB_TEST.xlsb'
   };
   
   const filePath = fileMap[file];
   if (!filePath || !fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
+    console.error(`❌ File not found: ${filePath}`);
+    console.error(`   Looking in: ${path.resolve(filePath || 'undefined')}`);
+    console.error(`   Available files:`, Object.keys(fileMap));
+    return res.status(404).json({ 
+      error: 'File not found',
+      requested: file,
+      path: filePath,
+      resolved: path.resolve(filePath || 'undefined')
+    });
   }
   
   // Get file info
   const fileName = `test-${test || Date.now()}.${file}`;
   const stats = fs.statSync(filePath);
   
+  console.log(`✅ File found: ${filePath} (${stats.size} bytes)`);
+  
   // Set headers based on test configuration
   const mimeTypes = {
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'pdf': 'application/pdf',
-    'txt': 'text/plain'
+    'txt': 'text/plain',
+    'png': 'image/png',
+    'apng': 'image/apng',
+    'jpg': 'image/jpeg',
+    'gif': 'image/gif',
+    'tiff': 'image/tiff',
+    'avif': 'image/avif',
+    'jxl': 'image/jxl',
+    'bmp': 'image/bmp',
+    'webp': 'image/webp',
+    'xbm': 'image/x-xbitmap',
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+    'mpg': 'video/mpeg',
+    'zip': 'application/zip',
+    'eml': 'message/rfc822',
+    'exe': 'application/x-msdownload',
+    'csv': 'text/csv',
+    'svg': 'image/svg+xml',
+    'heic': 'image/heic',
+    'mp3': 'audio/mpeg',
+    'wav': 'audio/wav',
+    'm4a': 'audio/mp4',
+    'wma': 'audio/x-ms-wma',
+    'ogg': 'audio/ogg',
+    'flac': 'audio/flac',
+    'xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
   };
   
   // Determine Content-Type based on MIME type override
   let contentType = mimeTypes[file] || 'application/octet-stream';
   
-  if (mimeType === 'octet-stream') {
-    contentType = 'application/octet-stream';
-    console.log(`🚨 MIME Type Override: Using application/octet-stream instead of ${mimeTypes[file]}`);
-  } else if (mimeType === 'plain') {
-    contentType = 'text/plain';
-    console.log(`⚠️ MIME Type Override: Using text/plain instead of ${mimeTypes[file]}`);
+  // If mimeType query parameter is provided, use it directly as the Content-Type
+  if (mimeType) {
+    contentType = mimeType;
+    console.log(`⚠️ MIME Type Override: Using ${mimeType} instead of ${mimeTypes[file]}`);
   }
   
   // Set Content-Type

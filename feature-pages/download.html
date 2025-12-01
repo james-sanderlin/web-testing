@@ -9,6 +9,87 @@
            style="width: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;" />
   </div>
 
+  <!-- MIME Type Override -->
+  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 0.5rem;">
+    <label for="mime-override" style="font-size: 0.9rem; font-weight: 500; white-space: nowrap;">Override MIME:</label>
+    <input type="text" id="mime-override" list="mime-types" placeholder="e.g., image/x-png" 
+           style="width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.9rem;" />
+    <datalist id="mime-types">
+      <!-- Images -->
+      <option value="image/png">image/png</option>
+      <option value="image/x-png">image/x-png</option>
+      <option value="image/jpeg">image/jpeg</option>
+      <option value="image/jpg">image/jpg</option>
+      <option value="image/gif">image/gif</option>
+      <option value="image/webp">image/webp</option>
+      <option value="image/avif">image/avif</option>
+      <option value="image/apng">image/apng</option>
+      <option value="image/svg+xml">image/svg+xml</option>
+      <option value="image/tiff">image/tiff</option>
+      <option value="image/bmp">image/bmp</option>
+      <option value="image/vnd.microsoft.icon">image/vnd.microsoft.icon (ICO)</option>
+      <option value="image/heic">image/heic</option>
+      <option value="image/heif">image/heif</option>
+      
+      <!-- Documents -->
+      <option value="application/pdf">application/pdf</option>
+      <option value="application/vnd.openxmlformats-officedocument.wordprocessingml.document">application/vnd.openxmlformats-officedocument.wordprocessingml.document (DOCX)</option>
+      <option value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (XLSX)</option>
+      <option value="application/vnd.ms-excel">application/vnd.ms-excel (XLS)</option>
+      <option value="application/vnd.ms-excel.sheet.binary.macroEnabled.12">application/vnd.ms-excel.sheet.binary.macroEnabled.12 (XLSB)</option>
+      <option value="application/msword">application/msword (DOC)</option>
+      <option value="application/vnd.ms-powerpoint">application/vnd.ms-powerpoint (PPT)</option>
+      <option value="application/vnd.openxmlformats-officedocument.presentationml.presentation">application/vnd.openxmlformats-officedocument.presentationml.presentation (PPTX)</option>
+      
+      <!-- Text -->
+      <option value="text/plain">text/plain</option>
+      <option value="text/html">text/html</option>
+      <option value="text/css">text/css</option>
+      <option value="text/javascript">text/javascript</option>
+      <option value="text/csv">text/csv</option>
+      <option value="text/xml">text/xml</option>
+      
+      <!-- Audio -->
+      <option value="audio/mpeg">audio/mpeg (MP3)</option>
+      <option value="audio/wav">audio/wav</option>
+      <option value="audio/mp4">audio/mp4 (M4A)</option>
+      <option value="audio/x-ms-wma">audio/x-ms-wma (WMA)</option>
+      <option value="audio/ogg">audio/ogg</option>
+      <option value="audio/webm">audio/webm</option>
+      
+      <!-- Video -->
+      <option value="video/mp4">video/mp4</option>
+      <option value="video/mpeg">video/mpeg</option>
+      <option value="video/webm">video/webm</option>
+      <option value="video/ogg">video/ogg</option>
+      <option value="video/quicktime">video/quicktime (MOV)</option>
+      <option value="video/x-msvideo">video/x-msvideo (AVI)</option>
+      
+      <!-- Archives -->
+      <option value="application/zip">application/zip</option>
+      <option value="application/x-zip-compressed">application/x-zip-compressed</option>
+      <option value="application/x-rar-compressed">application/x-rar-compressed</option>
+      <option value="application/x-7z-compressed">application/x-7z-compressed</option>
+      <option value="application/gzip">application/gzip</option>
+      <option value="application/x-tar">application/x-tar</option>
+      
+      <!-- Other -->
+      <option value="application/octet-stream">application/octet-stream</option>
+      <option value="application/json">application/json</option>
+      <option value="application/xml">application/xml</option>
+      <option value="application/x-msdownload">application/x-msdownload (EXE)</option>
+      <option value="message/rfc822">message/rfc822 (EML)</option>
+    </datalist>
+    <button id="apply-mime" onclick="applyMimeOverride()" 
+            style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; white-space: nowrap;">
+      Apply
+    </button>
+    <button id="clear-mime" onclick="clearMimeOverride()" 
+            style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; white-space: nowrap; display: none;">
+      Clear
+    </button>
+  </div>
+
   <!-- Collapsible External Resources -->
   <details style="padding: 12px; background-color: #e9f5ff; border-left: 4px solid #007bff; border-radius: 4px; width: 500px; margin-left: auto;">
     <summary style="cursor: pointer; font-weight: bold; user-select: none;">
@@ -24,6 +105,12 @@
     </div>
   </details>
 
+</div>
+
+<!-- MIME Override Status -->
+<div id="mime-status" style="display: none; padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-bottom: 1rem;">
+  <strong>⚠️ MIME Override Active:</strong> <span id="mime-status-value"></span>
+  <button onclick="clearMimeOverride()" style="margin-left: 10px; padding: 4px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">Clear</button>
 </div>
 
 <!-- File grid container -->
@@ -103,10 +190,42 @@
         <span class="file-meta">MP4 • 70KB</span>
       </div>
     </div>
-    <a href="assets/sample-video.mp4" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('mp4', 'sample-video.mp4')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
+  </div>
+
+  <!-- WebM Video File -->
+  <div class="file-card" data-filename="sample-video.webm" data-type="video" data-size="medium">
+    <div class="file-content">
+      <div class="file-icon">🎥</div>
+      <div class="file-info">
+        <h3>WebM Video</h3>
+        <p>WebM video file (open format)</p>
+        <span class="file-meta">WEBM • 125KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('webm', 'sample-video.webm')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- MPG Video File -->
+  <div class="file-card" data-filename="sample-video.mpg" data-type="video" data-size="medium">
+    <div class="file-content">
+      <div class="file-icon">🎥</div>
+      <div class="file-info">
+        <h3>MPG Video</h3>
+        <p>MPEG video file (legacy format)</p>
+        <span class="file-meta">MPG • 95KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('mpg', 'sample-video.mpg')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
   </div>
 
   <!-- Sample PDF -->
@@ -134,10 +253,10 @@
         <span class="file-meta">ZIP • 220B</span>
       </div>
     </div>
-    <a href="assets/hello-world.zip" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('zip', 'hello-world.zip')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- Sample email file -->
@@ -150,10 +269,10 @@
         <span class="file-meta">EML • 556B</span>
       </div>
     </div>
-    <a href="assets/sample-email.eml" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('eml', 'sample-email.eml')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- Exe file -->
@@ -166,10 +285,10 @@
         <span class="file-meta">EXE • 67MB</span>
       </div>
     </div>
-    <a href="assets/test-exe.exe" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('exe', 'test-exe.exe')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- Exe disguised as csv -->
@@ -182,10 +301,10 @@
         <span class="file-meta">CSV • 67MB</span>
       </div>
     </div>
-    <a href="assets/hidden-exe.csv" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('csv', 'hidden-exe.csv')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- Hexagon SVG -->
@@ -198,10 +317,10 @@
         <span class="file-meta">SVG • 236B</span>
       </div>
     </div>
-    <a href="assets/hexagon.svg" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('svg', 'hexagon.svg')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- Cat HEIC Image -->
@@ -214,10 +333,10 @@
         <span class="file-meta">HEIC • 741KB</span>
       </div>
     </div>
-    <a href="assets/cat.HEIC" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('heic', 'cat.HEIC')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- MP3 Audio File -->
@@ -230,10 +349,10 @@
         <span class="file-meta">MP3 • 40KB</span>
       </div>
     </div>
-    <a href="assets/test.mp3" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('mp3', 'test.mp3')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- WAV Audio File -->
@@ -246,10 +365,10 @@
         <span class="file-meta">WAV • 431KB</span>
       </div>
     </div>
-    <a href="assets/test.wav" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('wav', 'test.wav')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- M4A Audio File -->
@@ -262,10 +381,10 @@
         <span class="file-meta">M4A • 44KB</span>
       </div>
     </div>
-    <a href="assets/test.m4a" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('m4a', 'test.m4a')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- WMA Audio File -->
@@ -278,10 +397,42 @@
         <span class="file-meta">WMA • 85KB</span>
       </div>
     </div>
-    <a href="assets/test.wma" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('wma', 'test.wma')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
+  </div>
+
+  <!-- OGG Audio File -->
+  <div class="file-card" data-filename="test.ogg" data-type="audio" data-size="medium">
+    <div class="file-content">
+      <div class="file-icon">🎵</div>
+      <div class="file-info">
+        <h3>OGG Audio</h3>
+        <p>Ogg Vorbis audio file (OGG format)</p>
+        <span class="file-meta">OGG • 52KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('ogg', 'test.ogg')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- FLAC Audio File -->
+  <div class="file-card" data-filename="test.flac" data-type="audio" data-size="large">
+    <div class="file-content">
+      <div class="file-icon">🎶</div>
+      <div class="file-info">
+        <h3>FLAC Audio</h3>
+        <p>Free Lossless Audio Codec (FLAC format)</p>
+        <span class="file-meta">FLAC • 1.8MB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('flac', 'test.flac')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
   </div>
 
   <!-- XLSB Spreadsheet File -->
@@ -294,10 +445,10 @@
         <span class="file-meta">XLSB • 8KB</span>
       </div>
     </div>
-    <a href="assets/XLSB_TEST.xlsb" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('xlsb', 'XLSB_TEST.xlsb')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- PNG Image -->
@@ -310,10 +461,26 @@
         <span class="file-meta">PNG • 150KB</span>
       </div>
     </div>
-    <a href="assets/sample.png" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('png', 'sample.png')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
+  </div>
+
+  <!-- APNG Image -->
+  <div class="file-card" data-filename="sample-apng.png" data-type="image" data-size="medium">
+    <div class="file-content">
+      <div class="file-icon">🎬</div>
+      <div class="file-info">
+        <h3>APNG Image</h3>
+        <p>Animated Portable Network Graphics image file</p>
+        <span class="file-meta">APNG • 180KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('apng', 'sample-apng.png')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
   </div>
 
   <!-- JPG Image -->
@@ -326,10 +493,10 @@
         <span class="file-meta">JPG • 120KB</span>
       </div>
     </div>
-    <a href="assets/sample.jpg" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('jpg', 'sample.jpg')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- GIF Image -->
@@ -342,10 +509,10 @@
         <span class="file-meta">GIF • 85KB</span>
       </div>
     </div>
-    <a href="assets/sample.gif" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('gif', 'sample.gif')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- TIFF Image -->
@@ -358,10 +525,10 @@
         <span class="file-meta">TIFF • 2.5MB</span>
       </div>
     </div>
-    <a href="assets/sample.tiff" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('tiff', 'sample.tiff')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
   </div>
 
   <!-- AVIF Image -->
@@ -374,10 +541,74 @@
         <span class="file-meta">AVIF • 45KB</span>
       </div>
     </div>
-    <a href="assets/sample.avif" download class="download-btn">
+    <button class="download-btn" onclick="downloadViaAPI('avif', 'sample.avif')">
       <span class="material-icons">download</span>
       Download
-    </a>
+    </button>
+  </div>
+
+  <!-- JXL Image -->
+  <div class="file-card" data-filename="sample.jxl" data-type="image" data-size="small">
+    <div class="file-content">
+      <div class="file-icon">🖼️</div>
+      <div class="file-info">
+        <h3>JXL Image</h3>
+        <p>JPEG XL image format (next-gen compression)</p>
+        <span class="file-meta">JXL • 35KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('jxl', 'sample.jxl')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- BMP Image -->
+  <div class="file-card" data-filename="sample.bmp" data-type="image" data-size="large">
+    <div class="file-content">
+      <div class="file-icon">🖼️</div>
+      <div class="file-info">
+        <h3>BMP Image</h3>
+        <p>Bitmap image file (uncompressed)</p>
+        <span class="file-meta">BMP • 1.2MB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('bmp', 'sample.bmp')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- WebP Image -->
+  <div class="file-card" data-filename="sample.webp" data-type="image" data-size="small">
+    <div class="file-content">
+      <div class="file-icon">🖼️</div>
+      <div class="file-info">
+        <h3>WebP Image</h3>
+        <p>WebP image format (modern web compression)</p>
+        <span class="file-meta">WEBP • 28KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('webp', 'sample.webp')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- XBM Image -->
+  <div class="file-card" data-filename="sample.xbm" data-type="image" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon">🖼️</div>
+      <div class="file-info">
+        <h3>XBM Image</h3>
+        <p>X11 Bitmap image (legacy format)</p>
+        <span class="file-meta">XBM • 5KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('xbm', 'sample.xbm')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
   </div>
 </div>
 

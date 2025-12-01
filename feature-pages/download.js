@@ -1,8 +1,18 @@
+// Global MIME override state
+let globalMimeOverride = null;
+
 // Download page logic
 function initializeDownloadPage() {
   // Search functionality
   const searchInput = document.getElementById('file-search');
   const fileCards = document.querySelectorAll('.file-card');
+  
+  // Load MIME override from localStorage
+  const savedMime = localStorage.getItem('mimeOverride');
+  if (savedMime) {
+    globalMimeOverride = savedMime;
+    updateMimeStatus();
+  }
   
   if (searchInput) {
     // Handle URL parameters for deep-linkable searches
@@ -231,3 +241,91 @@ function downloadTextFile(content, filename) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// MIME Override Functions
+window.applyMimeOverride = function() {
+  const input = document.getElementById('mime-override');
+  const mimeType = input.value.trim();
+  
+  if (mimeType) {
+    globalMimeOverride = mimeType;
+    localStorage.setItem('mimeOverride', mimeType);
+    updateMimeStatus();
+    
+    // Show confirmation
+    alert(`MIME type override set to: ${mimeType}\n\nAll file downloads from API endpoints will now use this MIME type.`);
+  } else {
+    alert('Please enter a valid MIME type (e.g., image/x-png)');
+  }
+};
+
+window.clearMimeOverride = function() {
+  globalMimeOverride = null;
+  localStorage.removeItem('mimeOverride');
+  document.getElementById('mime-override').value = '';
+  updateMimeStatus();
+};
+
+function updateMimeStatus() {
+  const statusDiv = document.getElementById('mime-status');
+  const statusValue = document.getElementById('mime-status-value');
+  const clearBtn = document.getElementById('clear-mime');
+  const mimeInput = document.getElementById('mime-override');
+  
+  if (globalMimeOverride) {
+    statusDiv.style.display = 'block';
+    statusValue.textContent = globalMimeOverride;
+    clearBtn.style.display = 'inline-block';
+    if (mimeInput) mimeInput.value = globalMimeOverride;
+    
+    // Update all API download links to include mimeType parameter
+    updateDownloadLinks();
+  } else {
+    statusDiv.style.display = 'none';
+    clearBtn.style.display = 'none';
+    updateDownloadLinks();
+  }
+}
+
+function updateDownloadLinks() {
+  // This function updates any programmatic download links that use the API
+  // Static <a> tags will need to be manually updated or use onclick handlers
+  const apiLinks = document.querySelectorAll('a[href*="/api/download-test"]');
+  apiLinks.forEach(link => {
+    const url = new URL(link.href, window.location.origin);
+    if (globalMimeOverride) {
+      url.searchParams.set('mimeType', globalMimeOverride);
+    } else {
+      url.searchParams.delete('mimeType');
+    }
+    link.href = url.toString();
+  });
+}
+
+// Universal download function for API endpoint
+window.downloadViaAPI = function(fileType, originalFilename) {
+  const url = new URL('/api/download-test', window.location.origin);
+  url.searchParams.set('file', fileType);
+  
+  // Add MIME override if active
+  if (globalMimeOverride) {
+    url.searchParams.set('mimeType', globalMimeOverride);
+  }
+  
+  // Create a temporary link and click it
+  const a = document.createElement('a');
+  a.href = url.toString();
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+// Helper function to get download URL with MIME override
+window.getDownloadUrl = function(baseUrl) {
+  if (!globalMimeOverride) return baseUrl;
+  
+  const url = new URL(baseUrl, window.location.origin);
+  url.searchParams.set('mimeType', globalMimeOverride);
+  return url.toString();
+};
