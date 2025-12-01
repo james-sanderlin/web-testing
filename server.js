@@ -6,15 +6,20 @@ const app = express();
 const PORT = 3000;
 
 // Serve static files for the main application with proper MIME types
-app.use(express.static('.', {
-  setHeaders: (res, path, stat) => {
-    if (path.endsWith('.js')) {
+app.use(express.static(path.join(__dirname), {
+  setHeaders: (res, filePath, stat) => {
+    if (filePath.endsWith('.js')) {
       res.set('Content-Type', 'application/javascript');
-    } else if (path.endsWith('.mjs')) {
+    } else if (filePath.endsWith('.mjs')) {
       res.set('Content-Type', 'application/javascript');
     }
   }
 }));
+
+// Explicit root route handler
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
