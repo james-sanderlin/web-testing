@@ -71,17 +71,24 @@ app.get('/api/download-test', (req, res) => {
     '.bmp': 'image/bmp',
     '.webp': 'image/webp',
     '.xbm': 'image/x-xbitmap',
+    '.svg': 'image/svg+xml',
+    '.heic': 'image/heic',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
     '.mp4': 'video/mp4',
     '.webm': 'video/webm',
     '.mpg': 'video/mpeg',
     '.mpeg': 'video/mpeg',
     '.zip': 'application/zip',
     '.eml': 'message/rfc822',
+    '.exe': 'application/x-msdownload',
+    '.csv': 'text/csv',
     '.m4a': 'audio/mp4',
     '.wma': 'audio/x-ms-wma',
     '.ogg': 'audio/ogg',
     '.flac': 'audio/flac',
-    '.xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
+    '.xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+    '.rdp': 'application/x-rdp'
   };
 
   let contentType = mimeType || defaultMimeTypes[ext] || 'application/octet-stream';
