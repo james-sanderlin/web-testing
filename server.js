@@ -77,8 +77,13 @@ app.get('/api/download-test', (req, res) => {
     });
   }
   
-  // Get file info
-  const fileName = `test-${test || Date.now()}.${file}`;
+  // Get file info and extract the original filename
+  const originalFilename = path.basename(filePath);
+  const fileExtension = path.extname(filePath);
+  const baseFilename = path.basename(filePath, fileExtension);
+  
+  // Use original filename or create timestamped version
+  const fileName = test ? `${baseFilename}-${test}${fileExtension}` : originalFilename;
   const stats = fs.statSync(filePath);
   
   console.log(`✅ File found: ${filePath} (${stats.size} bytes)`);
