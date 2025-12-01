@@ -16,11 +16,6 @@ app.use(express.static(path.join(__dirname), {
   }
 }));
 
-// Explicit root route handler
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
   const { filename, headers, disposition, mimeType, test } = req.query;
