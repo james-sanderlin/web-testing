@@ -141,9 +141,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Express server running on http://localhost:${PORT}`);
-  console.log(`📁 Serving static files from current directory`);
-  console.log(`🔗 API endpoints available at /api/download-test and /api/health`);
-  console.log(`\n🧪 Now you can test real X-Download-Options headers!`);
-});
+// Only start server if not in Vercel environment
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Express server running on http://localhost:${PORT}`);
+    console.log(`📁 Serving static files from current directory`);
+    console.log(`🔗 API endpoints available at /api/download-test and /api/health`);
+    console.log(`\n🧪 Now you can test real X-Download-Options headers!`);
+  });
+}
+
+// Export for Vercel
+module.exports = app;
