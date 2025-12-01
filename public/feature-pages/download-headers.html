@@ -1,0 +1,227 @@
+<h2>📥 Download Headers Test</h2>
+
+<div style="margin-bottom: 2rem;">
+  <p>Test how different download headers affect file opening behavior, specifically the <code>X-Download-Options: noopen</code> header issue.</p>
+</div>
+
+<!-- Test Controls -->
+<div id="test-controls" style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+  <h3>🔧 Test Configuration</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+    
+    <div>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">File Type:</label>
+      <select id="fileType" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="docx">Word Document (.docx)</option>
+        <option value="pdf">PDF Document (.pdf)</option>
+        <option value="txt">Text File (.txt)</option>
+        <option value="zip">ZIP Archive (.zip)</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">MIME Type Override:</label>
+      <select id="mimeTypeOverride" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="correct">Correct MIME Type</option>
+        <option value="octet-stream">application/octet-stream (Problematic)</option>
+        <option value="plain">text/plain (Wrong)</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">X-Download-Options:</label>
+      <select id="downloadOptions" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="noopen">noopen (Problematic)</option>
+        <option value="none">Not Set (Normal)</option>
+        <option value="open">open (Legacy)</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Content-Disposition:</label>
+      <select id="contentDisposition" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="attachment">attachment</option>
+        <option value="inline">inline</option>
+        <option value="attachment-filename">attachment; filename="test.docx"</option>
+      </select>
+    </div>
+
+  </div>
+  
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <button id="testDownload" class="test-btn primary">
+      <span class="material-icons">download</span>
+      Client-side Test
+    </button>
+    <button id="testRedirect" class="test-btn">
+      <span class="material-icons">cloud_download</span>
+      Server Test (Real Headers)*
+    </button>
+    <button id="clearResults" class="test-btn secondary">
+      <span class="material-icons">clear</span>
+      Clear Results
+    </button>
+  </div>
+  
+  <div style="margin-top: 1rem; padding: 0.75rem; background: #f0f7ff; border: 1px solid #0969da; border-radius: 6px; font-size: 0.875rem;">
+    <strong>*Server Test Note:</strong> Currently using static file server. 
+    The Server Test will download the actual Word document and show what headers would be set, 
+    but cannot set real HTTP headers. For full header testing, switch to an Express.js server.
+  </div>
+</div>
+
+<!-- Test Results -->
+<div id="test-results" style="margin-bottom: 2rem;">
+  <h3>📊 Test Results</h3>
+  <div id="results-content" style="font-style: italic; color: #666;">
+    No tests run yet. Configure settings above and click "Test Download" to begin.
+  </div>
+</div>
+
+<!-- Issue Explanation -->
+<div id="issue-explanation" style="padding: 1rem; border: 1px solid #ffa500; border-radius: 8px; background: #fff8dc; margin-bottom: 2rem;">
+  <h3>⚠️ The X-Download-Options Issue</h3>
+  <div style="margin-bottom: 1rem;">
+    <p><strong>Problem:</strong> When <code>X-Download-Options: noopen</code> is set, Chromium-based browsers prevent direct opening of downloaded files from the download bubble, causing "file permissions" errors.</p>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <h4 style="color: #d32f2f; margin-top: 0;">❌ With X-Download-Options: noopen</h4>
+      <ul style="margin: 0;">
+        <li>Opening from download bubble fails</li>
+        <li>Word shows "file permissions" error</li>
+        <li>User must save file first, then open</li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="color: #388e3c; margin-top: 0;">✅ Without the header</h4>
+      <ul style="margin: 0;">
+        <li>Opening from download bubble works</li>
+        <li>No permission errors</li>
+        <li>Better user experience</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div style="background: #f5f5f5; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9em;">
+    <strong>Affected Browsers:</strong> Chrome, Edge, Chromium-based browsers<br>
+    <strong>Affected Files:</strong> Office documents (.docx, .xlsx, .pptx), some PDFs
+  </div>
+</div>
+
+<!-- Test Instructions -->
+<div id="test-instructions" style="padding: 1rem; border: 1px solid #2196f3; border-radius: 8px; background: #e3f2fd; margin-bottom: 2rem;">
+  <h3>🧪 How to Test</h3>
+  <ol style="margin: 0;">
+    <li><strong>Set X-Download-Options to "noopen"</strong> and select Word Document</li>
+    <li><strong>Click "Server Test (Real Headers)"</strong> to download the actual Word document and see what headers would be set in a real server environment</li>
+    <li><strong>Try to open the file</strong> directly from the browser's download bubble</li>
+    <li><strong>Observe the error</strong> - Word should show "file permissions" error</li>
+    <li><strong>Change setting to "Not Set"</strong> and repeat the server test</li>
+    <li><strong>Compare behavior</strong> - file should open normally without the header</li>
+  </ol>
+  
+  <div style="margin-top: 1rem; padding: 0.5rem; background: #fff; border-radius: 4px;">
+    <strong>💡 Pro Tip:</strong> Use "Server Test" for Word documents to get real DOCX files. The client-side test uses generated content for demonstration only.
+  </div>
+</div>
+
+<!-- Technical Details -->
+<div id="technical-details" style="padding: 1rem; border: 1px solid #9c27b0; border-radius: 8px; background: #f3e5f5;">
+  <h3>🔧 Technical Details</h3>
+  <div id="current-headers" style="background: #fff; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9em; white-space: pre-line;">
+Headers will be shown here when you run a test...
+  </div>
+</div>
+
+<style>
+.test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.test-btn.primary {
+  background: #2196f3;
+  color: white;
+}
+
+.test-btn.primary:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.test-btn.secondary {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.test-btn.secondary:hover {
+  background: #e0e0e0;
+}
+
+.test-btn:not(.primary):not(.secondary) {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.test-btn:not(.primary):not(.secondary):hover {
+  background: #f9f9f9;
+  border-color: #999;
+}
+
+.test-btn .material-icons {
+  font-size: 1.1rem;
+}
+
+.result-item {
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  border-left: 4px solid #ddd;
+}
+
+.result-item.success {
+  background: #e8f5e8;
+  border-left-color: #4caf50;
+}
+
+.result-item.error {
+  background: #ffebee;
+  border-left-color: #f44336;
+}
+
+.result-item.info {
+  background: #e3f2fd;
+  border-left-color: #2196f3;
+}
+
+.result-time {
+  font-size: 0.8em;
+  color: #666;
+  float: right;
+}
+
+select, input {
+  font-family: inherit;
+}
+
+code {
+  background: #f5f5f5;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+</style>

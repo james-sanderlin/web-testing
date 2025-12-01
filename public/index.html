@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🧪 Browser Test Lab</title>
+  <script type="module" src="https://unpkg.com/@material/web/all.js?module"></script>
+  <!-- Fine Uploader Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/file-uploader/5.16.2/fine-uploader.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #f5f5f5;
+    }
+    header {
+      background: white;
+      border-bottom: 1px solid #ddd;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    #search {
+      width: 320px;
+      margin-bottom: 0;
+    }
+    .main-layout {
+      display: flex;
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+    }
+    nav {
+      width: 240px;
+      background: white;
+      border-right: 1px solid #ddd;
+      padding: 1rem 0;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      background: none;
+      border: none;
+      padding: 0 1rem;
+      list-style: none;
+      margin: 0;
+      flex: 1 1 auto;
+    }
+    #nav-links li {
+      cursor: pointer;
+      min-width: 120px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      outline: none;
+      user-select: none;
+    }
+    #nav-links li.selected, #nav-links li[aria-selected="true"] {
+      background: #e0e7ff;
+    }
+    #nav-links li:focus {
+      box-shadow: 0 0 0 2px #6366f1;
+    }
+    main#content {
+      flex-grow: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      min-width: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <md-outlined-text-field
+      id="search"
+      label="Search features"
+      type="search"
+      autocomplete="off"
+    >
+      <span slot="leading-icon" class="material-icons">search</span>
+      <span slot="trailing-icon" style="font-family:monospace;opacity:0.7;font-size:0.95em;user-select:none;display:flex;align-items:center;">⌘K</span>
+    </md-outlined-text-field>
+  </header>
+  <div class="main-layout">
+    <nav>
+      <ul id="nav-links"></ul>
+    </nav>
+    <main id="content">Loading…</main>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

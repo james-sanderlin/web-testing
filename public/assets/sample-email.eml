@@ -1,0 +1,19 @@
+MIME-Version: 1.0
+Date: Thu, 2 Oct 2025 15:50:25 -0500
+Message-ID: <CAJu-TVSN65vp_SyL7H+na0ZEnptakWSrzpsPtEB_-BdV1Om9Vg@mail.gmail.com>
+Subject: Sample email
+From: John Doe <john.doe@gmail.com>
+To: Jane Doe <jane.doe@gmail.com>
+Content-Type: multipart/alternative; boundary="00000000000075d39d064033223b"
+
+--00000000000075d39d064033223b
+Content-Type: text/plain; charset="UTF-8"
+
+Hello, World!
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">Hello, World!</div>
+
+--00000000000075d39d064033223b--

@@ -4,3 +4,13 @@ node_modules
 *.log
 .env.local
 .env*.local
+
+# Root-level static files (duplicates of public/)
+/index.html
+/main.js
+/nav.js
+/features.js
+/assets
+/pdfs
+/feature-pages
+/vendor
