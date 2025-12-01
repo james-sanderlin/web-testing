@@ -18,11 +18,15 @@ app.use(express.static('.', {
 
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
-  const { file, headers, disposition, mimeType, test } = req.query;
+  const { filename, headers, disposition, mimeType, test } = req.query;
+  
+  if (!filename) {
+    return res.status(400).json({ error: 'filename parameter is required' });
+  }
   
   // Log the download request
   console.log(`📥 Download request received:`, {
-    file,
+    filename,
     headers,
     disposition,
     mimeType,
@@ -31,119 +35,80 @@ app.get('/api/download-test', (req, res) => {
     timestamp: new Date().toISOString()
   });
   
-  // Map file types to actual files
-  const fileMap = {
-    'docx': 'assets/word-test.docx',
-    'pdf': 'pdfs/editable-form.pdf',
-    'txt': 'assets/test-file.txt',
-    'png': 'assets/sample.png',
-    'apng': 'assets/sample-apng.png',
-    'jpg': 'assets/sample.jpg',
-    'gif': 'assets/sample.gif',
-    'tiff': 'assets/sample.tiff',
-    'avif': 'assets/sample.avif',
-    'jxl': 'assets/sample.jxl',
-    'bmp': 'assets/sample.bmp',
-    'webp': 'assets/sample.webp',
-    'xbm': 'assets/sample.xbm',
-    'mp4': 'assets/sample-video.mp4',
-    'webm': 'assets/sample-video.webm',
-    'mpg': 'assets/sample-video.mpg',
-    'zip': 'assets/hello-world.zip',
-    'eml': 'assets/sample-email.eml',
-    'exe': 'assets/test-exe.exe',
-    'csv': 'assets/hidden-exe.csv',
-    'svg': 'assets/hexagon.svg',
-    'heic': 'assets/cat.HEIC',
-    'mp3': 'assets/test.mp3',
-    'wav': 'assets/test.wav',
-    'm4a': 'assets/test.m4a',
-    'wma': 'assets/test.wma',
-    'ogg': 'assets/test.ogg',
-    'flac': 'assets/test.flac',
-    'xlsb': 'assets/XLSB_TEST.xlsb'
-  };
+  // Construct file path - support both assets/ and pdfs/ directories
+  let filePath;
+  if (filename.endsWith('.pdf')) {
+    filePath = path.join('pdfs', filename);
+  } else {
+    filePath = path.join('assets', filename);
+  }
   
-  const filePath = fileMap[file];
-  if (!filePath || !fs.existsSync(filePath)) {
+  if (!fs.existsSync(filePath)) {
     console.error(`❌ File not found: ${filePath}`);
-    console.error(`   Looking in: ${path.resolve(filePath || 'undefined')}`);
-    console.error(`   Available files:`, Object.keys(fileMap));
+    console.error(`   Looking in: ${path.resolve(filePath)}`);
     return res.status(404).json({ 
       error: 'File not found',
-      requested: file,
+      requested: filename,
       path: filePath,
-      resolved: path.resolve(filePath || 'undefined')
+      resolved: path.resolve(filePath)
     });
   }
   
-  // Get file info and extract the original filename
-  const originalFilename = path.basename(filePath);
-  const fileExtension = path.extname(filePath);
-  const baseFilename = path.basename(filePath, fileExtension);
-  
-  // Use original filename or create timestamped version
-  const fileName = test ? `${baseFilename}-${test}${fileExtension}` : originalFilename;
+  // Get file info
   const stats = fs.statSync(filePath);
+  const downloadFilename = test ? `${path.basename(filename, path.extname(filename))}-${test}${path.extname(filename)}` : filename;
   
   console.log(`✅ File found: ${filePath} (${stats.size} bytes)`);
   
-  // Set headers based on test configuration
-  const mimeTypes = {
-    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'pdf': 'application/pdf',
-    'txt': 'text/plain',
-    'png': 'image/png',
-    'apng': 'image/apng',
-    'jpg': 'image/jpeg',
-    'gif': 'image/gif',
-    'tiff': 'image/tiff',
-    'avif': 'image/avif',
-    'jxl': 'image/jxl',
-    'bmp': 'image/bmp',
-    'webp': 'image/webp',
-    'xbm': 'image/x-xbitmap',
-    'mp4': 'video/mp4',
-    'webm': 'video/webm',
-    'mpg': 'video/mpeg',
-    'zip': 'application/zip',
-    'eml': 'message/rfc822',
-    'exe': 'application/x-msdownload',
-    'csv': 'text/csv',
-    'svg': 'image/svg+xml',
-    'heic': 'image/heic',
-    'mp3': 'audio/mpeg',
-    'wav': 'audio/wav',
-    'm4a': 'audio/mp4',
-    'wma': 'audio/x-ms-wma',
-    'ogg': 'audio/ogg',
-    'flac': 'audio/flac',
-    'xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
+  // Determine Content-Type from file extension or use mimeType override
+  const ext = path.extname(filename).toLowerCase();
+  const defaultMimeTypes = {
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.pdf': 'application/pdf',
+    '.txt': 'text/plain',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.tiff': 'image/tiff',
+    '.avif': 'image/avif',
+    '.jxl': 'image/jxl',
+    '.bmp': 'image/bmp',
+    '.webp': 'image/webp',
+    '.xbm': 'image/x-xbitmap',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mpg': 'video/mpeg',
+    '.mpeg': 'video/mpeg',
+    '.zip': 'application/zip',
+    '.eml': 'message/rfc822',
+    '.m4a': 'audio/mp4',
+    '.wma': 'audio/x-ms-wma',
+    '.ogg': 'audio/ogg',
+    '.flac': 'audio/flac',
+    '.xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
   };
+
+  let contentType = mimeType || defaultMimeTypes[ext] || 'application/octet-stream';
   
-  // Determine Content-Type based on MIME type override
-  let contentType = mimeTypes[file] || 'application/octet-stream';
-  
-  // If mimeType query parameter is provided, use it directly as the Content-Type
   if (mimeType) {
-    contentType = mimeType;
-    console.log(`⚠️ MIME Type Override: Using ${mimeType} instead of ${mimeTypes[file]}`);
+    console.log(`⚠️ MIME Type Override: Using ${mimeType} instead of ${defaultMimeTypes[ext]}`);
   }
   
   // Set Content-Type
-  console.log(`🔥 Setting Content-Type: ${contentType} for ${fileName}`);
+  console.log(`🔥 Setting Content-Type: ${contentType} for ${downloadFilename}`);
   res.setHeader('Content-Type', contentType);
   
   // Set Content-Disposition
   const dispositionType = disposition || 'attachment';
-  res.setHeader('Content-Disposition', `${dispositionType}; filename="${fileName}"`);
-  
+  res.setHeader('Content-Disposition', `${dispositionType}; filename="${downloadFilename}"`);
+
   // Set X-Download-Options header (the key part!)
   if (headers && headers !== 'none') {
     res.setHeader('X-Download-Options', headers);
-    console.log(`🔥 Setting X-Download-Options: ${headers} for ${fileName}`);
+    console.log(`🔥 Setting X-Download-Options: ${headers} for ${downloadFilename}`);
   } else {
-    console.log(`📝 No X-Download-Options header for ${fileName}`);
+    console.log(`📝 No X-Download-Options header for ${downloadFilename}`);
   }
   
   // Log all response headers being sent
@@ -160,7 +125,7 @@ app.get('/api/download-test', (req, res) => {
   res.setHeader('Expires', '0');
   
   // Log the test for debugging
-  console.log(`Download test: ${fileName}`);
+  console.log(`Download test: ${downloadFilename}`);
   console.log(`Headers: X-Download-Options=${headers || 'none'}, Content-Disposition=${dispositionType}`);
   
   // Send the file

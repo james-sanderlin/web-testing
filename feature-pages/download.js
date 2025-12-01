@@ -305,7 +305,7 @@ function updateDownloadLinks() {
 // Universal download function for API endpoint
 window.downloadViaAPI = function(fileType, originalFilename) {
   const url = new URL('/api/download-test', window.location.origin);
-  url.searchParams.set('file', fileType);
+  url.searchParams.set('filename', originalFilename); // URLSearchParams handles encoding
   
   // Add MIME override if active
   if (globalMimeOverride) {
