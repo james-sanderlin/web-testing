@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3000;
 
 // Serve static files from public/ directory (works both locally and on Vercel)
-app.use(express.static(path.join(__dirname, 'public'), {
+app.use(express.static(path.join(__dirname, '..', 'public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.js')) {
       res.set('Content-Type', 'application/javascript');
@@ -36,7 +36,7 @@ app.get('/api/download-test', (req, res) => {
   });
   
   // Construct file path from assets directory
-  const filePath = path.join(__dirname, 'assets', filename);
+  const filePath = path.join(__dirname, '..', 'assets', filename);
   
   if (!fs.existsSync(filePath)) {
     console.error(`❌ File not found: ${filePath}`);

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Browser Test Lab",
   "scripts": {
-    "start": "node server.js",
-    "server": "node server.js",
-    "dev": "node server.js"
+    "start": "node api/index.js",
+    "server": "node api/index.js",
+    "dev": "node api/index.js"
   },
   "devDependencies": {
     "serve": "^14.2.4"
