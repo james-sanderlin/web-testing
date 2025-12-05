@@ -1,5 +1,19 @@
 <h2>🖨️ Print</h2>
-<md-filled-button id="print-page" onclick="window.print()">
+<md-filled-button id="print-page" onclick="handlePrint()">
   <span class="material-icons" slot="icon">print</span>
   Print this page
 </md-filled-button>
+
+<div id="print-counter" style="margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 8px; display: inline-block;">
+  <strong>Print clicks:</strong> <span id="counter-value">0</span>
+</div>
+
+<script>
+let printCount = 0;
+
+function handlePrint() {
+  printCount++;
+  document.getElementById('counter-value').textContent = printCount;
+  window.print();
+}
+</script>
