@@ -1,2 +1,7 @@
-// Print page logic placeholder
-// Add any Print-specific JS here
+let printCount = 0;
+
+function handlePrint() {
+  printCount++;
+  document.getElementById('counter-value').textContent = printCount;
+  window.print();
+}

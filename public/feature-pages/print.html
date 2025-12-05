@@ -7,13 +7,3 @@
 <div id="print-counter" style="margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 8px; display: inline-block;">
   <strong>Print clicks:</strong> <span id="counter-value">0</span>
 </div>
-
-<script>
-let printCount = 0;
-
-function handlePrint() {
-  printCount++;
-  document.getElementById('counter-value').textContent = printCount;
-  window.print();
-}
-</script>
