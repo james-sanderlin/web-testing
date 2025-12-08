@@ -291,12 +291,28 @@
     <div class="file-content">
       <div class="file-icon">📧</div>
       <div class="file-info">
-        <h3>Sample Email</h3>
+        <h3>Sample Email (EML)</h3>
         <p>Email message file (.eml format)</p>
         <span class="file-meta">EML • 556B</span>
       </div>
     </div>
     <button class="download-btn" onclick="downloadViaAPI('eml', 'sample-email.eml')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- Sample MSG file -->
+  <div class="file-card" data-filename="sample.msg" data-type="email" data-size="medium">
+    <div class="file-content">
+      <div class="file-icon">📨</div>
+      <div class="file-info">
+        <h3>Outlook Message (MSG)</h3>
+        <p>Outlook email message file (.msg format)</p>
+        <span class="file-meta">MSG • 63KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('msg', 'sample.msg')">
       <span class="material-icons">download</span>
       Download
     </button>

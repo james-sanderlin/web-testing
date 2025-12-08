@@ -81,6 +81,7 @@ app.get('/api/download-test', (req, res) => {
     '.mpeg': 'video/mpeg',
     '.zip': 'application/zip',
     '.eml': 'message/rfc822',
+    '.msg': 'application/vnd.ms-outlook',
     '.exe': 'application/x-msdownload',
     '.csv': 'text/csv',
     '.m4a': 'audio/mp4',
