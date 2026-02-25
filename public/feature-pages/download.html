@@ -302,6 +302,22 @@
     </button>
   </div>
 
+  <!-- Sample XSS email file -->
+  <div class="file-card" data-filename="sample-xss-email.eml" data-type="email" data-size="small">
+    <div class="file-content">
+      <div class="file-icon">⚠️</div>
+      <div class="file-info">
+        <h3>XSS Test Email (EML)</h3>
+        <p>Email with XSS test vectors for security testing</p>
+        <span class="file-meta">EML • 1KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('xss-eml', 'sample-xss-email.eml')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
   <!-- Sample MSG file -->
   <div class="file-card" data-filename="sample.msg" data-type="email" data-size="medium">
     <div class="file-content">
@@ -649,6 +665,22 @@
       </div>
     </div>
     <button class="download-btn" onclick="downloadViaAPI('xbm', 'sample.xbm')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- Sample ODS Spreadsheet -->
+  <div class="file-card" data-filename="sample.ods" data-type="spreadsheet" data-size="small">
+    <div class="file-content">
+      <div class="file-icon">📊</div>
+      <div class="file-info">
+        <h3>ODS Spreadsheet</h3>
+        <p>OpenDocument spreadsheet file (ODS format)</p>
+        <span class="file-meta">ODS • 8KB</span>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('ods', 'sample.ods')">
       <span class="material-icons">download</span>
       Download
     </button>

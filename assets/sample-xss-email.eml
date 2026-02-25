@@ -1,0 +1,36 @@
+MIME-Version: 1.0
+Date: Thu, 2 Oct 2025 15:50:25 -0500
+Message-ID: <CAJu-TVSN65vp_SyL7H+na0ZEnptakWSrzpsPtEB_-BdV1Om9Vg@mail.gmail.com>
+Subject: Sample email
+From: John Doe <john.doe@gmail.com>
+To: Jane Doe <jane.doe@gmail.com>
+Content-Type: multipart/alternative; boundary="00000000000075d39d064033223b"
+
+--00000000000075d39d064033223b
+Content-Type: text/plain; charset="UTF-8"
+
+Hello, World!
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">
+  <p>Hello, World!</p>
+  
+  <!-- XSS Test Vectors -->
+  <script>alert('XSS Test 1: Basic Script Tag')</script>
+  
+  <img src=x onerror="alert('XSS Test 2: Image onerror')">
+  
+  <svg onload="alert('XSS Test 3: SVG onload')"></svg>
+  
+  <a href="javascript:alert('XSS Test 4: JavaScript Protocol')">Click me</a>
+  
+  <div onmouseover="alert('XSS Test 5: Mouse event')">Hover over me</div>
+  
+  <iframe src="javascript:alert('XSS Test 6: IFrame')"></iframe>
+  
+  <input type="text" value="test" onfocus="alert('XSS Test 7: Input focus')">
+</div>
+
+--00000000000075d39d064033223b--
