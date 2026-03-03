@@ -12,4 +12,5 @@ export const features = [
   { name: "PDF Demo", route: "#/pdf", file: "feature-pages/pdf.html" },
   { name: "Plupload Demo", route: "#/plupload", file: "feature-pages/plupload.html" },
   { name: "DLP", route: "#/dlp", file: "feature-pages/dlp.html" },
+  { name: "Base64 Image Test", route: "#/base64-image", file: "feature-pages/base64-image.html" },
 ];

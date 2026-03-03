@@ -1,0 +1,16 @@
+<h2>Base64 Image Test</h2>
+<p>This page displays two images: one hosted by the website, and one embedded as a base64 data URL.</p>
+
+<div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem;">
+  <div style="flex: 1; min-width: 300px;">
+    <h3>Hosted Image</h3>
+    <p style="color: #666; font-size: 0.9rem;">Loaded from <code>/assets/sample.png</code></p>
+    <img src="/assets/sample.png" alt="Hosted sample image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;" />
+  </div>
+
+  <div style="flex: 1; min-width: 300px;">
+    <h3>Base64 Data URL Image</h3>
+    <p style="color: #666; font-size: 0.9rem;">Embedded inline as <code>data:image/png;base64,...</code></p>
+    <img id="base64-img" alt="Base64 embedded image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;" />
+  </div>
+</div>
