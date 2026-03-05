@@ -91,6 +91,7 @@ app.get('/api/download-test', (req, res) => {
     '.wma': 'audio/x-ms-wma',
     '.ogg': 'audio/ogg',
     '.flac': 'audio/flac',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     '.xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
     '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
     '.rdp': 'application/x-rdp'
