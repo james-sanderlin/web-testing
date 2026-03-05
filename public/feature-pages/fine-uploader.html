@@ -1,161 +1,74 @@
-<h2>📤 Fine Uploader Test</h2>
-<p>This page uses Fine Uploader to test drag & drop and click-to-upload functionality with your browser extension.</p>
+<h2>Fine Uploader Test</h2>
+<p style="color:#666;margin-bottom:1rem;">Tests drag & drop upload using <a href="https://docs.fineuploader.com/" target="_blank">Fine Uploader</a> — a full-featured upload library with gallery UI, retries, and chunking.</p>
 
-<div class="test-section">
-    <h3>📁 Fine Uploader Drop Zone</h3>
-    <div id="fine-uploader-gallery"></div>
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;">
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#e8f5e9;border:1px solid #a5d6a7;">
+    <input type="checkbox" id="toggle-fineuploader" checked disabled />
+    <strong>Fine Uploader</strong> <span style="color:#888;font-size:0.8rem;">(gallery mode — always on)</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-debug-mode">
+    <input type="checkbox" id="toggle-debug" checked />
+    <strong>Debug mode</strong> <span style="color:#888;font-size:0.8rem;">(verbose console logging)</span>
+  </label>
 </div>
 
-<div class="test-section">
-    <h3>📊 Upload Status</h3>
-    <div id="upload-status">
-        <p><strong>Total Uploads:</strong> <span id="upload-count">0</span></p>
-        <p><strong>Successful:</strong> <span id="success-count">0</span></p>
-        <p><strong>Failed:</strong> <span id="fail-count">0</span></p>
+<div style="display:flex;gap:2rem;flex-wrap:wrap;">
+  <div style="flex:1;min-width:300px;">
+    <div id="fu-drop-zone" style="
+      width:100%;min-height:220px;border:3px dashed #ccc;border-radius:12px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:#fafafa;transition:all 0.2s;position:relative;
+    ">
+      <span class="material-icons" style="font-size:3rem;color:#aaa;">cloud_upload</span>
+      <p style="color:#888;margin:0.5rem 0 0;">Drag & drop files here</p>
+      <p style="color:#aaa;font-size:0.8rem;margin:0.25rem 0 0;">or click Browse Files below</p>
     </div>
-    <div id="upload-log" style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
-        <strong>Upload Log:</strong><br>
+
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+      <button id="fu-browse-btn" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.45rem 0.85rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;
+        transition:background 0.15s;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">folder_open</span>
+        Browse Files
+      </button>
+      <button id="fu-clear-log" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.45rem 0.85rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#f5f5f5;color:#555;border:1px solid #ddd;
+        transition:background 0.15s;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">delete_sweep</span>
+        Clear Log
+      </button>
+      <span style="margin-left:auto;display:flex;gap:1rem;font-size:0.85rem;color:#555;">
+        <span>Uploads: <strong id="upload-count">0</strong></span>
+        <span style="color:#2e7d32;">OK: <strong id="success-count">0</strong></span>
+        <span style="color:#c62828;">Fail: <strong id="fail-count">0</strong></span>
+      </span>
     </div>
+
+    <div id="fu-file-list" style="margin-top:1rem;"></div>
+  </div>
+
+  <div style="flex:1;min-width:300px;">
+    <h3 style="margin:0 0 0.5rem;">Event Log</h3>
+    <div id="fu-log" style="
+      background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:0.8rem;
+      padding:1rem;border-radius:8px;height:400px;overflow-y:auto;white-space:pre-wrap;
+    "></div>
+  </div>
 </div>
 
-<div class="instructions">
-    <h3>🧪 Testing Instructions:</h3>
-    <ol>
-        <li><strong>Drag & Drop:</strong> Drag files from your computer onto the upload area below.</li>
-        <li><strong>Click to Upload:</strong> Click the "Select Files" button to choose files.</li>
-        <li><strong>With Extension Disabled:</strong> Test that uploads work normally.</li>
-        <li><strong>With Extension Enabled:</strong> Test if drag & drop stops working (this is the customer's issue).</li>
-        <li><strong>Check Console:</strong> Look for any errors or warnings from Fine Uploader or your extension.</li>
-    </ol>
-</div>
-
-<style>
-    .test-section {
-        margin: 20px 0;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-    }
-    
-    .instructions {
-        background-color: #e9ecef;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-    }
-    
-    #upload-status {
-        font-size: 16px;
-    }
-    
-    #upload-status span {
-        font-weight: bold;
-        color: #007bff;
-    }
-    
-    /* Fine Uploader Gallery Styles */
-    #fine-uploader-gallery {
-        min-height: 200px;
-    }
-    
-    .qq-uploader {
-        position: relative;
-        width: 100%;
-    }
-    
-    .qq-upload-drop-area {
-        position: relative;
-        min-height: 200px;
-        border: 2px dashed #007bff;
-        border-radius: 8px;
-        background-color: #f8f9fa;
-        padding: 20px;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    
-    .qq-upload-drop-area-active {
-        border-color: #28a745;
-        background-color: #d4edda;
-    }
-    
-    .qq-upload-drop-area span {
-        display: block;
-        font-size: 18px;
-        color: #666;
-        margin-bottom: 10px;
-    }
-    
-    .qq-upload-button {
-        display: inline-block;
-        padding: 12px 24px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        margin-top: 10px;
-    }
-    
-    .qq-upload-button:hover {
-        background-color: #0056b3;
-    }
-    
-    .qq-upload-list {
-        margin-top: 20px;
-        list-style: none;
-        padding: 0;
-    }
-    
-    .qq-upload-list li {
-        padding: 10px;
-        margin: 5px 0;
-        background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-    
-    .qq-upload-file {
-        font-weight: bold;
-    }
-    
-    .qq-upload-size {
-        color: #666;
-        font-size: 12px;
-        margin-left: 10px;
-    }
-    
-    .qq-upload-spinner {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid #f3f3f3;
-        border-top: 2px solid #007bff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-left: 10px;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .qq-upload-status-text {
-        margin-left: 10px;
-        font-size: 12px;
-    }
-    
-    .qq-upload-status-text.qq-upload-success {
-        color: #28a745;
-    }
-    
-    .qq-upload-status-text.qq-upload-fail {
-        color: #dc3545;
-    }
-</style>
+<details style="margin-top:2rem;">
+  <summary style="cursor:pointer;font-weight:bold;color:#555;">Fine Uploader Gallery (native UI)</summary>
+  <p style="color:#666;font-size:0.85rem;">The default Fine Uploader gallery template with thumbnails, progress bars, and retry controls.</p>
+  <div id="fine-uploader-gallery" style="margin-top:0.5rem;"></div>
+</details>
 
 <!-- Fine Uploader CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/file-uploader/5.16.2/fine-uploader-gallery.min.css" rel="stylesheet">
@@ -233,4 +146,3 @@
         </dialog>
     </div>
 </script>
-

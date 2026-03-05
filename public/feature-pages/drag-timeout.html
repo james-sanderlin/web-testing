@@ -1,0 +1,78 @@
+<h2>Drag Timeout Test</h2>
+<p style="color:#666;margin-bottom:1rem;">Reproduces file loss from short-lived drop targets. An overlay dropzone mounts on dragenter and unmounts after a 300ms timeout — if the drop arrives after unmount, files are lost. This pattern matches Kiteworks' React-based upload UI.</p>
+
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;">
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#e8f5e9;border:1px solid #a5d6a7;">
+    <input type="checkbox" id="toggle-flow" checked disabled />
+    <strong>Flow.js</strong> <span style="color:#888;font-size:0.8rem;">(upload library — always on)</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-kw-overlay">
+    <input type="checkbox" id="toggle-kw-overlay" />
+    <strong>Delayed drop overlay</strong> <span style="color:#888;font-size:0.8rem;">(300ms timeout — simulates the Kiteworks bug)</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-rpa-fix">
+    <input type="checkbox" id="toggle-rpa-fix" />
+    <strong>RPA fix</strong> <span style="color:#888;font-size:0.8rem;">(extends 300ms timeouts during drag)</span>
+  </label>
+</div>
+
+<div style="display:flex;gap:2rem;flex-wrap:wrap;">
+  <div style="flex:1;min-width:300px;position:relative;">
+    <div id="flow-drop-zone" style="
+      width:100%;height:220px;border:3px dashed #ccc;border-radius:12px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:#fafafa;transition:all 0.2s;cursor:pointer;position:relative;
+    ">
+      <span class="material-icons" style="font-size:3rem;color:#aaa;">cloud_upload</span>
+      <p style="color:#888;margin:0.5rem 0 0;">Drag & drop files here</p>
+      <p style="color:#aaa;font-size:0.8rem;margin:0.25rem 0 0;">or click to browse</p>
+    </div>
+
+    <div id="kw-overlay-status" style="display:none;margin-top:0.5rem;padding:0.5rem 0.75rem;border-radius:6px;font-size:0.8rem;font-family:monospace;background:#fff3e0;border:1px solid #ffcc80;color:#e65100;">
+      Overlay: <span id="kw-overlay-state">inactive</span>
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <button id="flow-browse-btn" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.45rem 0.85rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;
+        transition:background 0.15s;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">folder_open</span>
+        Browse Files
+      </button>
+      <button id="flow-clear-log" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.45rem 0.85rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#f5f5f5;color:#555;border:1px solid #ddd;
+        transition:background 0.15s;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">delete_sweep</span>
+        Clear Log
+      </button>
+    </div>
+
+    <div id="flow-lost-files" style="margin-top:1rem;"></div>
+    <div id="flow-file-list" style="margin-top:1rem;"></div>
+  </div>
+
+  <div style="flex:1;min-width:300px;">
+    <h3 style="margin:0 0 0.5rem;">Event Log</h3>
+    <div id="flow-log" style="
+      background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:0.8rem;
+      padding:1rem;border-radius:8px;height:400px;overflow-y:auto;white-space:pre-wrap;
+    "></div>
+  </div>
+</div>
+
+<details style="margin-top:2rem;">
+  <summary style="cursor:pointer;font-weight:bold;color:#555;">DataTransfer Inspector</summary>
+  <p style="color:#666;font-size:0.85rem;">Shows raw DataTransfer details from the last drop event to help debug synthetic event issues.</p>
+  <div id="dt-inspector" style="
+    background:#f5f5f5;padding:1rem;border-radius:8px;font-family:monospace;font-size:0.8rem;
+    max-height:300px;overflow-y:auto;white-space:pre-wrap;color:#333;
+  ">Waiting for drop event...</div>
+</details>

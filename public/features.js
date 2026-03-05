@@ -13,4 +13,5 @@ export const features = [
   { name: "Plupload Demo", route: "#/plupload", file: "feature-pages/plupload.html" },
   { name: "DLP", route: "#/dlp", file: "feature-pages/dlp.html" },
   { name: "Base64 Image Test", route: "#/base64-image", file: "feature-pages/base64-image.html" },
+  { name: "Drag Timeout Test", route: "#/drag-timeout", file: "feature-pages/drag-timeout.html" },
 ];
