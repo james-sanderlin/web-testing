@@ -22,10 +22,29 @@
       border-bottom: 1px solid #ddd;
       padding: 1rem;
       box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .header-title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #333;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .header-title:hover {
+      color: #6366f1;
     }
     #search {
-      width: 320px;
+      width: 100%;
       margin-bottom: 0;
+      --md-outlined-text-field-container-shape: 4px;
+    }
+    .nav-search {
+      padding: 0 1rem 0.5rem;
+      flex-shrink: 0;
     }
     .main-layout {
       display: flex;
@@ -49,10 +68,11 @@
       gap: 0.25rem;
       background: none;
       border: none;
-      padding: 0 1rem;
+      padding: 0.25rem 1rem 0;
       list-style: none;
       margin: 0;
       flex: 1 1 auto;
+      overflow-y: auto;
     }
     #nav-links li {
       cursor: pointer;
@@ -63,6 +83,32 @@
       font-size: 1rem;
       outline: none;
       user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-section-divider {
+      height: 0;
+      margin: 0.4rem 1rem;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 0 !important;
+      cursor: default;
+    }
+    .star-icon {
+      font-size: 1.1rem;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+      cursor: pointer;
+      color: #aaa;
+      flex-shrink: 0;
+      margin-left: 0.25rem;
+    }
+    .star-icon.starred {
+      opacity: 1;
+      color: #f59e0b;
+    }
+    #nav-links li:hover .star-icon {
+      opacity: 1;
     }
     #nav-links li.selected, #nav-links li[aria-selected="true"] {
       background: #e0e7ff;
@@ -80,18 +126,21 @@
 </head>
 <body>
   <header>
-    <md-outlined-text-field
-      id="search"
-      label="Search features"
-      type="search"
-      autocomplete="off"
-    >
-      <span slot="leading-icon" class="material-icons">search</span>
-      <span slot="trailing-icon" style="font-family:monospace;opacity:0.7;font-size:0.95em;user-select:none;display:flex;align-items:center;">⌘K</span>
-    </md-outlined-text-field>
+    <a class="header-title" id="home-link">🧪 Browser Test Lab</a>
   </header>
   <div class="main-layout">
     <nav>
+      <div class="nav-search">
+        <md-outlined-text-field
+          id="search"
+          label="Search"
+          type="search"
+          autocomplete="off"
+        >
+          <span slot="leading-icon" class="material-icons">search</span>
+          <span slot="trailing-icon" style="font-family:monospace;opacity:0.7;font-size:0.95em;user-select:none;display:flex;align-items:center;">⌘K</span>
+        </md-outlined-text-field>
+      </div>
       <ul id="nav-links"></ul>
     </nav>
     <main id="content">Loading…</main>

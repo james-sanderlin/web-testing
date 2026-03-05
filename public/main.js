@@ -7,6 +7,13 @@ window.features = features;
 const navList = document.getElementById('nav-links');
 const search = document.getElementById('search');
 const content = document.getElementById('content');
+const homeLink = document.getElementById('home-link');
+
+const homePage = { name: "Home", route: "#/home", file: "feature-pages/home.html" };
+
+homeLink.addEventListener('click', () => {
+  location.hash = homePage.route;
+});
 
 function addRecent(route) {
   if (route === '#/home') return;
@@ -33,7 +40,7 @@ const nav = setupNav(features, navList, search, (route) => {
 
 function loadPage(isNavigation = false) {
   const route = location.hash || "#/home";
-  const match = features.find(f => f.route === route);
+  const match = features.find(f => f.route === route) || (route === "#/home" ? homePage : null);
   if (!match) {
     content.innerHTML = "<h2>Page not found</h2>";
     return;
