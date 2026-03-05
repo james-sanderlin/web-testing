@@ -1,0 +1,55 @@
+<h2>Clipboard</h2>
+<p style="color:#666;margin-bottom:1.5rem;">Test browser clipboard read/write APIs. Useful for verifying clipboard permissions, content types, and extension interactions.</p>
+
+<div style="display:flex;gap:2rem;flex-wrap:wrap;">
+  <div style="flex:1;min-width:300px;">
+    <h3>Write to Clipboard</h3>
+    <textarea id="clipboard-write-input" rows="4" placeholder="Type or paste text here to copy to clipboard..." style="width:100%;max-width:400px;padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;resize:vertical;"></textarea>
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+      <button id="clipboard-copy-btn" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.5rem 1rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">content_copy</span>
+        Copy Text
+      </button>
+      <button id="clipboard-copy-html-btn" style="
+        display:inline-flex;align-items:center;gap:0.4rem;
+        padding:0.5rem 1rem;border-radius:6px;cursor:pointer;
+        font-size:0.85rem;font-weight:500;
+        background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;
+      ">
+        <span class="material-icons" style="font-size:1.1rem;">code</span>
+        Copy as HTML
+      </button>
+    </div>
+    <div id="clipboard-write-status" style="margin-top:0.5rem;font-size:0.85rem;color:#666;"></div>
+  </div>
+
+  <div style="flex:1;min-width:300px;">
+    <h3>Read from Clipboard</h3>
+    <button id="clipboard-read-btn" style="
+      display:inline-flex;align-items:center;gap:0.4rem;
+      padding:0.5rem 1rem;border-radius:6px;cursor:pointer;
+      font-size:0.85rem;font-weight:500;margin-bottom:0.75rem;
+      background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;
+    ">
+      <span class="material-icons" style="font-size:1.1rem;">content_paste</span>
+      Read Clipboard
+    </button>
+    <div id="clipboard-read-output" style="
+      background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;
+      padding:1rem;min-height:100px;font-family:monospace;font-size:0.85rem;
+      white-space:pre-wrap;word-break:break-all;
+    "><span style="color:#999;">Click "Read Clipboard" to see contents.</span></div>
+
+    <h3 style="margin-top:1.5rem;">Paste Event Listener</h3>
+    <div id="clipboard-paste-zone" style="
+      background:#fff8e1;border:2px dashed #ffcc80;border-radius:8px;
+      padding:1rem;min-height:80px;font-family:monospace;font-size:0.85rem;
+      white-space:pre-wrap;word-break:break-all;cursor:text;
+    " tabindex="0"><span style="color:#999;">Click here and press Ctrl/Cmd+V to capture paste events.</span></div>
+  </div>
+</div>

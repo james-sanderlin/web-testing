@@ -1,43 +1,50 @@
-<h2>Local Storage</h2>
-<p style="color:#666;margin-bottom:1.5rem;">Create, read, and delete localStorage entries. Useful for testing storage quotas, persistence, and extension interactions.</p>
+<h2>Cookie</h2>
+<p style="color:#666;margin-bottom:1.5rem;">Create, read, and delete browser cookies. Useful for testing cookie-related browser policies and extensions.</p>
 
 <div style="display:flex;gap:2rem;flex-wrap:wrap;">
   <div style="flex:1;min-width:300px;">
-    <h3>Set an Item</h3>
+    <h3>Set a Cookie</h3>
     <div style="display:flex;flex-direction:column;gap:0.5rem;max-width:400px;">
-      <input type="text" id="ls-key" placeholder="Key" style="padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;" />
-      <textarea id="ls-value" rows="3" placeholder="Value" style="padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;resize:vertical;"></textarea>
-      <button id="ls-set-btn" style="
+      <input type="text" id="cookie-name" placeholder="Cookie name" style="padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;" />
+      <input type="text" id="cookie-value" placeholder="Cookie value" style="padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;" />
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <label style="font-size:0.85rem;color:#666;">Expires in</label>
+        <select id="cookie-expiry" style="padding:0.4rem;border:1px solid #ccc;border-radius:4px;font-size:0.85rem;">
+          <option value="session">Session</option>
+          <option value="10">10 seconds</option>
+          <option value="60">1 minute</option>
+          <option value="3600">1 hour</option>
+          <option value="86400">1 day</option>
+          <option value="604800">1 week</option>
+        </select>
+      </div>
+      <button id="cookie-set-btn" style="
         display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;
         padding:0.5rem 1rem;border-radius:6px;cursor:pointer;
         font-size:0.85rem;font-weight:500;width:100%;
         background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;
       ">
         <span class="material-icons" style="font-size:1.1rem;">add_circle</span>
-        Set Item
+        Set Cookie
       </button>
     </div>
 
     <div style="margin-top:1.5rem;">
-      <button id="ls-clear-all-btn" style="
+      <button id="cookie-clear-all-btn" style="
         display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;
         padding:0.5rem 1rem;border-radius:6px;cursor:pointer;
         font-size:0.85rem;font-weight:500;width:100%;max-width:400px;
         background:#fbe9e7;color:#c62828;border:1px solid #ef9a9a;
       ">
         <span class="material-icons" style="font-size:1.1rem;">delete_sweep</span>
-        Clear Items
+        Clear All Cookies
       </button>
-    </div>
-
-    <div style="margin-top:1.5rem;padding:0.75rem;background:#f5f5f5;border-radius:6px;max-width:400px;">
-      <div style="font-size:0.8rem;color:#666;">Storage used: <strong id="ls-usage">—</strong></div>
     </div>
   </div>
 
   <div style="flex:1;min-width:300px;">
-    <h3>Current Items</h3>
-    <button id="ls-refresh-btn" style="
+    <h3>Current Cookies</h3>
+    <button id="cookie-refresh-btn" style="
       display:inline-flex;align-items:center;gap:0.4rem;
       padding:0.4rem 0.75rem;border-radius:6px;cursor:pointer;
       font-size:0.8rem;font-weight:500;margin-bottom:0.75rem;
@@ -46,7 +53,7 @@
       <span class="material-icons" style="font-size:1rem;">refresh</span>
       Refresh
     </button>
-    <div id="ls-list" style="
+    <div id="cookie-list" style="
       background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;
       padding:1rem;min-height:100px;font-family:monospace;font-size:0.85rem;
     ">Loading...</div>
