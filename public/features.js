@@ -10,6 +10,7 @@ export const features = [
   { name: "Drag Timeout", route: "#/drag-timeout", file: "feature-pages/drag-timeout.html" },
   { name: "Fine Uploader", route: "#/fine-uploader", file: "feature-pages/fine-uploader.html" },
   { name: "Local Storage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
+  { name: "One-Time Downloads", route: "#/one-time-downloads", file: "feature-pages/one-time-downloads.html" },
   { name: "PDF", route: "#/pdf", file: "feature-pages/pdf.html" },
   { name: "Plupload", route: "#/plupload", file: "feature-pages/plupload.html" },
   { name: "Print", route: "#/print", file: "feature-pages/print.html" },

@@ -1,0 +1,330 @@
+<h2>One-Time Downloads</h2>
+<p>Generate single-use download links. Each link can only be used once &mdash; subsequent attempts return <strong>410 Gone</strong>. Useful for testing browser extensions that re-download files for scanning.</p>
+
+<div id="otd-controls">
+  <label for="otd-ttl"><span class="material-icons" style="vertical-align: middle; font-size: 18px;">timer</span> Link expiration:</label>
+  <select id="otd-ttl">
+    <option value="30000">30 seconds</option>
+    <option value="60000">1 minute</option>
+    <option value="300000" selected>5 minutes</option>
+    <option value="">No expiration</option>
+  </select>
+  <button id="otd-generate-all" title="Generate links for all files">
+    <span class="material-icons" style="vertical-align: middle; font-size: 18px;">bolt</span> Generate All
+  </button>
+</div>
+
+<div id="otd-grid">
+  <div class="otd-card" data-file="sample.csv">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">description</span>
+      <div>
+        <div class="otd-filename">sample.csv</div>
+        <div class="otd-filetype">CSV / Text</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="otd-card" data-file="sample.png">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">image</span>
+      <div>
+        <div class="otd-filename">sample.png</div>
+        <div class="otd-filetype">Image / PNG</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="otd-card" data-file="sample.docx">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">article</span>
+      <div>
+        <div class="otd-filename">sample.docx</div>
+        <div class="otd-filetype">Word Document</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="otd-card" data-file="editable-form.pdf">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">picture_as_pdf</span>
+      <div>
+        <div class="otd-filename">editable-form.pdf</div>
+        <div class="otd-filetype">PDF Document</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="otd-card" data-file="hello-world.zip">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">folder_zip</span>
+      <div>
+        <div class="otd-filename">hello-world.zip</div>
+        <div class="otd-filetype">ZIP Archive</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="otd-card" data-file="test-exe.exe">
+    <div class="otd-card-header">
+      <span class="material-icons otd-icon">warning</span>
+      <div>
+        <div class="otd-filename">test-exe.exe</div>
+        <div class="otd-filetype">Executable</div>
+      </div>
+      <span class="otd-badge otd-badge-idle">No link</span>
+    </div>
+    <div class="otd-card-body">
+      <button class="otd-generate-btn">Generate Link</button>
+      <div class="otd-link-area" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<details id="otd-history-section">
+  <summary><span class="material-icons" style="vertical-align: middle; font-size: 18px;">history</span> Token History</summary>
+  <div id="otd-history-controls">
+    <button id="otd-clear-history">Clear History</button>
+  </div>
+  <table id="otd-history-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>File</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Used</th>
+      </tr>
+    </thead>
+    <tbody id="otd-history-body"></tbody>
+  </table>
+  <p id="otd-history-empty">No tokens generated yet.</p>
+</details>
+
+<style>
+  #otd-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  #otd-controls label {
+    font-weight: 500;
+    color: #555;
+  }
+  #otd-controls select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  #otd-generate-all {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #1a73e8;
+    background: #e8f0fe;
+    color: #1a73e8;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  #otd-generate-all:hover {
+    background: #d2e3fc;
+  }
+
+  #otd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .otd-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    background: #fff;
+    transition: box-shadow 0.15s;
+  }
+  .otd-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .otd-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .otd-icon {
+    font-size: 28px;
+    color: #5f6368;
+  }
+  .otd-filename {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .otd-filetype {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .otd-badge {
+    margin-left: auto;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .otd-badge-idle {
+    background: #f1f3f4;
+    color: #80868b;
+  }
+  .otd-badge-available {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  .otd-badge-consumed {
+    background: #ffebee;
+    color: #c62828;
+  }
+  .otd-badge-expired {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .otd-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .otd-generate-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #1a73e8;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .otd-generate-btn:hover {
+    background: #1765cc;
+  }
+  .otd-generate-btn:disabled {
+    background: #aaa;
+    cursor: default;
+  }
+
+  .otd-link-area {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .otd-link-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 6px 10px;
+    overflow: hidden;
+  }
+  .otd-link-row a {
+    font-size: 13px;
+    color: #1a73e8;
+    word-break: break-all;
+    flex: 1;
+  }
+  .otd-copy-btn, .otd-regen-btn {
+    padding: 4px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .otd-copy-btn:hover, .otd-regen-btn:hover {
+    background: #f1f3f4;
+  }
+  .otd-meta {
+    font-size: 11px;
+    color: #888;
+  }
+
+  /* History section */
+  #otd-history-section {
+    margin-top: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    background: #fafafa;
+  }
+  #otd-history-section summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #444;
+  }
+  #otd-history-controls {
+    margin: 10px 0;
+  }
+  #otd-clear-history {
+    padding: 4px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #otd-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  #otd-history-table th {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 2px solid #e0e0e0;
+    color: #555;
+    font-weight: 600;
+  }
+  #otd-history-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  #otd-history-empty {
+    color: #aaa;
+    font-size: 13px;
+    font-style: italic;
+  }
+</style>
