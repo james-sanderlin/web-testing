@@ -18,6 +18,7 @@ const defaultMimeTypes = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.gif': 'image/gif',
+  '.html': 'text/html',
   '.tiff': 'image/tiff',
   '.avif': 'image/avif',
   '.jxl': 'image/jxl',
