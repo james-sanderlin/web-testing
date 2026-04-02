@@ -1,8 +1,10 @@
 // Centralized features list for Browser Test Lab
 export const features = [
   { name: "Base64 Image", route: "#/base64-image", file: "feature-pages/base64-image.html" },
+  { name: "Blob MIME Type Download", route: "#/blob-mime-download", file: "feature-pages/blob-mime-download.html" },
   { name: "Clipboard", route: "#/clipboard-test", file: "feature-pages/clipboard-test.html" },
   { name: "Cookie", route: "#/cookie-test", file: "feature-pages/cookie-test.html" },
+  { name: "Decrypt to Data URL", route: "#/decrypt-data-url", file: "feature-pages/decrypt-data-url.html" },
   { name: "DLP", route: "#/dlp", file: "feature-pages/dlp.html" },
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
   { name: "Download Headers", route: "#/download-headers", file: "feature-pages/download-headers.html" },
@@ -14,6 +16,7 @@ export const features = [
   { name: "PDF", route: "#/pdf", file: "feature-pages/pdf.html" },
   { name: "Plupload", route: "#/plupload", file: "feature-pages/plupload.html" },
   { name: "Print", route: "#/print", file: "feature-pages/print.html" },
+  { name: "Right-Click Save Image", route: "#/right-click-save", file: "feature-pages/right-click-save.html" },
   { name: "ServiceNow Download", route: "#/download-bubble-test", file: "feature-pages/download-bubble-test.html" },
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
 ];

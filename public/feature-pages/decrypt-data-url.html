@@ -1,0 +1,43 @@
+<h2>Decrypt to Data URL</h2>
+<p>Simulates SendSafely-style in-browser decryption: fetches a sample image, encrypts it with AES-GCM (Web Crypto API), then decrypts and downloads via two methods — data URL or typeless blob URL.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;margin-top:20px;">
+
+  <div id="status-panel" style="background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:13px;border-radius:6px;padding:16px;min-height:80px;white-space:pre-wrap;"></div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <button id="btn-decrypt" disabled style="padding:10px 20px;background:#1976d2;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;">
+        <span class="material-icons" style="vertical-align:middle;font-size:18px;margin-right:6px;">lock_open</span>Decrypt → Data URL
+      </button>
+      <span style="font-size:11px;color:#888;font-family:monospace;padding-left:4px;">href="data:image/png;base64,…"</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <button id="btn-decrypt-blob" disabled style="padding:10px 20px;background:#7b1fa2;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;">
+        <span class="material-icons" style="vertical-align:middle;font-size:18px;margin-right:6px;">lock_open</span>Decrypt → Blob URL (no type)
+      </button>
+      <span style="font-size:11px;color:#888;font-family:monospace;padding-left:4px;">href="blob:…", new Blob([buf]) — no type</span>
+    </div>
+    <button id="btn-reset" style="padding:10px 20px;background:#f5f5f5;color:#333;border:1px solid #ccc;border-radius:6px;font-size:14px;cursor:pointer;align-self:flex-start;margin-top:2px;">
+      <span class="material-icons" style="vertical-align:middle;font-size:18px;margin-right:6px;">refresh</span>Reset
+    </button>
+  </div>
+
+  <div id="preview-section" style="display:none;">
+    <div style="font-weight:600;margin-bottom:8px;font-size:14px;">Decrypted Preview</div>
+    <img id="preview-img" alt="Decrypted image preview" style="max-width:400px;max-height:300px;border:1px solid #ddd;border-radius:6px;" />
+    <div id="preview-meta" style="margin-top:8px;font-size:12px;font-family:monospace;color:#666;"></div>
+  </div>
+
+</div>
+
+<style>
+  #btn-decrypt:disabled, #btn-decrypt-blob:disabled { background:#90a4ae;cursor:not-allowed; }
+  #btn-decrypt:not(:disabled):hover { background:#1565c0; }
+  #btn-decrypt-blob:not(:disabled):hover { background:#6a1b9a; }
+  #btn-reset:hover { background:#e0e0e0; }
+  .log-ok { color:#4ec94e; }
+  .log-warn { color:#f0ad4e; }
+  .log-err { color:#f44336; }
+  .log-dim { color:#888; }
+</style>

@@ -1,0 +1,45 @@
+<h2>Blob MIME Type Download</h2>
+<p>Simulates SendSafely-style in-browser decryption output: the same raw image bytes are wrapped in a Blob with different <code>type</code> values, then downloaded programmatically. Tests whether downstream systems rely on MIME type vs. file extension.</p>
+
+<div id="scenarios" style="display:flex;flex-direction:column;gap:12px;margin:20px 0;"></div>
+
+<div style="margin-top:24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <strong>Download Log</strong>
+    <button id="clear-log" style="font-size:12px;padding:4px 10px;cursor:pointer;border:1px solid #ccc;border-radius:4px;background:#f5f5f5;">Clear</button>
+  </div>
+  <div id="log" style="font-family:monospace;font-size:13px;background:#1e1e1e;color:#d4d4d4;border-radius:6px;padding:16px;min-height:120px;max-height:300px;overflow-y:auto;white-space:pre-wrap;"></div>
+</div>
+
+<style>
+  .scenario-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: #fafafa;
+  }
+  .scenario-card .info { flex: 1; }
+  .scenario-card .label { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .scenario-card .desc { font-size: 13px; color: #555; margin-bottom: 6px; }
+  .scenario-card .meta { font-size: 12px; font-family: monospace; color: #888; }
+  .scenario-card button {
+    white-space: nowrap;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #1976d2;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .scenario-card button:hover { background: #1565c0; }
+  .log-entry { margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+  .log-entry:last-child { border-bottom: none; margin-bottom: 0; }
+  .log-ok { color: #4ec94e; }
+  .log-warn { color: #f0ad4e; }
+  .log-label { color: #9cdcfe; }
+</style>
