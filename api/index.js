@@ -44,8 +44,11 @@ const defaultMimeTypes = {
   '.flac': 'audio/flac',
   '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   '.xlsb': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+  '.odp': 'application/vnd.oasis.opendocument.presentation',
   '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
-  '.rdp': 'application/x-rdp'
+  '.odt': 'application/vnd.oasis.opendocument.text',
+  '.rdp': 'application/x-rdp',
+  '.rtf': 'application/rtf'
 };
 
 function getMimeType(filename) {
