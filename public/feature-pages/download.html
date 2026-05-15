@@ -147,6 +147,21 @@
     </button>
   </div>
 
+  <!-- 0-byte text file -->
+  <div class="file-card" data-filename="empty.txt" data-type="text" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">description</span></div>
+      <div class="file-info">
+        <h3>Empty Text File <span class="file-meta">TXT &bull; 0B</span></h3>
+        <p>Zero-byte file with no content</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('txt', 'empty.txt')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
   <!-- Large text file -->
   <div class="file-card" data-filename="large-file.txt" data-type="text" data-size="large">
     <div class="file-content">
