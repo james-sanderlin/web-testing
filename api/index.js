@@ -6,8 +6,9 @@ const crypto = require('crypto');
 const app = express();
 const PORT = 3000;
 
-// Parse JSON request bodies
+// Parse JSON request bodies (but NOT for upload routes)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Shared MIME type mapping
 const defaultMimeTypes = {
@@ -264,65 +265,58 @@ app.get('/api/one-time-token/:token/status', (req, res) => {
   });
 });
 
-// Simple upload endpoints for testing upload progress
-app.post('/api/upload', (req, res) => {
+// Stream-based upload endpoints (no buffering, unlimited size)
+function handleStreamUpload(req, res, messageType) {
   let totalSize = 0;
+  const startTime = Date.now();
+
+  // Disable timeout for large uploads
+  req.socket.setTimeout(0);
+  req.setTimeout(0);
+
   req.on('data', (chunk) => {
     totalSize += chunk.length;
   });
+
   req.on('end', () => {
+    const duration = (Date.now() - startTime) / 1000;
+    const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+    const speedMbps = totalSize > 0 ? ((totalSize / (1024 * 1024)) / duration).toFixed(2) : 0;
+
     res.json({
       success: true,
-      message: 'File uploaded successfully',
+      message: `${messageType} uploaded successfully`,
       bytesReceived: totalSize,
+      duration: parseFloat(duration.toFixed(2)),
+      sizeMB: parseFloat(sizeMB),
+      speedMbps: parseFloat(speedMbps),
       timestamp: new Date().toISOString()
     });
   });
+
+  req.on('error', (err) => {
+    console.error('Upload error:', err);
+    res.status(400).json({
+      success: false,
+      error: 'Upload failed: ' + err.message
+    });
+  });
+}
+
+app.post('/api/upload', (req, res) => {
+  handleStreamUpload(req, res, 'File');
 });
 
 app.post('/api/upload-multiple', (req, res) => {
-  let totalSize = 0;
-  req.on('data', (chunk) => {
-    totalSize += chunk.length;
-  });
-  req.on('end', () => {
-    res.json({
-      success: true,
-      message: 'Multiple files uploaded successfully',
-      bytesReceived: totalSize,
-      timestamp: new Date().toISOString()
-    });
-  });
+  handleStreamUpload(req, res, 'Multiple files');
 });
 
 app.post('/api/upload-directory', (req, res) => {
-  let totalSize = 0;
-  req.on('data', (chunk) => {
-    totalSize += chunk.length;
-  });
-  req.on('end', () => {
-    res.json({
-      success: true,
-      message: 'Directory uploaded successfully',
-      bytesReceived: totalSize,
-      timestamp: new Date().toISOString()
-    });
-  });
+  handleStreamUpload(req, res, 'Directory');
 });
 
 app.post('/api/upload-images', (req, res) => {
-  let totalSize = 0;
-  req.on('data', (chunk) => {
-    totalSize += chunk.length;
-  });
-  req.on('end', () => {
-    res.json({
-      success: true,
-      message: 'Images uploaded successfully',
-      bytesReceived: totalSize,
-      timestamp: new Date().toISOString()
-    });
-  });
+  handleStreamUpload(req, res, 'Images');
 });
 
 // Health check endpoint
