@@ -6,7 +6,63 @@ const crypto = require('crypto');
 const app = express();
 const PORT = 3000;
 
-// Parse JSON request bodies (but NOT for upload routes)
+// Stream-based upload endpoints MUST be defined BEFORE body parsing middleware
+// Define upload handler function first
+function handleStreamUpload(req, res, messageType) {
+  let totalSize = 0;
+  const startTime = Date.now();
+
+  // Disable timeout for large uploads
+  req.socket.setTimeout(0);
+  req.setTimeout(0);
+
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+  });
+
+  req.on('end', () => {
+    const duration = (Date.now() - startTime) / 1000;
+    const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+    const speedMbps = totalSize > 0 ? ((totalSize / (1024 * 1024)) / duration).toFixed(2) : 0;
+
+    res.json({
+      success: true,
+      message: `${messageType} uploaded successfully`,
+      bytesReceived: totalSize,
+      duration: parseFloat(duration.toFixed(2)),
+      sizeMB: parseFloat(sizeMB),
+      speedMbps: parseFloat(speedMbps),
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  req.on('error', (err) => {
+    console.error('Upload error:', err);
+    res.status(400).json({
+      success: false,
+      error: 'Upload failed: ' + err.message
+    });
+  });
+}
+
+// Define upload routes BEFORE middleware
+app.post('/api/upload', (req, res) => {
+  handleStreamUpload(req, res, 'File');
+});
+
+app.post('/api/upload-multiple', (req, res) => {
+  handleStreamUpload(req, res, 'Multiple files');
+});
+
+app.post('/api/upload-directory', (req, res) => {
+  handleStreamUpload(req, res, 'Directory');
+});
+
+app.post('/api/upload-images', (req, res) => {
+  handleStreamUpload(req, res, 'Images');
+});
+
+// NOW apply body parsing middleware for other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -302,22 +358,6 @@ function handleStreamUpload(req, res, messageType) {
     });
   });
 }
-
-app.post('/api/upload', (req, res) => {
-  handleStreamUpload(req, res, 'File');
-});
-
-app.post('/api/upload-multiple', (req, res) => {
-  handleStreamUpload(req, res, 'Multiple files');
-});
-
-app.post('/api/upload-directory', (req, res) => {
-  handleStreamUpload(req, res, 'Directory');
-});
-
-app.post('/api/upload-images', (req, res) => {
-  handleStreamUpload(req, res, 'Images');
-});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
