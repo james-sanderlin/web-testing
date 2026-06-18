@@ -30,6 +30,15 @@
         Upload
       </button>
     </form>
+    <div id="progress-container" style="display: none; margin-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+        <span id="progress-text">0%</span>
+        <span id="progress-speed"></span>
+      </div>
+      <div style="background: #e0e0e0; border-radius: 8px; height: 24px; overflow: hidden;">
+        <div id="progress-bar" style="background: linear-gradient(90deg, #007cba, #0056b3); height: 100%; width: 0%; transition: width 0.2s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: bold;"></div>
+      </div>
+    </div>
     <div id="upload-result" class="upload-result"></div>
   </div>
 
@@ -55,6 +64,15 @@
       </button>
     </form>
     <div id="multi-file-list" class="upload-result"></div>
+    <div id="multi-progress-container" style="display: none; margin-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+        <span id="multi-progress-text">0%</span>
+        <span id="multi-progress-speed"></span>
+      </div>
+      <div style="background: #e0e0e0; border-radius: 8px; height: 24px; overflow: hidden;">
+        <div id="multi-progress-bar" style="background: linear-gradient(90deg, #007cba, #0056b3); height: 100%; width: 0%; transition: width 0.2s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: bold;"></div>
+      </div>
+    </div>
     <div id="multi-upload-result" class="upload-result"></div>
   </div>
 
@@ -80,6 +98,15 @@
       </button>
     </form>
     <div id="directory-file-list" class="upload-result"></div>
+    <div id="directory-progress-container" style="display: none; margin-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+        <span id="directory-progress-text">0%</span>
+        <span id="directory-progress-speed"></span>
+      </div>
+      <div style="background: #e0e0e0; border-radius: 8px; height: 24px; overflow: hidden;">
+        <div id="directory-progress-bar" style="background: linear-gradient(90deg, #007cba, #0056b3); height: 100%; width: 0%; transition: width 0.2s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: bold;"></div>
+      </div>
+    </div>
     <div id="directory-upload-result" class="upload-result"></div>
   </div>
 

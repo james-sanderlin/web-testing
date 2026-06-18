@@ -264,10 +264,71 @@ app.get('/api/one-time-token/:token/status', (req, res) => {
   });
 });
 
+// Simple upload endpoints for testing upload progress
+app.post('/api/upload', (req, res) => {
+  let totalSize = 0;
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+  });
+  req.on('end', () => {
+    res.json({
+      success: true,
+      message: 'File uploaded successfully',
+      bytesReceived: totalSize,
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
+app.post('/api/upload-multiple', (req, res) => {
+  let totalSize = 0;
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+  });
+  req.on('end', () => {
+    res.json({
+      success: true,
+      message: 'Multiple files uploaded successfully',
+      bytesReceived: totalSize,
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
+app.post('/api/upload-directory', (req, res) => {
+  let totalSize = 0;
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+  });
+  req.on('end', () => {
+    res.json({
+      success: true,
+      message: 'Directory uploaded successfully',
+      bytesReceived: totalSize,
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
+app.post('/api/upload-images', (req, res) => {
+  let totalSize = 0;
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+  });
+  req.on('end', () => {
+    res.json({
+      success: true,
+      message: 'Images uploaded successfully',
+      bytesReceived: totalSize,
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'Express server running - can set real HTTP headers',
     timestamp: new Date().toISOString()
   });

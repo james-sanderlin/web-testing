@@ -63,31 +63,23 @@ function initializeSingleFileUpload() {
   const fileInputBtn = document.querySelector('label[for="file-input"]');
   const result = document.getElementById('upload-result');
   const uploadButton = form?.querySelector('button[type="submit"]');
-  
+
+  console.log('📄 Single file upload:', { form: !!form, fileInput: !!fileInput, fileInputBtn: !!fileInputBtn, result: !!result, uploadButton: !!uploadButton });
+
   if (form && fileInput && result && uploadButton && fileInputBtn) {
-    // Show/hide upload button and update file input button appearance
+    // Show file info and auto-upload when files are selected
     fileInput.addEventListener('change', function() {
       const hasFiles = this.files.length > 0;
-      
-      // Update upload button visibility
-      if (hasFiles) {
-        uploadButton.style.visibility = 'visible';
-        uploadButton.style.height = '';
-        uploadButton.style.margin = '';
-        uploadButton.style.overflow = '';
-      } else {
-        uploadButton.style.visibility = 'hidden';
-        uploadButton.style.height = '0';
-        uploadButton.style.margin = '0';
-        uploadButton.style.overflow = 'hidden';
-      }
-      
+
       // Update file input button appearance and text
       if (hasFiles) {
         fileInputBtn.classList.add('has-files');
         const fileName = this.files[0].name;
         const truncatedName = fileName.length > 20 ? fileName.substring(0, 20) + '...' : fileName;
         fileInputBtn.innerHTML = `<span class="material-icons">check_circle</span>${truncatedName}`;
+
+        // Auto-submit the form
+        setTimeout(() => form.dispatchEvent(new Event('submit')), 0);
       } else {
         fileInputBtn.classList.remove('has-files');
         fileInputBtn.innerHTML = `<span class="material-icons">attach_file</span>Choose File`;
@@ -96,24 +88,93 @@ function initializeSingleFileUpload() {
     
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      console.log('📨 Single file form submitted');
       const file = fileInput.files[0];
       if (!file) {
         result.textContent = 'Please select a file.';
         return;
       }
+
       const formData = new FormData();
       formData.append('file', file);
-      fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        result.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-      })
-      .catch(err => {
-        result.textContent = 'Upload failed: ' + err;
+
+      result.textContent = '';
+
+      // Get progress elements
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      const progressSpeed = document.getElementById('progress-speed');
+
+      // Show progress container and reset
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = '0%';
+      progressSpeed.textContent = '';
+
+      const startTime = Date.now();
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+          progressText.textContent = percent + '%';
+
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed > 0.5) {
+            const speedMbps = (e.loaded / (1024 * 1024)) / elapsed;
+            progressSpeed.textContent = speedMbps.toFixed(2) + ' MB/s';
+          }
+        }
       });
+
+      xhr.addEventListener('load', function() {
+        progressContainer.style.display = 'none';
+        const endTime = Date.now();
+        const totalTime = (endTime - startTime) / 1000;
+
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const speedMbps = (file.size / (1024 * 1024)) / totalTime;
+
+            result.innerHTML = `
+              <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong style="color: #2e7d32;">✓ Upload successful!</strong>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">
+                  <div><strong>Timing:</strong> ${totalTime.toFixed(2)}s</div>
+                  <div><strong>Size:</strong> ${sizeMB} MB</div>
+                  <div><strong>Speed:</strong> ${speedMbps.toFixed(2)} MB/s</div>
+                </div>
+              </div>
+              <details style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: #666;"><strong>Server response</strong></summary>
+                <pre style="background: #f5f5f5; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+              </details>
+            `;
+          } catch (e) {
+            result.textContent = 'Upload complete but could not parse response';
+          }
+        } else {
+          result.textContent = 'Upload failed with status ' + xhr.status;
+        }
+      });
+
+      xhr.addEventListener('error', function() {
+        progressContainer.style.display = 'none';
+        result.textContent = 'Upload failed: ' + xhr.statusText;
+      });
+
+      xhr.addEventListener('abort', function() {
+        progressContainer.style.display = 'none';
+        result.textContent = 'Upload cancelled';
+      });
+
+      xhr.open('POST', '/api/upload', true);
+      xhr.send(formData);
     });
   }
 }
@@ -125,25 +186,14 @@ function initializeMultiFileUpload() {
   const multiFileList = document.getElementById('multi-file-list');
   const multiResult = document.getElementById('multi-upload-result');
   const multiUploadButton = multiForm?.querySelector('button[type="submit"]');
-  
+
+  console.log('📄📄 Multi file upload:', { multiForm: !!multiForm, multiFileInput: !!multiFileInput, multiFileInputBtn: !!multiFileInputBtn, multiFileList: !!multiFileList, multiResult: !!multiResult, multiUploadButton: !!multiUploadButton });
+
   if (multiFileInput && multiFileList && multiUploadButton && multiFileInputBtn) {
     multiFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
       const hasFiles = files.length > 0;
-      
-      // Show/hide upload button based on file selection
-      if (hasFiles) {
-        multiUploadButton.style.visibility = 'visible';
-        multiUploadButton.style.height = '';
-        multiUploadButton.style.margin = '';
-        multiUploadButton.style.overflow = '';
-      } else {
-        multiUploadButton.style.visibility = 'hidden';
-        multiUploadButton.style.height = '0';
-        multiUploadButton.style.margin = '0';
-        multiUploadButton.style.overflow = 'hidden';
-      }
-      
+
       // Update file input button appearance and text
       if (hasFiles) {
         multiFileInputBtn.classList.add('has-files');
@@ -152,18 +202,21 @@ function initializeMultiFileUpload() {
         multiFileInputBtn.classList.remove('has-files');
         multiFileInputBtn.innerHTML = `<span class="material-icons">library_add</span>Choose Multiple Files`;
       }
-      
+
       if (files.length === 0) {
         multiFileList.innerHTML = '';
         return;
       }
-      
-      multiFileList.innerHTML = '<h4>Selected Files:</h4>' + 
-        files.map(file => 
+
+      multiFileList.innerHTML = '<h4>Selected Files:</h4>' +
+        files.map(file =>
           `<div style="padding: 5px; border: 1px solid #ddd; margin: 2px; border-radius: 4px;">
             <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)
           </div>`
         ).join('');
+
+      // Auto-submit the form
+      setTimeout(() => multiForm.dispatchEvent(new Event('submit')), 0);
     });
   }
 
@@ -175,25 +228,90 @@ function initializeMultiFileUpload() {
         multiResult.textContent = 'Please select one or more files.';
         return;
       }
-      
+
       const formData = new FormData();
       files.forEach((file, index) => {
         formData.append(`file${index}`, file);
       });
-      
-      multiResult.textContent = 'Uploading...';
-      
-      fetch('/api/upload-multiple', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        multiResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-      })
-      .catch(err => {
-        multiResult.textContent = 'Multi-upload failed: ' + err;
+
+      multiResult.textContent = '';
+
+      // Get progress elements
+      const progressContainer = document.getElementById('multi-progress-container');
+      const progressBar = document.getElementById('multi-progress-bar');
+      const progressText = document.getElementById('multi-progress-text');
+      const progressSpeed = document.getElementById('multi-progress-speed');
+
+      // Show progress container and reset
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = '0%';
+      progressSpeed.textContent = '';
+
+      const startTime = Date.now();
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+          progressText.textContent = percent + '%';
+
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed > 0.5) {
+            const speedMbps = (e.loaded / (1024 * 1024)) / elapsed;
+            progressSpeed.textContent = speedMbps.toFixed(2) + ' MB/s';
+          }
+        }
       });
+
+      xhr.addEventListener('load', function() {
+        progressContainer.style.display = 'none';
+        const endTime = Date.now();
+        const totalTime = (endTime - startTime) / 1000;
+
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+            const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+            const speedMbps = (totalSize / (1024 * 1024)) / totalTime;
+
+            multiResult.innerHTML = `
+              <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong style="color: #2e7d32;">✓ Upload successful!</strong>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">
+                  <div><strong>Timing:</strong> ${totalTime.toFixed(2)}s</div>
+                  <div><strong>Size:</strong> ${sizeMB} MB (${files.length} files)</div>
+                  <div><strong>Speed:</strong> ${speedMbps.toFixed(2)} MB/s</div>
+                </div>
+              </div>
+              <details style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: #666;"><strong>Server response</strong></summary>
+                <pre style="background: #f5f5f5; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+              </details>
+            `;
+          } catch (e) {
+            multiResult.textContent = 'Upload complete but could not parse response';
+          }
+        } else {
+          multiResult.textContent = 'Upload failed with status ' + xhr.status;
+        }
+      });
+
+      xhr.addEventListener('error', function() {
+        progressContainer.style.display = 'none';
+        multiResult.textContent = 'Upload failed: ' + xhr.statusText;
+      });
+
+      xhr.addEventListener('abort', function() {
+        progressContainer.style.display = 'none';
+        multiResult.textContent = 'Upload cancelled';
+      });
+
+      xhr.open('POST', '/api/upload-multiple', true);
+      xhr.send(formData);
     });
   }
 }
@@ -205,25 +323,14 @@ function initializeDirectoryUpload() {
   const directoryFileList = document.getElementById('directory-file-list');
   const directoryResult = document.getElementById('directory-upload-result');
   const directoryUploadButton = directoryForm?.querySelector('button[type="submit"]');
-  
+
+  console.log('📁 Directory upload:', { directoryForm: !!directoryForm, directoryFileInput: !!directoryFileInput, directoryFileInputBtn: !!directoryFileInputBtn, directoryFileList: !!directoryFileList, directoryResult: !!directoryResult, directoryUploadButton: !!directoryUploadButton });
+
   if (directoryFileInput && directoryFileList && directoryUploadButton && directoryFileInputBtn) {
     directoryFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
       const hasFiles = files.length > 0;
-      
-      // Show/hide upload button based on file selection
-      if (hasFiles) {
-        directoryUploadButton.style.visibility = 'visible';
-        directoryUploadButton.style.height = '';
-        directoryUploadButton.style.margin = '';
-        directoryUploadButton.style.overflow = '';
-      } else {
-        directoryUploadButton.style.visibility = 'hidden';
-        directoryUploadButton.style.height = '0';
-        directoryUploadButton.style.margin = '0';
-        directoryUploadButton.style.overflow = 'hidden';
-      }
-      
+
       // Update file input button appearance and text
       if (hasFiles) {
         directoryFileInputBtn.classList.add('has-files');
@@ -237,12 +344,12 @@ function initializeDirectoryUpload() {
         directoryFileInputBtn.classList.remove('has-files');
         directoryFileInputBtn.innerHTML = `<span class="material-icons">folder_open</span>Choose Directory`;
       }
-      
+
       if (files.length === 0) {
         directoryFileList.innerHTML = '';
         return;
       }
-      
+
       // Group files by directory
       const filesByDirectory = {};
       files.forEach(file => {
@@ -253,35 +360,38 @@ function initializeDirectoryUpload() {
         }
         filesByDirectory[directory].push(file);
       });
-      
+
       let totalSize = files.reduce((sum, file) => sum + file.size, 0);
-      
+
       directoryFileList.innerHTML = `
         <h4>Selected Directory Contents:</h4>
         <div style="margin-bottom: 10px; font-weight: bold;">
           Total: ${files.length} files (${(totalSize / 1024).toFixed(1)} KB)
         </div>
       `;
-      
+
       // Display files grouped by directory
       Object.keys(filesByDirectory).sort().forEach(directory => {
         const directoryDiv = document.createElement('div');
         directoryDiv.style.cssText = 'margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;';
-        
+
         const directoryHeader = document.createElement('div');
         directoryHeader.style.cssText = 'font-weight: bold; margin-bottom: 5px; color: #333;';
         directoryHeader.innerHTML = `📁 ${directory} (${filesByDirectory[directory].length} files)`;
         directoryDiv.appendChild(directoryHeader);
-        
+
         filesByDirectory[directory].forEach(file => {
           const fileDiv = document.createElement('div');
           fileDiv.style.cssText = 'padding: 2px 0 2px 20px; font-size: 0.9em; color: #666;';
           fileDiv.innerHTML = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
           directoryDiv.appendChild(fileDiv);
         });
-        
+
         directoryFileList.appendChild(directoryDiv);
       });
+
+      // Auto-submit the form
+      setTimeout(() => directoryForm.dispatchEvent(new Event('submit')), 0);
     });
   }
 
@@ -293,26 +403,91 @@ function initializeDirectoryUpload() {
         directoryResult.textContent = 'Please select a directory.';
         return;
       }
-      
+
       const formData = new FormData();
       files.forEach((file, index) => {
         formData.append(`file${index}`, file);
         formData.append(`path${index}`, file.webkitRelativePath);
       });
-      
-      directoryResult.textContent = 'Uploading directory...';
-      
-      fetch('/api/upload-directory', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        directoryResult.innerHTML = `<strong>Server response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-      })
-      .catch(err => {
-        directoryResult.textContent = 'Directory upload failed: ' + err;
+
+      directoryResult.textContent = '';
+
+      // Get progress elements
+      const progressContainer = document.getElementById('directory-progress-container');
+      const progressBar = document.getElementById('directory-progress-bar');
+      const progressText = document.getElementById('directory-progress-text');
+      const progressSpeed = document.getElementById('directory-progress-speed');
+
+      // Show progress container and reset
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = '0%';
+      progressSpeed.textContent = '';
+
+      const startTime = Date.now();
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+          progressText.textContent = percent + '%';
+
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed > 0.5) {
+            const speedMbps = (e.loaded / (1024 * 1024)) / elapsed;
+            progressSpeed.textContent = speedMbps.toFixed(2) + ' MB/s';
+          }
+        }
       });
+
+      xhr.addEventListener('load', function() {
+        progressContainer.style.display = 'none';
+        const endTime = Date.now();
+        const totalTime = (endTime - startTime) / 1000;
+
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+            const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+            const speedMbps = (totalSize / (1024 * 1024)) / totalTime;
+
+            directoryResult.innerHTML = `
+              <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong style="color: #2e7d32;">✓ Upload successful!</strong>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">
+                  <div><strong>Timing:</strong> ${totalTime.toFixed(2)}s</div>
+                  <div><strong>Size:</strong> ${sizeMB} MB (${files.length} files)</div>
+                  <div><strong>Speed:</strong> ${speedMbps.toFixed(2)} MB/s</div>
+                </div>
+              </div>
+              <details style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: #666;"><strong>Server response</strong></summary>
+                <pre style="background: #f5f5f5; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+              </details>
+            `;
+          } catch (e) {
+            directoryResult.textContent = 'Upload complete but could not parse response';
+          }
+        } else {
+          directoryResult.textContent = 'Upload failed with status ' + xhr.status;
+        }
+      });
+
+      xhr.addEventListener('error', function() {
+        progressContainer.style.display = 'none';
+        directoryResult.textContent = 'Upload failed: ' + xhr.statusText;
+      });
+
+      xhr.addEventListener('abort', function() {
+        progressContainer.style.display = 'none';
+        directoryResult.textContent = 'Upload cancelled';
+      });
+
+      xhr.open('POST', '/api/upload-directory', true);
+      xhr.send(formData);
     });
   }
 }
@@ -329,20 +504,7 @@ function initializeImageUpload() {
     imageFileInput.addEventListener('change', function() {
       const files = Array.from(this.files);
       const hasFiles = files.length > 0;
-      
-      // Show/hide upload button based on file selection
-      if (hasFiles) {
-        imageUploadButton.style.visibility = 'visible';
-        imageUploadButton.style.height = '';
-        imageUploadButton.style.margin = '';
-        imageUploadButton.style.overflow = '';
-      } else {
-        imageUploadButton.style.visibility = 'hidden';
-        imageUploadButton.style.height = '0';
-        imageUploadButton.style.margin = '0';
-        imageUploadButton.style.overflow = 'hidden';
-      }
-      
+
       // Update file input button appearance and text
       if (hasFiles) {
         imageFileInputBtn.classList.add('has-files');
@@ -351,33 +513,33 @@ function initializeImageUpload() {
         imageFileInputBtn.classList.remove('has-files');
         imageFileInputBtn.innerHTML = `<span class="material-icons">add_photo_alternate</span>Choose Images`;
       }
-      
+
       if (files.length === 0) {
         imagePreview.innerHTML = '';
         return;
       }
-      
+
       imagePreview.innerHTML = '<h4>Image Preview:</h4>';
-      
+
       files.forEach(file => {
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = function(e) {
             const imageContainer = document.createElement('div');
             imageContainer.style.cssText = 'display: inline-block; margin: 5px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center;';
-            
+
             const img = document.createElement('img');
             img.src = e.target.result;
             img.style.cssText = 'max-width: 150px; max-height: 150px; object-fit: cover; border-radius: 4px;';
-            
+
             const fileName = document.createElement('div');
             fileName.textContent = file.name;
             fileName.style.cssText = 'margin-top: 5px; font-size: 0.8em; color: #666;';
-            
+
             const fileSize = document.createElement('div');
             fileSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
             fileSize.style.cssText = 'font-size: 0.7em; color: #999;';
-            
+
             imageContainer.appendChild(img);
             imageContainer.appendChild(fileName);
             imageContainer.appendChild(fileSize);
@@ -386,6 +548,9 @@ function initializeImageUpload() {
           reader.readAsDataURL(file);
         }
       });
+
+      // Auto-submit the form
+      setTimeout(() => imageForm.dispatchEvent(new Event('submit')), 0);
     });
   }
 
@@ -536,7 +701,9 @@ function initializeFileSystemAPI() {
 
 // SPA navigation handler
 window.onNavigate_upload = function() {
+  console.log('🚀 onNavigate_upload called');
   initializeUploadPage();
+  console.log('✅ initializeUploadPage completed');
 };
 
 // If loaded directly, auto-init
