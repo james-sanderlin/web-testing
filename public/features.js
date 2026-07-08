@@ -19,4 +19,5 @@ export const features = [
   { name: "Right-Click Save Image", route: "#/right-click-save", file: "feature-pages/right-click-save.html" },
   { name: "ServiceNow Download", route: "#/download-bubble-test", file: "feature-pages/download-bubble-test.html" },
   { name: "Upload", route: "#/upload", file: "feature-pages/upload.html" },
+  { name: "Upload Mechanisms", route: "#/upload-mechanisms", file: "feature-pages/upload-mechanisms.html" },
 ];
