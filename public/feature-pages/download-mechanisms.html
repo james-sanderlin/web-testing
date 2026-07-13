@@ -1,0 +1,149 @@
+<h2>Download Mechanisms</h2>
+<p style="color: #555; max-width: 800px;">
+  Enumerates the distinct browser mechanisms a page can use to push file data out of JS-land
+  and onto disk. Each card isolates one API surface so you can test download interception,
+  DLP, or extension hooks against each path independently. (For coverage of different file
+  <em>types</em> being downloaded, see the <strong>Download</strong> and
+  <strong>Download Headers</strong> pages instead.)
+</p>
+
+<div id="dm-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1.5rem;">
+
+<!-- static anchor with download attribute -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>&lt;a download&gt;</code></h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
+  <p>A plain same-origin link with a <code>download</code> attribute. The browser saves the
+     file instead of navigating, no script involved at all.</p>
+  <a id="dm-static-anchor" class="dm-btn" href="/assets/sample.csv" download="sample.csv">Download sample.csv</a>
+  <div id="dm-static-result" class="dm-result"></div>
+</div>
+
+<!-- fetch + blob + createObjectURL + download attribute -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>Blob</code> + <code>createObjectURL</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <p><code>fetch()</code> the bytes, wrap them in a <code>Blob</code>, mint an object URL, and
+     click a synthetic <code>&lt;a download&gt;</code> pointing at it — the common
+     "export this data as a file" pattern.</p>
+  <button id="dm-blob-btn" class="dm-btn">Download via Blob URL</button>
+  <div id="dm-blob-result" class="dm-result"></div>
+</div>
+
+<!-- window.location navigation -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>window.location.href</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <p>Script navigates the top-level document straight at an attachment URL. No anchor element
+     exists in the DOM at all — the server's <code>Content-Disposition: attachment</code>
+     header is what turns the navigation into a save.</p>
+  <button id="dm-location-btn" class="dm-btn">Trigger via location.href</button>
+  <div id="dm-location-result" class="dm-result"></div>
+</div>
+
+<!-- window.open -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>window.open()</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <p>Opens the attachment URL in a new tab/window. Some popup blockers and extensions treat
+     this path differently from a same-tab navigation or an anchor click.</p>
+  <button id="dm-open-btn" class="dm-btn">Trigger via window.open()</button>
+  <div id="dm-open-result" class="dm-result"></div>
+</div>
+
+<!-- form submission -->
+<div class="dm-card">
+  <div class="dm-head"><h3>Form submission</h3><span class="dm-tag dm-tag-c">FORM</span></div>
+  <p>A real (hidden) HTML <code>&lt;form&gt;</code> submitted with <code>method="GET"</code>.
+     Some legacy download flows and file-export buttons use a form POST/GET instead of a
+     plain link so they can send extra parameters.</p>
+  <form id="dm-form" action="/api/download-test" method="GET" target="_blank" style="display: contents;">
+    <input type="hidden" name="filename" value="sample.csv" />
+    <input type="hidden" name="test" value="form-submit" />
+    <button type="submit" class="dm-btn">Submit Form to Download</button>
+  </form>
+  <div id="dm-form-result" class="dm-result"></div>
+</div>
+
+<!-- hidden iframe -->
+<div class="dm-card">
+  <div class="dm-head"><h3>Hidden <code>&lt;iframe&gt;</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <p>Sets an invisible iframe's <code>src</code> to the attachment URL. The download fires
+     without any navigation or new tab visible on the page — a classic technique for
+     "download without leaving this page."</p>
+  <button id="dm-iframe-btn" class="dm-btn">Trigger via hidden iframe</button>
+  <div id="dm-iframe-result" class="dm-result"></div>
+  <iframe id="dm-hidden-iframe" style="display: none;" title="hidden download frame"></iframe>
+</div>
+
+<!-- synthetic click, no download attribute -->
+<div class="dm-card">
+  <div class="dm-head"><h3>Synthetic <code>click()</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <p>Builds an <code>&lt;a&gt;</code> element entirely in memory (never attached to the DOM)
+     and dispatches a <code>MouseEvent</code>/<code>.click()</code> on it. Tests whether a
+     download gesture needs to originate from a real, rendered, user-clicked element.</p>
+  <button id="dm-synthetic-btn" class="dm-btn">Fire Synthetic Click</button>
+  <div id="dm-synthetic-result" class="dm-result"></div>
+</div>
+
+<!-- data: URI -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>data:</code> URI</h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
+  <p>A <code>download</code>-attributed link whose <code>href</code> is a base64
+     <code>data:</code> URI — the file content is embedded directly in the page, no network
+     request at all.</p>
+  <a id="dm-data-anchor" class="dm-btn" download="inline-data.txt">Download data: URI</a>
+  <div id="dm-data-result" class="dm-result"></div>
+</div>
+
+<!-- Content-Disposition inline vs attachment -->
+<div class="dm-card">
+  <div class="dm-head"><h3><code>Content-Disposition</code> toggle</h3><span class="dm-tag dm-tag-d">SERVER</span></div>
+  <p>Same URL, same file — only the server's <code>Content-Disposition</code> value changes.
+     <code>attachment</code> forces a save dialog; <code>inline</code> lets the browser try
+     to render it in-place instead.</p>
+  <div style="display: flex; gap: 0.5rem;">
+    <button id="dm-disposition-attachment" class="dm-btn">disposition=attachment</button>
+    <button id="dm-disposition-inline" class="dm-btn dm-btn-ghost">disposition=inline</button>
+  </div>
+  <div id="dm-disposition-result" class="dm-result"></div>
+</div>
+
+<!-- service worker intercepted download -->
+<div class="dm-card">
+  <div class="dm-head"><h3>Service Worker response</h3><span class="dm-tag dm-tag-e">SW</span></div>
+  <p>Registers a service worker that intercepts a same-origin fetch and fabricates the
+     response entirely in the worker (with its own <code>Content-Disposition</code> header)
+     — no real network round trip. Tests whether download interception happens above or
+     below the SW layer.</p>
+  <button id="dm-sw-register-btn" class="dm-btn">Register Service Worker</button>
+  <button id="dm-sw-download-btn" class="dm-btn dm-btn-ghost">Download via SW</button>
+  <div id="dm-sw-result" class="dm-result"></div>
+</div>
+
+</div>
+
+<style>
+.dm-card {
+  border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.dm-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.dm-head h3 { margin: 0; font-size: 1.05rem; color: #333; }
+.dm-card p { margin: 0; color: #555; font-size: 0.9rem; line-height: 1.45; }
+.dm-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.3px; }
+.dm-tag-a { background: #dbeafe; color: #1e40af; }
+.dm-tag-b { background: #fef3c7; color: #92400e; }
+.dm-tag-c { background: #f3e8ff; color: #6b21a8; }
+.dm-tag-d { background: #dcfce7; color: #166534; }
+.dm-tag-e { background: #fce7f3; color: #9d174d; }
+.dm-btn { padding: 0.55rem 1rem; background: #007cba; color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; cursor: pointer; transition: background 0.2s; align-self: flex-start; text-decoration: none; display: inline-block; }
+.dm-btn:hover { background: #005a87; }
+.dm-btn-ghost { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+.dm-btn-ghost:hover { background: #e2e8f0; }
+.dm-result {
+  min-height: 24px; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px;
+  background: #f5f5f5; color: #333; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace;
+}
+.dm-result.dm-ok   { background: #dcfce7; color: #166534; }
+.dm-result.dm-fail { background: #fee2e2; color: #991b1b; }
+.dm-result:empty { display: none; }
+code { font-size: 0.82em; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+</style>

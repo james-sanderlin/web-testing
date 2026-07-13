@@ -9,6 +9,7 @@ export const features = [
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
   { name: "Download Headers", route: "#/download-headers", file: "feature-pages/download-headers.html" },
   { name: "Download Headers (Simple)", route: "#/download-simple", file: "feature-pages/download-simple.html" },
+  { name: "Download Mechanisms", route: "#/download-mechanisms", file: "feature-pages/download-mechanisms.html" },
   { name: "Drag Timeout", route: "#/drag-timeout", file: "feature-pages/drag-timeout.html" },
   { name: "Fine Uploader", route: "#/fine-uploader", file: "feature-pages/fine-uploader.html" },
   { name: "Local Storage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
