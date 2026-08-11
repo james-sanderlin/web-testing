@@ -1,0 +1,188 @@
+<h2>Encrypt Then Upload</h2>
+<p>
+  Reproduces the "read a local file, encrypt it in the browser, then POST the ciphertext to an API" pattern
+  (the Chainguard <code>CreateArgosDocument</code> flow). The plaintext file never leaves the browser — only an
+  opaque encrypted payload does. Pick a mode, choose a file, and watch the <em>Outbound body</em> panel to see
+  exactly what a network proxy would observe.
+</p>
+
+<div class="eu-wrap">
+
+  <!-- Step 1: mode -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">1</span> Choose what happens on upload</div>
+    <div class="mode-grid">
+      <label class="mode-card">
+        <input type="radio" name="eu-mode" value="encrypt" checked>
+        <span class="material-icons mode-icon">lock</span>
+        <span class="mode-name">Encrypt then upload</span>
+        <span class="mode-desc">Reads the file, encrypts it client-side, and sends only ciphertext in a JSON envelope — the Chainguard pattern.</span>
+      </label>
+      <label class="mode-card">
+        <input type="radio" name="eu-mode" value="normal">
+        <span class="material-icons mode-icon">cloud_upload</span>
+        <span class="mode-name">Normal upload</span>
+        <span class="mode-desc">Standard multipart upload — the original file bytes travel over the network as-is.</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Step 2: file + run -->
+  <div class="step">
+    <div class="step-head"><span class="step-num">2</span> Pick a file and run</div>
+    <div class="run-row">
+      <label class="file-field">
+        <span class="material-icons">attach_file</span>
+        <span id="eu-file-name" class="file-name">Choose a file…</span>
+        <input id="eu-file" type="file">
+      </label>
+      <button id="eu-run" disabled>
+        <span class="material-icons">lock</span><span class="btn-label">Encrypt &amp; upload</span>
+      </button>
+      <button id="eu-reset" class="secondary">
+        <span class="material-icons">refresh</span><span>Reset</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Advanced -->
+  <details class="advanced">
+    <summary>
+      <span class="material-icons">tune</span>
+      Advanced options
+      <span class="advanced-sub">crypto method, field names, encoding, destination</span>
+    </summary>
+    <div class="advanced-body">
+
+      <div id="eu-encrypt-opts">
+        <div class="opt-group">
+          <div class="opt-title">Encryption method</div>
+          <div class="seg">
+            <label><input type="radio" name="eu-crypto" value="webcrypto" checked><span>Web Crypto (AES-GCM)</span></label>
+            <label><input type="radio" name="eu-crypto" value="xor"><span>Custom JS (XOR)</span></label>
+          </div>
+          <div class="opt-hint">The XOR path never touches <code>crypto.subtle</code> — shows where Web Crypto instrumentation goes blind.</div>
+        </div>
+
+        <div class="opt-group">
+          <div class="opt-title">Payload field names</div>
+          <div class="seg">
+            <label><input type="radio" name="eu-fields" value="standard" checked><span>Standard</span></label>
+            <label><input type="radio" name="eu-fields" value="obfuscated"><span>Obfuscated</span></label>
+          </div>
+          <div class="opt-hint">Standard uses <code>ciphertext</code>/<code>iv</code>/…; obfuscated uses <code>d</code>/<code>k</code>/<code>n</code>/… to defeat field-name signatures.</div>
+        </div>
+
+        <div class="opt-group">
+          <div class="opt-title">Payload encoding</div>
+          <div class="seg">
+            <label><input type="radio" name="eu-encoding" value="base64" checked><span>Base64 in JSON</span></label>
+            <label><input type="radio" name="eu-encoding" value="raw"><span>Raw binary body</span></label>
+          </div>
+          <div class="opt-hint">Raw sends the ciphertext as the body with metadata in <code>X-</code> headers.</div>
+        </div>
+      </div>
+
+      <div class="opt-group">
+        <div class="opt-title">Destination</div>
+        <div class="seg">
+          <label><input type="radio" name="eu-dest" value="local" checked><span>Local <code>/api/upload</code></span></label>
+          <label><input type="radio" name="eu-dest" value="httpbin"><span>httpbin</span></label>
+          <label><input type="radio" name="eu-dest" value="custom"><span>Custom URL</span></label>
+        </div>
+        <input id="eu-dest-url" type="text" placeholder="https://example.com/api/upload" disabled>
+        <div class="opt-hint">Local echoes byte counts; <code>httpbin.org/post</code> is a real outbound request you can watch through a proxy; Custom lets you point anywhere.</div>
+      </div>
+
+    </div>
+  </details>
+
+  <!-- Output -->
+  <div>
+    <div class="panel-title">Log</div>
+    <div id="eu-log" class="panel"></div>
+  </div>
+
+  <div>
+    <div class="panel-title">Outbound body — what the network / proxy sees</div>
+    <div id="eu-wire-meta" class="wire-meta"></div>
+    <div id="eu-wire" class="panel" style="min-height:60px;"></div>
+  </div>
+
+  <div>
+    <div class="panel-title">Server response</div>
+    <div id="eu-response" class="panel" style="min-height:40px;"></div>
+  </div>
+
+</div>
+
+<style>
+  .eu-wrap { display:flex; flex-direction:column; gap:20px; margin-top:20px; max-width:900px; }
+
+  /* Steps */
+  .step-head { display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px; margin-bottom:10px; color:#222; }
+  .step-num { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#1976d2; color:#fff; font-size:13px; }
+
+  /* Mode cards */
+  .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .mode-card { position:relative; display:flex; flex-direction:column; gap:6px; padding:16px; border:2px solid #e0e0e0; border-radius:10px; cursor:pointer; background:#fff; transition:border-color .12s, box-shadow .12s, background .12s; }
+  .mode-card input { position:absolute; opacity:0; pointer-events:none; }
+  .mode-card:hover { border-color:#b3d1f0; }
+  .mode-card:has(input:checked) { border-color:#1976d2; background:#f3f8fe; box-shadow:0 1px 4px rgba(25,118,210,.15); }
+  .mode-icon { font-size:26px; color:#1976d2; }
+  .mode-name { font-weight:600; font-size:15px; color:#222; }
+  .mode-desc { font-size:13px; color:#666; line-height:1.4; }
+
+  /* File + run row */
+  .run-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .file-field { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px dashed #bbb; border-radius:8px; background:#fafafa; cursor:pointer; color:#555; font-size:14px; min-width:220px; }
+  .file-field:hover { border-color:#1976d2; color:#1976d2; }
+  .file-field input { display:none; }
+  .file-name { font-family:monospace; }
+  .file-field.has-file { border-style:solid; border-color:#4caf50; color:#2e7d32; background:#f1f8f2; }
+
+  #eu-run, #eu-reset { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; }
+  #eu-run .material-icons, #eu-reset .material-icons { font-size:18px; }
+  #eu-run { background:#1976d2; color:#fff; }
+  #eu-run:disabled { background:#b0bec5; cursor:not-allowed; }
+  #eu-run:not(:disabled):hover { background:#1565c0; }
+  #eu-reset.secondary { background:#f5f5f5; color:#333; border:1px solid #ccc; }
+  #eu-reset:hover { background:#e8e8e8; }
+
+  /* Advanced */
+  .advanced { border:1px solid #e5e5e5; border-radius:10px; background:#fcfcfc; overflow:hidden; }
+  .advanced > summary { display:flex; align-items:center; gap:8px; padding:12px 16px; cursor:pointer; font-weight:600; font-size:14px; color:#444; list-style:none; user-select:none; }
+  .advanced > summary::-webkit-details-marker { display:none; }
+  .advanced > summary .material-icons { font-size:18px; color:#888; }
+  .advanced > summary:hover { background:#f4f4f4; }
+  .advanced-sub { font-weight:400; font-size:12px; color:#999; }
+  .advanced[open] > summary { border-bottom:1px solid #eee; }
+  .advanced-body { padding:16px; display:flex; flex-direction:column; gap:18px; }
+  #eu-encrypt-opts { display:flex; flex-direction:column; gap:18px; }
+
+  .opt-group { display:flex; flex-direction:column; gap:6px; }
+  .opt-title { font-weight:600; font-size:13px; color:#333; }
+  .opt-hint { font-size:12px; color:#888; line-height:1.4; }
+
+  /* Segmented toggles */
+  .seg { display:inline-flex; flex-wrap:wrap; gap:6px; }
+  .seg label { position:relative; display:inline-flex; align-items:center; padding:6px 12px; border:1px solid #ccc; border-radius:20px; font-size:13px; cursor:pointer; color:#555; background:#fff; transition:all .1s; }
+  .seg label input { position:absolute; opacity:0; pointer-events:none; }
+  .seg label:hover { border-color:#1976d2; }
+  .seg label:has(input:checked) { background:#1976d2; border-color:#1976d2; color:#fff; }
+  .seg label:has(input:checked) code { color:#fff; }
+
+  #eu-dest-url { margin-top:6px; max-width:340px; padding:7px 10px; border:1px solid #ccc; border-radius:6px; font-family:monospace; font-size:12px; }
+  #eu-dest-url:disabled { background:#f0f0f0; color:#aaa; }
+
+  /* Panels */
+  .panel-title { font-weight:600; margin-bottom:6px; font-size:14px; }
+  .wire-meta { font-size:12px; font-family:monospace; color:#555; margin-bottom:6px; }
+  .panel { background:#1e1e1e; color:#d4d4d4; font-family:monospace; font-size:13px; border-radius:6px; padding:14px; white-space:pre-wrap; word-break:break-all; max-height:340px; overflow:auto; }
+  .log-ok { color:#4ec94e; }
+  .log-warn { color:#f0ad4e; }
+  .log-err { color:#f44336; }
+  .log-dim { color:#888; }
+
+  @media (max-width:640px) { .mode-grid { grid-template-columns:1fr; } }
+</style>

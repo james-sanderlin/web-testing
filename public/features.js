@@ -11,6 +11,7 @@ export const features = [
   { name: "Download Headers (Simple)", route: "#/download-simple", file: "feature-pages/download-simple.html" },
   { name: "Download Mechanisms", route: "#/download-mechanisms", file: "feature-pages/download-mechanisms.html" },
   { name: "Drag Timeout", route: "#/drag-timeout", file: "feature-pages/drag-timeout.html" },
+  { name: "Encrypt Then Upload", route: "#/encrypt-upload", file: "feature-pages/encrypt-upload.html" },
   { name: "Fine Uploader", route: "#/fine-uploader", file: "feature-pages/fine-uploader.html" },
   { name: "Local Storage", route: "#/localstorage", file: "feature-pages/localstorage.html" },
   { name: "One-Time Downloads", route: "#/one-time-downloads", file: "feature-pages/one-time-downloads.html" },
