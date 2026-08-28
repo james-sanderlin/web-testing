@@ -1,0 +1,137 @@
+MIME-Version: 1.0
+Date: Fri, 28 Aug 2026 09:14:02 -0500
+Message-ID: <CAJu-TVQ8mZ2pKd4YwLxR7nHf0BvEqTsWnAcPrDgYt3XuLmKeVw@mail.gmail.com>
+Subject: Q3 Reporting Package - please review
+From: Accounts Payable <ap@contoso-invoices.com>
+To: Jane Doe <jane.doe@gmail.com>
+Content-Type: multipart/mixed; boundary="00000000000075d39d064033223b"
+
+--00000000000075d39d064033223b
+Content-Type: multipart/alternative; boundary="00000000000075d39d064033223c"
+
+--00000000000075d39d064033223c
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Jane,
+
+Attached is the Q3 reporting package. Please open the attachments to review.
+
+Thanks,
+Accounts Payable
+
+--00000000000075d39d064033223c
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">
+  <p>Hi Jane,</p>
+  <p>Attached is the Q3 reporting package. Please open the attachments to review.</p>
+  <p>Thanks,<br>Accounts Payable</p>
+</div>
+
+--00000000000075d39d064033223c--
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="Q3-report.html"
+
+<!-- Vector 1: attachment declaring text/html, 7bit. -->
+<!-- If a viewer serves this back with the declared type and no -->
+<!-- Content-Disposition, it becomes a top-level navigation and runs. -->
+<html>
+<body style="font-family: sans-serif; padding: 2rem;">
+<h1>Vector 1 &mdash; text/html attachment</h1>
+<p id="out">If you can read this as a rendered page, the response was
+served inline instead of downloaded.</p>
+<script>
+  document.title = 'Attachment MIME XSS - vector 1';
+  document.getElementById('out').textContent =
+    'INLINE RENDER CONFIRMED - script executed on origin: ' + window.location.origin;
+  alert('Vector 1 (text/html) executed on: ' + window.location.origin);
+</script>
+</body>
+</html>
+
+--00000000000075d39d064033223b
+Content-Type: image/svg+xml
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="Q3-chart.svg"
+
+<!-- Vector 2: image/svg+xml. Renders as a document, not an image, when -->
+<!-- navigated to directly, so inline SVG script content executes. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="160"
+     onload="alert('Vector 2 (image/svg+xml) onload executed on: ' + window.location.origin)">
+  <rect width="480" height="160" fill="#fff3e0" stroke="#ffa726" stroke-width="2"/>
+  <text x="20" y="50" font-family="sans-serif" font-size="18" fill="#333">
+    Vector 2 - image/svg+xml attachment
+  </text>
+  <text id="svg-out" x="20" y="90" font-family="sans-serif" font-size="13" fill="#666">
+    Waiting on script...
+  </text>
+  <script type="text/javascript"><![CDATA[
+    document.getElementById('svg-out').textContent =
+      'SVG script executed on origin: ' + window.location.origin;
+    alert('Vector 2 (svg script element) executed on: ' + window.location.origin);
+  ]]></script>
+</svg>
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="Q3-notes.txt"
+
+<!-- Vector 3: filename says .txt, declared type says text/html. -->
+<!-- Probes whether the viewer trusts the declared content type -->
+<!-- or the file extension. -->
+<html>
+<body style="font-family: sans-serif; padding: 2rem;">
+<h1>Vector 3 &mdash; extension / MIME mismatch</h1>
+<p id="out">Filename is .txt but the declared type is text/html.</p>
+<script>
+  document.title = 'Attachment MIME XSS - vector 3';
+  document.getElementById('out').textContent =
+    'MISMATCH HONORED - declared type won over .txt extension. Origin: ' + window.location.origin;
+  alert('Vector 3 (.txt declared text/html) executed on: ' + window.location.origin);
+</script>
+</body>
+</html>
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Q3-summary.html"
+
+PCEtLSBWZWN0b3IgNDogc2FtZSBhcyB2ZWN0b3IgMSBidXQgYmFzZTY0LWVuY29kZWQsIHRvIGNv
+bmZpcm0gdGhlIC0tPgo8IS0tIGRlY29kZSBwYXRoIGFsc28gcGFzc2VzIHRoZSBkZWNsYXJlZCB0
+eXBlIHRocm91Z2ggdW5jaGFuZ2VkLiAtLT4KPGh0bWw+Cjxib2R5IHN0eWxlPSJmb250LWZhbWls
+eTogc2Fucy1zZXJpZjsgcGFkZGluZzogMnJlbTsiPgo8aDE+VmVjdG9yIDQgLSBiYXNlNjQtZW5j
+b2RlZCB0ZXh0L2h0bWwgYXR0YWNobWVudDwvaDE+CjxwIGlkPSJvdXQiPkJhc2U2NC1lbmNvZGVk
+IGF0dGFjaG1lbnQgYm9keS48L3A+CjxzY3JpcHQ+CiAgZG9jdW1lbnQudGl0bGUgPSAnQXR0YWNo
+bWVudCBNSU1FIFhTUyAtIHZlY3RvciA0JzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnb3V0
+JykudGV4dENvbnRlbnQgPQogICAgJ0RFQ09ERUQgQU5EIFJFTkRFUkVEIElOTElORSAtIG9yaWdp
+bjogJyArIHdpbmRvdy5sb2NhdGlvbi5vcmlnaW47CiAgYWxlcnQoJ1ZlY3RvciA0IChiYXNlNjQg
+dGV4dC9odG1sKSBleGVjdXRlZCBvbjogJyArIHdpbmRvdy5sb2NhdGlvbi5vcmlnaW4pOwo8L3Nj
+cmlwdD4KPC9ib2R5Pgo8L2h0bWw+Cg==
+
+--00000000000075d39d064033223b
+Content-Type: text/html; charset="UTF-8"; x={probe}
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="Q3-appendix.html"
+
+<!-- Vector 5: declared type carries brace and comma characters, to check -->
+<!-- whether a content-type sanitizer that strips only those still lets -->
+<!-- the type resolve to text/html. -->
+<html>
+<body style="font-family: sans-serif; padding: 2rem;">
+<h1>Vector 5 &mdash; content-type sanitizer passthrough</h1>
+<p id="out">Declared type included brace characters.</p>
+<script>
+  document.title = 'Attachment MIME XSS - vector 5';
+  document.getElementById('out').textContent =
+    'SURVIVED SANITIZER AS text/html - origin: ' + window.location.origin;
+  alert('Vector 5 (dirty content-type) executed on: ' + window.location.origin);
+</script>
+</body>
+</html>
+
+--00000000000075d39d064033223b--

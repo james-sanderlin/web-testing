@@ -447,6 +447,21 @@
     </button>
   </div>
 
+  <!-- Attachment MIME XSS email -->
+  <div class="file-card" data-filename="attachment-mime-xss.eml" data-type="email" data-size="small">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">report</span></div>
+      <div class="file-info">
+        <h3>Attachment MIME XSS <span class="file-meta">EML &bull; 6KB</span></h3>
+        <p>Attachments declaring active MIME types</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('attachment-xss-eml', 'attachment-mime-xss.eml')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
   <!-- Outlook MSG -->
   <div class="file-card" data-filename="sample.msg" data-type="email" data-size="medium">
     <div class="file-content">
