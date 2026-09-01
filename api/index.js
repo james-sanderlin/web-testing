@@ -91,6 +91,7 @@ const defaultMimeTypes = {
   '.mpg': 'video/mpeg',
   '.mpeg': 'video/mpeg',
   '.zip': 'application/zip',
+  '.7z': 'application/x-7z-compressed',
   '.eml': 'message/rfc822',
   '.msg': 'application/vnd.ms-outlook',
   '.exe': 'application/x-msdownload',
