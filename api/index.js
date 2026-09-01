@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const os = require('os');
+const { execFile } = require('child_process');
 
 const app = express();
 const PORT = 3000;
@@ -213,6 +215,78 @@ app.get('/api/download-test', (req, res) => {
   
   // Send the file
   res.sendFile(path.resolve(filePath));
+});
+
+// Locate a 7-Zip binary. Checked by absolute path so it works regardless of
+// the PATH the server was launched with.
+let sevenZipBin;
+function findSevenZip() {
+  if (sevenZipBin !== undefined) return sevenZipBin;
+  const candidates = [
+    process.env.SEVENZIP_BIN,
+    '/opt/homebrew/bin/7zz',
+    '/usr/local/bin/7zz',
+    '/opt/homebrew/bin/7z',
+    '/usr/local/bin/7z',
+    '/usr/bin/7z'
+  ].filter(Boolean);
+  sevenZipBin = candidates.find(c => fs.existsSync(c)) || null;
+  return sevenZipBin;
+}
+
+// Build a password-protected 7z on every request, so no two downloads are byte-identical.
+// The archived text file carries a fresh timestamp, and 7z's AES uses a random salt/IV,
+// so even back-to-back requests produce different bytes.
+app.get('/api/dynamic-7z', (req, res) => {
+  const bin = findSevenZip();
+  if (!bin) {
+    console.error('❌ Dynamic 7z: no 7-Zip binary found');
+    return res.status(500).json({
+      error: 'No 7-Zip binary available on the server',
+      hint: 'brew install sevenzip, or set SEVENZIP_BIN to the binary path'
+    });
+  }
+
+  const password = req.query.password || '1234';
+  const now = new Date();
+  const stamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
+  const nonce = crypto.randomBytes(4).toString('hex');
+  const downloadName = `dynamic-${stamp}-${nonce}.7z`;
+
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dynamic-7z-'));
+  const innerPath = path.join(workDir, `timestamp-${stamp}.txt`);
+  const archivePath = path.join(workDir, downloadName);
+  const cleanup = () => fs.rmSync(workDir, { recursive: true, force: true });
+
+  fs.writeFileSync(innerPath, [
+    `Dynamic 7z generated: ${now.toISOString()}`,
+    `Unix timestamp: ${Math.floor(now.getTime() / 1000)}`,
+    `Nonce: ${nonce}`,
+    `Password: ${password}`,
+    '',
+    'This archive is built fresh on every request. The timestamp above and the',
+    'random AES salt mean the bytes differ every time, so nothing can cache it.'
+  ].join('\n'));
+
+  // execFile (no shell) — the password is user-supplied, so it must never be
+  // interpolated into a command string.
+  execFile(bin, ['a', '-t7z', `-p${password}`, '-mx=5', archivePath, innerPath], (err, stdout, stderr) => {
+    if (err || !fs.existsSync(archivePath)) {
+      console.error('❌ Dynamic 7z: archive creation failed', stderr || err);
+      cleanup();
+      return res.status(500).json({ error: 'Failed to create archive', detail: stderr || String(err) });
+    }
+
+    const size = fs.statSync(archivePath).size;
+    console.log(`✅ Dynamic 7z: ${downloadName} (${size} bytes, password "${password}")`);
+
+    res.setHeader('Content-Type', req.query.mimeType || getMimeType(archivePath));
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(archivePath, cleanup);
+  });
 });
 
 // Generate a one-time download token

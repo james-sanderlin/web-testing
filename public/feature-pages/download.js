@@ -321,6 +321,23 @@ window.downloadViaAPI = function(fileType, originalFilename) {
   document.body.removeChild(a);
 };
 
+// Password-protected 7z built fresh by the server on every request
+window.downloadDynamic7z = function() {
+  const url = new URL('/api/dynamic-7z', window.location.origin);
+  url.searchParams.set('t', Date.now()); // cache buster on top of the no-store headers
+
+  if (globalMimeOverride) {
+    url.searchParams.set('mimeType', globalMimeOverride);
+  }
+
+  const a = document.createElement('a');
+  a.href = url.toString();
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
 // Helper function to get download URL with MIME override
 window.getDownloadUrl = function(baseUrl) {
   if (!globalMimeOverride) return baseUrl;
