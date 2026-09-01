@@ -2,8 +2,6 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const os = require('os');
-const { execFile } = require('child_process');
 
 const app = express();
 const PORT = 3000;
@@ -217,48 +215,28 @@ app.get('/api/download-test', (req, res) => {
   res.sendFile(path.resolve(filePath));
 });
 
-// Locate a 7-Zip binary. Checked by absolute path so it works regardless of
-// the PATH the server was launched with.
-let sevenZipBin;
-function findSevenZip() {
-  if (sevenZipBin !== undefined) return sevenZipBin;
-  const candidates = [
-    process.env.SEVENZIP_BIN,
-    '/opt/homebrew/bin/7zz',
-    '/usr/local/bin/7zz',
-    '/opt/homebrew/bin/7z',
-    '/usr/local/bin/7z',
-    '/usr/bin/7z'
-  ].filter(Boolean);
-  sevenZipBin = candidates.find(c => fs.existsSync(c)) || null;
-  return sevenZipBin;
-}
+// 7-Zip compiled to WebAssembly. No native binary and no disk access, so this
+// behaves identically locally and on serverless hosts like Vercel.
+const SevenZipWasm = require('7z-wasm/7zz.umd.js');
+
+// Read the .wasm ourselves and hand it to the factory. Emscripten would
+// otherwise resolve it relative to its own script, which bundlers get wrong.
+const SEVEN_ZIP_WASM = fs.readFileSync(
+  path.join(path.dirname(require.resolve('7z-wasm/7zz.umd.js')), '7zz.wasm')
+);
 
 // Build a password-protected 7z on every request, so no two downloads are byte-identical.
 // The archived text file carries a fresh timestamp, and 7z's AES uses a random salt/IV,
 // so even back-to-back requests produce different bytes.
-app.get('/api/dynamic-7z', (req, res) => {
-  const bin = findSevenZip();
-  if (!bin) {
-    console.error('❌ Dynamic 7z: no 7-Zip binary found');
-    return res.status(500).json({
-      error: 'No 7-Zip binary available on the server',
-      hint: 'brew install sevenzip, or set SEVENZIP_BIN to the binary path'
-    });
-  }
-
+app.get('/api/dynamic-7z', async (req, res) => {
   const password = req.query.password || '1234';
   const now = new Date();
   const stamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
   const nonce = crypto.randomBytes(4).toString('hex');
   const downloadName = `dynamic-${stamp}-${nonce}.7z`;
+  const innerName = `timestamp-${stamp}.txt`;
 
-  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dynamic-7z-'));
-  const innerPath = path.join(workDir, `timestamp-${stamp}.txt`);
-  const archivePath = path.join(workDir, downloadName);
-  const cleanup = () => fs.rmSync(workDir, { recursive: true, force: true });
-
-  fs.writeFileSync(innerPath, [
+  const contents = [
     `Dynamic 7z generated: ${now.toISOString()}`,
     `Unix timestamp: ${Math.floor(now.getTime() / 1000)}`,
     `Nonce: ${nonce}`,
@@ -266,27 +244,41 @@ app.get('/api/dynamic-7z', (req, res) => {
     '',
     'This archive is built fresh on every request. The timestamp above and the',
     'random AES salt mean the bytes differ every time, so nothing can cache it.'
-  ].join('\n'));
+  ].join('\n');
 
-  // execFile (no shell) — the password is user-supplied, so it must never be
-  // interpolated into a command string.
-  execFile(bin, ['a', '-t7z', `-p${password}`, '-mx=5', archivePath, innerPath], (err, stdout, stderr) => {
-    if (err || !fs.existsSync(archivePath)) {
-      console.error('❌ Dynamic 7z: archive creation failed', stderr || err);
-      cleanup();
-      return res.status(500).json({ error: 'Failed to create archive', detail: stderr || String(err) });
+  try {
+    // A fresh instance per request: Emscripten's in-memory filesystem is
+    // stateful and callMain is not safely re-entrant.
+    const sevenZip = await SevenZipWasm({
+      wasmBinary: SEVEN_ZIP_WASM,
+      print: () => {},
+      printErr: () => {}
+    });
+
+    sevenZip.FS.writeFile(innerName, contents);
+    // Arguments are passed as argv, never through a shell, so the
+    // user-supplied password cannot be injected.
+    const exitCode = sevenZip.callMain(['a', '-t7z', `-p${password}`, '-mx=5', downloadName, innerName]);
+    if (exitCode !== 0) {
+      throw new Error(`7-Zip exited with code ${exitCode}`);
     }
 
-    const size = fs.statSync(archivePath).size;
-    console.log(`✅ Dynamic 7z: ${downloadName} (${size} bytes, password "${password}")`);
+    const archive = Buffer.from(sevenZip.FS.readFile(downloadName));
+    console.log(`✅ Dynamic 7z: ${downloadName} (${archive.length} bytes, password "${password}")`);
 
-    res.setHeader('Content-Type', req.query.mimeType || getMimeType(archivePath));
+    res.setHeader('Content-Type', req.query.mimeType || getMimeType(downloadName));
     res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.sendFile(archivePath, cleanup);
-  });
+    // res.end rather than res.send: Express would attach an ETag, which is
+    // pointless on a body that is unique per request.
+    res.setHeader('Content-Length', archive.length);
+    res.end(archive);
+  } catch (err) {
+    console.error('❌ Dynamic 7z: archive creation failed', err);
+    res.status(500).json({ error: 'Failed to create archive', detail: String(err.message || err) });
+  }
 });
 
 // Generate a one-time download token
