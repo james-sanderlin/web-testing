@@ -7,62 +7,62 @@
 
 <div id="um-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1.5rem;">
 
-<!-- native file input -->
+<!-- native file input, plus attribute-driven variants that share the same input.files/change mechanism -->
 <div class="um-card">
-  <div class="um-head"><h3><code>input.files</code></h3><span class="um-tag um-tag-a">BUTTON</span><span class="um-tag um-tag-b">DRAG & DROP</span></div>
-  <p>Click for the native picker, or drop a file directly onto the input — both populate
-     <code>.files</code> and fire the same <code>change</code> event.</p>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-01</span><h3><code>input.files</code></h3><span class="um-tag um-tag-a">BUTTON</span><span class="um-tag um-tag-b">DRAG & DROP</span></div>
+  <p>The core file-input mechanism: reading the <code>.files</code> property off an
+     <code>&lt;input type="file"&gt;</code> when its <code>change</code> event fires — whether
+     that came from the native picker or a file dropped directly onto the input. The variants
+     below are the same mechanism; they only change what the picker is constrained to.</p>
   <input type="file" id="um-native-input" multiple />
   <div id="um-native-result" class="um-result"></div>
+
+  <details class="um-variants">
+    <summary>2 more variants (capture, webkitdirectory)</summary>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>accept="image/*" capture</code> — hints mobile browsers to open the camera directly</div>
+      <input type="file" id="um-capture-input" accept="image/*" capture="environment" />
+      <div id="um-capture-result" class="um-result"></div>
+    </div>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>webkitdirectory</code> — lets the user pick a whole folder; each file carries a <code>webkitRelativePath</code></div>
+      <input type="file" id="um-dir-input" webkitdirectory multiple />
+      <div id="um-dir-result" class="um-result"></div>
+    </div>
+  </details>
 </div>
 
-<!-- capture attribute, tested as both an input pick and a drop target -->
+<!-- drag/drop: all three read from the same event.dataTransfer on the same drop event -->
 <div class="um-card">
-  <div class="um-head"><h3><code>input.files</code> (capture)</h3><span class="um-tag um-tag-a">BUTTON</span><span class="um-tag um-tag-b">DRAG & DROP</span></div>
-  <p>Same input as above, but <code>accept="image/*" capture</code> hints mobile browsers to
-     open the camera directly instead of a generic file browser.</p>
-  <input type="file" id="um-capture-input" accept="image/*" capture="environment" />
-  <div id="um-capture-result" class="um-result"></div>
-</div>
-
-<!-- directory input -->
-<div class="um-card">
-  <div class="um-head"><h3><code>input.files</code> (webkitdirectory)</h3><span class="um-tag um-tag-a">BUTTON</span></div>
-  <p>The <code>webkitdirectory</code> attribute lets the user pick a whole folder; each file
-     carries a <code>webkitRelativePath</code>.</p>
-  <input type="file" id="um-dir-input" webkitdirectory multiple />
-  <div id="um-dir-result" class="um-result"></div>
-</div>
-
-<!-- drag/drop generic dropzone -->
-<div class="um-card">
-  <div class="um-head"><h3><code>dataTransfer.files</code></h3><span class="um-tag um-tag-b">DRAG & DROP</span></div>
-  <p>Reads <code>event.dataTransfer.files</code> on drop — the most common drag/drop pattern.</p>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-02</span><h3><code>dataTransfer</code></h3><span class="um-tag um-tag-b">DRAG & DROP</span></div>
+  <p>Reads <code>event.dataTransfer.files</code> on drop — the most common drag/drop pattern.
+     The variants below read the same drop event's <code>dataTransfer</code> object through a
+     different property/method.</p>
   <div id="um-dropzone" class="um-dropzone">Drop a file here</div>
   <div id="um-dropzone-result" class="um-result"></div>
-</div>
 
-<!-- DataTransferItemList -->
-<div class="um-card">
-  <div class="um-head"><h3><code>dataTransfer.items</code></h3><span class="um-tag um-tag-b">DRAG & DROP</span></div>
-  <p>Alternate read path: iterate <code>DataTransferItemList</code> and call
-     <code>item.getAsFile()</code> instead of reading <code>.files</code>.</p>
-  <div id="um-items-dropzone" class="um-dropzone">Drop a file here</div>
-  <div id="um-items-result" class="um-result"></div>
-</div>
+  <details class="um-variants">
+    <summary>2 more variants (items, webkitGetAsEntry)</summary>
 
-<!-- folder drag/drop via FileSystemEntry -->
-<div class="um-card">
-  <div class="um-head"><h3><code>webkitGetAsEntry()</code> (folder)</h3><span class="um-tag um-tag-b">DRAG & DROP</span></div>
-  <p>Drop a folder. Uses <code>webkitGetAsEntry()</code> + <code>FileSystemDirectoryReader</code>
-     to recursively read nested structure — the only path that isn't a flat file list.</p>
-  <div id="um-folder-dropzone" class="um-dropzone">Drop a folder here</div>
-  <div id="um-folder-result" class="um-result"></div>
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>dataTransfer.items</code> + <code>item.getAsFile()</code> — iterate the <code>DataTransferItemList</code> instead of reading <code>.files</code> directly</div>
+      <div id="um-items-dropzone" class="um-dropzone">Drop a file here</div>
+      <div id="um-items-result" class="um-result"></div>
+    </div>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>item.webkitGetAsEntry()</code> — drop a folder; recursively reads nested structure via <code>FileSystemDirectoryReader</code>, the only path that isn't a flat file list</div>
+      <div id="um-folder-dropzone" class="um-dropzone">Drop a folder here</div>
+      <div id="um-folder-result" class="um-result"></div>
+    </div>
+  </details>
 </div>
 
 <!-- paste event -->
 <div class="um-card">
-  <div class="um-head"><h3><code>clipboardData.files</code></h3><span class="um-tag um-tag-c">CLIPBOARD</span></div>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-03</span><h3><code>clipboardData.files</code></h3><span class="um-tag um-tag-c">CLIPBOARD</span></div>
   <p>Copy a file or image, click the box, then paste (<kbd>Ctrl/Cmd+V</kbd>). Reads
      <code>event.clipboardData.files</code> from the <code>paste</code> event.</p>
   <div id="um-paste-box" class="um-dropzone" contenteditable="true" tabindex="0">Click here, then paste (Ctrl/Cmd+V)</div>
@@ -71,41 +71,65 @@
 
 <!-- async clipboard API -->
 <div class="um-card">
-  <div class="um-head"><h3><code>navigator.clipboard.read()</code></h3><span class="um-tag um-tag-a">BUTTON</span><span class="um-tag um-tag-c">CLIPBOARD</span></div>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-04</span><h3><code>navigator.clipboard.read()</code></h3><span class="um-tag um-tag-a">BUTTON</span><span class="um-tag um-tag-c">CLIPBOARD</span></div>
   <p>Reads the OS clipboard directly on a button click — no paste event needed. Copy an image
      first, then click.</p>
   <button id="um-clipboard-read" class="um-btn">Read Clipboard</button>
   <div id="um-clipboard-result" class="um-result"></div>
 </div>
 
-<!-- FSA showOpenFilePicker -->
+<!-- File System Access API: both picker calls return FileSystemHandles from the same root API -->
 <div class="um-card">
-  <div class="um-head"><h3><code>showOpenFilePicker()</code></h3><span class="um-tag um-tag-a">BUTTON</span></div>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-05</span><h3><code>showOpenFilePicker()</code></h3><span class="um-tag um-tag-a">BUTTON</span></div>
   <p>Modern async picker that returns <code>FileSystemFileHandle</code>s instead of a
-     <code>FileList</code>.</p>
+     <code>FileList</code>. The variant below is the same File System Access API, returning a
+     directory handle instead.</p>
   <button id="um-fsa-open" class="um-btn">Open File Picker</button>
   <button id="um-fsa-open-multi" class="um-btn um-btn-ghost">Open Multiple</button>
   <div id="um-fsa-open-result" class="um-result"></div>
-</div>
 
-<!-- FSA showDirectoryPicker -->
-<div class="um-card">
-  <div class="um-head"><h3><code>showDirectoryPicker()</code></h3><span class="um-tag um-tag-a">BUTTON</span></div>
-  <p>Grants a <code>FileSystemDirectoryHandle</code> for a whole folder, enumerable
-     asynchronously including nested subfolders.</p>
-  <button id="um-fsa-dir" class="um-btn">Open Directory Picker</button>
-  <div id="um-fsa-dir-result" class="um-result"></div>
+  <details class="um-variants">
+    <summary>1 more variant (showDirectoryPicker)</summary>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>showDirectoryPicker()</code> — grants a <code>FileSystemDirectoryHandle</code> for a whole folder, enumerable asynchronously including nested subfolders</div>
+      <button id="um-fsa-dir" class="um-btn">Open Directory Picker</button>
+      <div id="um-fsa-dir-result" class="um-result"></div>
+    </div>
+  </details>
 </div>
 
 <!-- programmatic File construction -->
 <div class="um-card">
-  <div class="um-head"><h3><code>new File()</code></h3></div>
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-06</span><h3><code>new File()</code></h3></div>
   <p>No user gesture at all — script constructs a <code>File</code> in memory and hands it to
      the same upload code (e.g. <code>FormData</code> + <code>fetch</code>) as a real selection.</p>
   <button id="um-synthetic" class="um-btn">Construct Synthetic File</button>
   <div id="um-synthetic-result" class="um-result"></div>
 </div>
 
+</div>
+
+<div class="um-examples">
+  <h3>Real-World Examples <span class="um-examples-note">(reference — help keep this current)</span></h3>
+  <p>
+    When you add a new mechanism above, or spot a real site relying on one of the existing ones,
+    add a row here. A concrete example makes it easier to judge whether a browser/extension
+    change actually matches how the mechanism shows up in the wild.
+  </p>
+  <table class="um-examples-table">
+    <thead>
+      <tr><th>ID</th><th>Mechanism</th><th>Example site</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>UM-01</td><td><code>input.files</code> (+ capture, webkitdirectory variants)</td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-02</td><td><code>dataTransfer</code> (+ items, webkitGetAsEntry variants)</td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-03</td><td><code>clipboardData.files</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-04</td><td><code>navigator.clipboard.read()</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-05</td><td><code>showOpenFilePicker()</code> (+ showDirectoryPicker variant)</td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-06</td><td><code>new File()</code></td><td><em>add an example</em></td><td></td></tr>
+    </tbody>
+  </table>
 </div>
 
 <style>
@@ -115,6 +139,52 @@
   display: flex; flex-direction: column; gap: 0.75rem;
 }
 .um-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.um-variants {
+  margin-top: 0.25rem;
+}
+.um-variants summary {
+  cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #555;
+  padding: 0.35rem 0; user-select: none; list-style: none;
+}
+.um-variants summary::-webkit-details-marker { display: none; }
+.um-variants summary::before {
+  content: "▸"; display: inline-block; margin-right: 0.4rem;
+  transition: transform 0.15s; color: #888;
+}
+.um-variants[open] summary::before { transform: rotate(90deg); }
+.um-variants[open] summary { border-bottom: 1px dashed #e0e0e0; margin-bottom: 0.5rem; }
+.um-subcase {
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e0e0e0;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.um-subcase:first-of-type { padding-top: 0; border-top: none; }
+.um-subcase-label { font-size: 0.8rem; color: #666; line-height: 1.4; }
+.um-id { position: relative; font-family: ui-monospace, monospace; font-size: 0.7rem; font-weight: 700; color: #888; cursor: pointer; user-select: none; }
+.um-id:hover { color: #1565c0; text-decoration: underline; }
+.um-id.um-copied { color: #166534; }
+.copy-popup {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #166534;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: copyPopupFade 1s ease forwards;
+}
+@keyframes copyPopupFade {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -4px); }
+}
 .um-head h3 { margin: 0; font-size: 1.05rem; color: #333; }
 .um-card p { margin: 0; color: #555; font-size: 0.9rem; line-height: 1.45; }
 .um-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.3px; }
@@ -138,4 +208,22 @@
 .um-result.um-fail { background: #fee2e2; color: #991b1b; }
 .um-result:empty { display: none; }
 code { font-size: 0.82em; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+
+.um-examples {
+  margin-top: 2.5rem;
+  padding: 1.25rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.um-examples h3 { margin: 0 0 0.5rem; font-size: 1rem; color: #333; }
+.um-examples-note { font-weight: 400; font-size: 0.78rem; color: #888; }
+.um-examples p { margin: 0 0 1rem; color: #555; font-size: 0.88rem; line-height: 1.45; }
+.um-examples-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.um-examples-table th, .um-examples-table td {
+  text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #e2e8f0;
+}
+.um-examples-table th { color: #64748b; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
+.um-examples-table td:first-child { font-family: ui-monospace, monospace; font-weight: 700; color: #888; white-space: nowrap; }
+.um-examples-table em { color: #94a3b8; font-style: italic; }
 </style>

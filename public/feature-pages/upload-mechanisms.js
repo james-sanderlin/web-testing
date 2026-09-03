@@ -1,3 +1,19 @@
+// Copy a reference tag (e.g. UM-01) to the clipboard on click
+window.copyTagId = function(el) {
+  var text = el.textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    el.classList.add('um-copied');
+    var popup = document.createElement('span');
+    popup.className = 'copy-popup';
+    popup.textContent = 'Copied!';
+    el.appendChild(popup);
+    setTimeout(function() {
+      el.classList.remove('um-copied');
+      popup.remove();
+    }, 1000);
+  });
+};
+
 function onNavigate_upload_mechanisms() {
   function set(id, msg, status) {
     var el = document.getElementById(id);

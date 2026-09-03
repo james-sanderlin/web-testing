@@ -1,3 +1,19 @@
+// Copy a reference tag (e.g. DM-01) to the clipboard on click
+window.copyTagId = function(el) {
+  var text = el.textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    el.classList.add('dm-copied');
+    var popup = document.createElement('span');
+    popup.className = 'copy-popup';
+    popup.textContent = 'Copied!';
+    el.appendChild(popup);
+    setTimeout(function() {
+      el.classList.remove('dm-copied');
+      popup.remove();
+    }, 1000);
+  });
+};
+
 function onNavigate_download_mechanisms() {
   function set(id, msg, status) {
     var el = document.getElementById(id);
@@ -82,20 +98,7 @@ function onNavigate_download_mechanisms() {
     };
   }
 
-  // --- 7: synthetic click on detached anchor ---
-  var syntheticBtn = document.getElementById('dm-synthetic-btn');
-  if (syntheticBtn) {
-    syntheticBtn.onclick = function () {
-      var a = document.createElement('a');
-      a.href = '/assets/sample.csv';
-      a.download = 'synthetic-sample.csv';
-      // never appended to the DOM
-      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-      set('dm-synthetic-result', 'Dispatched MouseEvent("click") on a detached, never-rendered <a download> element.', 'ok');
-    };
-  }
-
-  // --- 8: data: URI ---
+  // --- 7: data: URI ---
   var dataAnchor = document.getElementById('dm-data-anchor');
   if (dataAnchor) {
     var content = 'This file was embedded directly in the page as a data: URI.\nNo network request was made.\n';
@@ -105,18 +108,7 @@ function onNavigate_download_mechanisms() {
     });
   }
 
-  // --- 9: Content-Disposition toggle ---
-  function triggerDisposition(disposition) {
-    var url = '/api/download-test?filename=sample.csv&disposition=' + disposition + '&test=disposition-' + disposition;
-    window.open(url, '_blank');
-    set('dm-disposition-result', 'Requested ' + url + ' — server responded with Content-Disposition: ' + disposition + '; ...', 'ok');
-  }
-  var dispAttachBtn = document.getElementById('dm-disposition-attachment');
-  if (dispAttachBtn) dispAttachBtn.onclick = function () { triggerDisposition('attachment'); };
-  var dispInlineBtn = document.getElementById('dm-disposition-inline');
-  if (dispInlineBtn) dispInlineBtn.onclick = function () { triggerDisposition('inline'); };
-
-  // --- 10: service worker intercepted response ---
+  // --- 8: service worker intercepted response ---
   var SW_URL = '/sw-download-mechanisms.js';
   var SW_FETCH_URL = '/__dm-sw-download?file=sw-generated.txt';
 
