@@ -29,3 +29,9 @@ build/
 
 # Ignore vendor if you want to keep it out of git (uncomment if needed)
 # vendor/
+
+# Local-only dynamic analysis test page and binaries — not for the public repo
+public/dynamic-analysis-test.html
+# totally_safe / totally_safe.exe are test files for Dynamic Analysis testing — ask a teammate for details
+assets/totally_safe
+assets/totally_safe.exe

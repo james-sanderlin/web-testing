@@ -11,7 +11,7 @@
 
 <!-- static anchor with download attribute -->
 <div class="dm-card">
-  <div class="dm-head"><h3><code>&lt;a download&gt;</code></h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-01</span><h3><code>&lt;a download&gt;</code></h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
   <p>A plain same-origin link with a <code>download</code> attribute. The browser saves the
      file instead of navigating, no script involved at all.</p>
   <a id="dm-static-anchor" class="dm-btn" href="/assets/sample.csv" download="sample.csv">Download sample.csv</a>
@@ -20,7 +20,7 @@
 
 <!-- fetch + blob + createObjectURL + download attribute -->
 <div class="dm-card">
-  <div class="dm-head"><h3><code>Blob</code> + <code>createObjectURL</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-02</span><h3><code>Blob</code> + <code>createObjectURL</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
   <p><code>fetch()</code> the bytes, wrap them in a <code>Blob</code>, mint an object URL, and
      click a synthetic <code>&lt;a download&gt;</code> pointing at it — the common
      "export this data as a file" pattern.</p>
@@ -30,7 +30,7 @@
 
 <!-- window.location navigation -->
 <div class="dm-card">
-  <div class="dm-head"><h3><code>window.location.href</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-03</span><h3><code>window.location.href</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
   <p>Script navigates the top-level document straight at an attachment URL. No anchor element
      exists in the DOM at all — the server's <code>Content-Disposition: attachment</code>
      header is what turns the navigation into a save.</p>
@@ -40,7 +40,7 @@
 
 <!-- window.open -->
 <div class="dm-card">
-  <div class="dm-head"><h3><code>window.open()</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-04</span><h3><code>window.open()</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
   <p>Opens the attachment URL in a new tab/window. Some popup blockers and extensions treat
      this path differently from a same-tab navigation or an anchor click.</p>
   <button id="dm-open-btn" class="dm-btn">Trigger via window.open()</button>
@@ -49,7 +49,7 @@
 
 <!-- form submission -->
 <div class="dm-card">
-  <div class="dm-head"><h3>Form submission</h3><span class="dm-tag dm-tag-c">FORM</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-05</span><h3>Form submission</h3><span class="dm-tag dm-tag-c">FORM</span></div>
   <p>A real (hidden) HTML <code>&lt;form&gt;</code> submitted with <code>method="GET"</code>.
      Some legacy download flows and file-export buttons use a form POST/GET instead of a
      plain link so they can send extra parameters.</p>
@@ -63,7 +63,7 @@
 
 <!-- hidden iframe -->
 <div class="dm-card">
-  <div class="dm-head"><h3>Hidden <code>&lt;iframe&gt;</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-06</span><h3>Hidden <code>&lt;iframe&gt;</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
   <p>Sets an invisible iframe's <code>src</code> to the attachment URL. The download fires
      without any navigation or new tab visible on the page — a classic technique for
      "download without leaving this page."</p>
@@ -72,19 +72,9 @@
   <iframe id="dm-hidden-iframe" style="display: none;" title="hidden download frame"></iframe>
 </div>
 
-<!-- synthetic click, no download attribute -->
-<div class="dm-card">
-  <div class="dm-head"><h3>Synthetic <code>click()</code></h3><span class="dm-tag dm-tag-b">SCRIPT</span></div>
-  <p>Builds an <code>&lt;a&gt;</code> element entirely in memory (never attached to the DOM)
-     and dispatches a <code>MouseEvent</code>/<code>.click()</code> on it. Tests whether a
-     download gesture needs to originate from a real, rendered, user-clicked element.</p>
-  <button id="dm-synthetic-btn" class="dm-btn">Fire Synthetic Click</button>
-  <div id="dm-synthetic-result" class="dm-result"></div>
-</div>
-
 <!-- data: URI -->
 <div class="dm-card">
-  <div class="dm-head"><h3><code>data:</code> URI</h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-07</span><h3><code>data:</code> URI</h3><span class="dm-tag dm-tag-a">ANCHOR</span></div>
   <p>A <code>download</code>-attributed link whose <code>href</code> is a base64
      <code>data:</code> URI — the file content is embedded directly in the page, no network
      request at all.</p>
@@ -92,22 +82,9 @@
   <div id="dm-data-result" class="dm-result"></div>
 </div>
 
-<!-- Content-Disposition inline vs attachment -->
-<div class="dm-card">
-  <div class="dm-head"><h3><code>Content-Disposition</code> toggle</h3><span class="dm-tag dm-tag-d">SERVER</span></div>
-  <p>Same URL, same file — only the server's <code>Content-Disposition</code> value changes.
-     <code>attachment</code> forces a save dialog; <code>inline</code> lets the browser try
-     to render it in-place instead.</p>
-  <div style="display: flex; gap: 0.5rem;">
-    <button id="dm-disposition-attachment" class="dm-btn">disposition=attachment</button>
-    <button id="dm-disposition-inline" class="dm-btn dm-btn-ghost">disposition=inline</button>
-  </div>
-  <div id="dm-disposition-result" class="dm-result"></div>
-</div>
-
 <!-- service worker intercepted download -->
 <div class="dm-card">
-  <div class="dm-head"><h3>Service Worker response</h3><span class="dm-tag dm-tag-e">SW</span></div>
+  <div class="dm-head"><span class="dm-id" onclick="copyTagId(this)" title="Click to copy">DM-08</span><h3>Service Worker response</h3><span class="dm-tag dm-tag-e">SW</span></div>
   <p>Registers a service worker that intercepts a same-origin fetch and fabricates the
      response entirely in the worker (with its own <code>Content-Disposition</code> header)
      — no real network round trip. Tests whether download interception happens above or
@@ -119,6 +96,30 @@
 
 </div>
 
+<div class="dm-examples">
+  <h3>Real-World Examples <span class="dm-examples-note">(reference — help keep this current)</span></h3>
+  <p>
+    When you add a new mechanism above, or spot a real site relying on one of the existing ones,
+    add a row here. A concrete example makes it easier to judge whether a browser/extension
+    change actually matches how the mechanism shows up in the wild.
+  </p>
+  <table class="dm-examples-table">
+    <thead>
+      <tr><th>ID</th><th>Mechanism</th><th>Example site</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>DM-01</td><td><code>&lt;a download&gt;</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-02</td><td>Blob + <code>createObjectURL</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-03</td><td><code>window.location.href</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-04</td><td><code>window.open()</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-05</td><td>Form submission</td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-06</td><td>Hidden <code>&lt;iframe&gt;</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-07</td><td><code>data:</code> URI</td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>DM-08</td><td>Service Worker response</td><td><em>add an example</em></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
 <style>
 .dm-card {
   border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; background: #fff;
@@ -126,13 +127,37 @@
   display: flex; flex-direction: column; gap: 0.75rem;
 }
 .dm-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.dm-id { position: relative; font-family: ui-monospace, monospace; font-size: 0.7rem; font-weight: 700; color: #888; cursor: pointer; user-select: none; }
+.dm-id:hover { color: #1565c0; text-decoration: underline; }
+.dm-id.dm-copied { color: #166534; }
+.copy-popup {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #166534;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: copyPopupFade 1s ease forwards;
+}
+@keyframes copyPopupFade {
+  0% { opacity: 0; transform: translate(-50%, 4px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -4px); }
+}
 .dm-head h3 { margin: 0; font-size: 1.05rem; color: #333; }
 .dm-card p { margin: 0; color: #555; font-size: 0.9rem; line-height: 1.45; }
 .dm-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.3px; }
 .dm-tag-a { background: #dbeafe; color: #1e40af; }
 .dm-tag-b { background: #fef3c7; color: #92400e; }
 .dm-tag-c { background: #f3e8ff; color: #6b21a8; }
-.dm-tag-d { background: #dcfce7; color: #166534; }
 .dm-tag-e { background: #fce7f3; color: #9d174d; }
 .dm-btn { padding: 0.55rem 1rem; background: #007cba; color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; cursor: pointer; transition: background 0.2s; align-self: flex-start; text-decoration: none; display: inline-block; }
 .dm-btn:hover { background: #005a87; }
@@ -146,4 +171,22 @@
 .dm-result.dm-fail { background: #fee2e2; color: #991b1b; }
 .dm-result:empty { display: none; }
 code { font-size: 0.82em; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+
+.dm-examples {
+  margin-top: 2.5rem;
+  padding: 1.25rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.dm-examples h3 { margin: 0 0 0.5rem; font-size: 1rem; color: #333; }
+.dm-examples-note { font-weight: 400; font-size: 0.78rem; color: #888; }
+.dm-examples p { margin: 0 0 1rem; color: #555; font-size: 0.88rem; line-height: 1.45; }
+.dm-examples-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.dm-examples-table th, .dm-examples-table td {
+  text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #e2e8f0;
+}
+.dm-examples-table th { color: #64748b; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
+.dm-examples-table td:first-child { font-family: ui-monospace, monospace; font-weight: 700; color: #888; white-space: nowrap; }
+.dm-examples-table em { color: #94a3b8; font-style: italic; }
 </style>

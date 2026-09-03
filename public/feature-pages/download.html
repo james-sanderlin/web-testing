@@ -162,6 +162,21 @@
     </button>
   </div>
 
+  <!-- DLP detector test string -->
+  <div class="file-card" data-filename="dlp-test-string.txt" data-type="text" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">description</span></div>
+      <div class="file-info">
+        <h3>DLP Test String <span class="file-meta">TXT &bull; &lt;1KB</span></h3>
+        <p>Contains the string ISLANDDLPREPROTEST for DLP detector testing</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('txt', 'dlp-test-string.txt')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
   <!-- Large text file -->
   <div class="file-card" data-filename="large-file.txt" data-type="text" data-size="large">
     <div class="file-content">
@@ -987,4 +1002,5 @@
 .file-card.hidden {
   display: none;
 }
+
 </style>
