@@ -621,14 +621,11 @@ function initializeFileSystemAPI() {
   const fsResultSingle = document.getElementById('fs-result-single');
   const fsResultMultiple = document.getElementById('fs-result-multiple');
   const fsResultSave = document.getElementById('fs-result-save');
+  const fsResultDelayed = document.getElementById('fs-result-delayed');
   const fsActionResultSingle = document.getElementById('fs-action-result-single');
   const fsActionResultMultiple = document.getElementById('fs-action-result-multiple');
   const fsReadSingle = document.getElementById('fs-read-single');
-  const fsUploadSingle = document.getElementById('fs-upload-single');
-  const fsDelaySingle = document.getElementById('fs-delay-single');
   const fsReadMultiple = document.getElementById('fs-read-multiple');
-  const fsUploadMultiple = document.getElementById('fs-upload-multiple');
-  const fsDelayMultiple = document.getElementById('fs-delay-multiple');
 
   // Check if File System Access API is supported
   const isFileSystemAccessSupported = 'showOpenFilePicker' in window;
@@ -637,6 +634,7 @@ function initializeFileSystemAPI() {
     if (fsResultSingle) fsResultSingle.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
     if (fsResultMultiple) fsResultMultiple.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
     if (fsResultSave) fsResultSave.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
+    if (fsResultDelayed) fsResultDelayed.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
   }
 
   let pickedSingle = null;
@@ -673,7 +671,6 @@ function initializeFileSystemAPI() {
         pickedAt = Date.now();
         if (fsActionResultSingle) fsActionResultSingle.innerHTML = '';
         if (fsReadSingle) fsReadSingle.disabled = false;
-        if (fsUploadSingle) fsUploadSingle.disabled = false;
       } catch (err) {
         if (err.name !== 'AbortError') {
           fsResultSingle.textContent = 'Error: ' + err.message;
@@ -703,49 +700,6 @@ function initializeFileSystemAPI() {
           ${formatFsError(err)}<br>
           Time since pick: ${elapsed}s
         </div>`;
-      }
-    });
-  }
-
-  // Upload the picked single file after a delay
-  if (fsUploadSingle && fsActionResultSingle) {
-    fsUploadSingle.addEventListener('click', async function() {
-      if (!pickedSingle) return;
-
-      const file = pickedSingle;
-      const delaySeconds = Math.max(0, parseInt(fsDelaySingle?.value, 10) || 0);
-
-      fsReadSingle.disabled = true;
-      fsUploadSingle.disabled = true;
-
-      await countdown(delaySeconds, (remaining) => {
-        fsActionResultSingle.innerHTML = `Uploading in ${remaining}s...`;
-      });
-
-      fsActionResultSingle.innerHTML = 'Uploading...';
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const elapsedBeforeUpload = secondsSince(pickedAt);
-      try {
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        fsActionResultSingle.innerHTML = `<div style="color: #2e7d32;">
-          <strong>✓ Upload succeeded</strong><br>
-          Bytes received: ${data.bytesReceived} (expected ${file.size})<br>
-          Time since pick: ${elapsedBeforeUpload}s
-        </div>`;
-      } catch (err) {
-        fsActionResultSingle.innerHTML = `<div style="color: #c62828;">
-          <strong>✗ Upload failed</strong><br>
-          ${formatFsError(err)}<br>
-          Time since pick: ${elapsedBeforeUpload}s<br>
-          <em>Check the DevTools Network tab for a possible <code>net::ERR_FILE_NOT_FOUND</code> — the page can't see that string directly.</em>
-        </div>`;
-      } finally {
-        fsReadSingle.disabled = false;
-        fsUploadSingle.disabled = false;
       }
     });
   }
@@ -782,7 +736,6 @@ function initializeFileSystemAPI() {
         pickedAtMultiple = Date.now();
         if (fsActionResultMultiple) fsActionResultMultiple.innerHTML = '';
         if (fsReadMultiple) fsReadMultiple.disabled = false;
-        if (fsUploadMultiple) fsUploadMultiple.disabled = false;
       } catch (err) {
         if (err.name !== 'AbortError') {
           fsResultMultiple.textContent = 'Error: ' + err.message;
@@ -812,46 +765,73 @@ function initializeFileSystemAPI() {
     });
   }
 
-  // Upload all picked files after a delay
-  if (fsUploadMultiple && fsActionResultMultiple) {
-    fsUploadMultiple.addEventListener('click', async function() {
-      if (!pickedMultiple.length) return;
+  // Delayed upload: pick a file, then upload it after a delay
+  const fsDelayedUpload = document.getElementById('fs-delayed-upload');
+  const fsDelaySeconds = document.getElementById('fs-delay-seconds');
+  if (fsDelayedUpload && fsResultDelayed) {
+    fsDelayedUpload.addEventListener('click', async function() {
+      if (!isFileSystemAccessSupported) {
+        fsResultDelayed.textContent = 'File System Access API not supported';
+        return;
+      }
 
-      const files = pickedMultiple;
-      const delaySeconds = Math.max(0, parseInt(fsDelayMultiple?.value, 10) || 0);
+      const delaySeconds = Math.max(0, parseInt(fsDelaySeconds?.value, 10) || 0);
 
-      fsReadMultiple.disabled = true;
-      fsUploadMultiple.disabled = true;
+      let file;
+      let pickedAtDelayed;
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'All files',
+            accept: {'*/*': []}
+          }]
+        });
+
+        file = await fileHandle.getFile();
+        // fileHandle is deliberately not stored anywhere beyond this scope.
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          fsResultDelayed.textContent = 'Error: ' + err.message;
+        }
+        return;
+      }
+
+      pickedAtDelayed = Date.now();
+      fsResultDelayed.innerHTML = `<strong>Selected file:</strong><br>
+        Name: ${file.name}<br>
+        Size: ${(file.size / 1024).toFixed(1)} KB<br>
+        Type: ${file.type || 'unknown'}<br>
+        Last Modified: ${new Date(file.lastModified).toLocaleString()}`;
+
+      fsDelayedUpload.disabled = true;
 
       await countdown(delaySeconds, (remaining) => {
-        fsActionResultMultiple.innerHTML = `Uploading in ${remaining}s...`;
+        fsResultDelayed.innerHTML = `Uploading in ${remaining}s...`;
       });
 
-      fsActionResultMultiple.innerHTML = 'Uploading...';
+      fsResultDelayed.innerHTML = 'Uploading...';
 
       const formData = new FormData();
-      files.forEach((file, i) => formData.append(`file${i}`, file));
-      const expectedTotal = files.reduce((sum, file) => sum + file.size, 0);
+      formData.append('file', file);
 
-      const elapsedBeforeUpload = secondsSince(pickedAtMultiple);
+      const elapsedBeforeUpload = secondsSince(pickedAtDelayed);
       try {
-        const res = await fetch('/api/upload-multiple', { method: 'POST', body: formData });
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        fsActionResultMultiple.innerHTML = `<div style="color: #2e7d32;">
+        fsResultDelayed.innerHTML = `<div style="color: #2e7d32;">
           <strong>✓ Upload succeeded</strong><br>
-          Bytes received: ${data.bytesReceived} (expected ${expectedTotal})<br>
+          Bytes received: ${data.bytesReceived} (expected ${file.size})<br>
           Time since pick: ${elapsedBeforeUpload}s
         </div>`;
       } catch (err) {
-        fsActionResultMultiple.innerHTML = `<div style="color: #c62828;">
+        fsResultDelayed.innerHTML = `<div style="color: #c62828;">
           <strong>✗ Upload failed</strong><br>
           ${formatFsError(err)}<br>
           Time since pick: ${elapsedBeforeUpload}s<br>
           <em>Check the DevTools Network tab for a possible <code>net::ERR_FILE_NOT_FOUND</code> — the page can't see that string directly.</em>
         </div>`;
       } finally {
-        fsReadMultiple.disabled = false;
-        fsUploadMultiple.disabled = false;
+        fsDelayedUpload.disabled = false;
       }
     });
   }

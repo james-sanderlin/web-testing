@@ -141,7 +141,7 @@
       <div class="upload-icon">📂</div>
       <div class="upload-info">
         <h3>Open File (Modern API)</h3>
-        <p>Use File System Access API to open a file, then read its contents or upload it after a delay</p>
+        <p>Use File System Access API to open a file, then read its contents</p>
         <span class="upload-meta">API • MODERN</span>
       </div>
     </div>
@@ -154,15 +154,6 @@
         <span class="material-icons">visibility</span>
         Read Contents
       </button>
-      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #555;">
-        Upload after
-        <input type="number" id="fs-delay-single" min="0" value="15" style="width: 4rem; padding: 0.3rem; border: 1px solid #ccc; border-radius: 4px;" />
-        s
-      </label>
-      <button id="fs-upload-single" class="upload-btn" disabled>
-        <span class="material-icons">cloud_upload</span>
-        Upload
-      </button>
     </div>
     <div id="fs-result-single" class="upload-result"></div>
     <div id="fs-action-result-single" class="upload-result"></div>
@@ -174,7 +165,7 @@
       <div class="upload-icon">📂</div>
       <div class="upload-info">
         <h3>Open Multiple Files (Modern API)</h3>
-        <p>Use File System Access API for multiple files, then read their contents or upload them after a delay</p>
+        <p>Use File System Access API for multiple files, then read their contents</p>
         <span class="upload-meta">API • MULTIPLE</span>
       </div>
     </div>
@@ -187,18 +178,33 @@
         <span class="material-icons">visibility</span>
         Read Contents
       </button>
-      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #555;">
-        Upload after
-        <input type="number" id="fs-delay-multiple" min="0" value="15" style="width: 4rem; padding: 0.3rem; border: 1px solid #ccc; border-radius: 4px;" />
-        s
-      </label>
-      <button id="fs-upload-multiple" class="upload-btn" disabled>
-        <span class="material-icons">cloud_upload</span>
-        Upload
-      </button>
     </div>
     <div id="fs-result-multiple" class="upload-result"></div>
     <div id="fs-action-result-multiple" class="upload-result"></div>
+  </div>
+
+  <!-- File System Access API - Delayed Upload -->
+  <div class="upload-card" data-name="fs-delayed-upload" data-type="api" data-method="delayed">
+    <div class="upload-content">
+      <div class="upload-icon">📂</div>
+      <div class="upload-info">
+        <h3>Delayed Upload (Modern API)</h3>
+        <p>Use File System Access API to pick a file, then upload it after a delay</p>
+        <span class="upload-meta">API • DELAYED</span>
+      </div>
+    </div>
+    <div class="fs-actions">
+      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #555;">
+        Upload after
+        <input type="number" id="fs-delay-seconds" min="0" value="15" style="width: 4rem; padding: 0.3rem; border: 1px solid #ccc; border-radius: 4px;" />
+        s
+      </label>
+      <button id="fs-delayed-upload" class="upload-btn">
+        <span class="material-icons">schedule</span>
+        Choose File & Upload
+      </button>
+    </div>
+    <div id="fs-result-delayed" class="upload-result"></div>
   </div>
 
   <!-- File System Access API - Save File -->
