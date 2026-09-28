@@ -585,19 +585,64 @@ function initializeImageUpload() {
   }
 }
 
+function formatFsError(err) {
+  if (err && err.name) {
+    return `${err.name}: ${err.message}`;
+  }
+  return String(err);
+}
+
+function secondsSince(pickedAt) {
+  if (!pickedAt) return 0;
+  return ((Date.now() - pickedAt) / 1000).toFixed(1);
+}
+
+function countdown(totalSeconds, onTick) {
+  return new Promise((resolve) => {
+    if (totalSeconds <= 0) {
+      resolve();
+      return;
+    }
+    let remaining = totalSeconds;
+    onTick(remaining);
+    const interval = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        resolve();
+      } else {
+        onTick(remaining);
+      }
+    }, 1000);
+  });
+}
+
 function initializeFileSystemAPI() {
   const fsResultSingle = document.getElementById('fs-result-single');
   const fsResultMultiple = document.getElementById('fs-result-multiple');
   const fsResultSave = document.getElementById('fs-result-save');
-  
+  const fsActionResultSingle = document.getElementById('fs-action-result-single');
+  const fsActionResultMultiple = document.getElementById('fs-action-result-multiple');
+  const fsReadSingle = document.getElementById('fs-read-single');
+  const fsUploadSingle = document.getElementById('fs-upload-single');
+  const fsDelaySingle = document.getElementById('fs-delay-single');
+  const fsReadMultiple = document.getElementById('fs-read-multiple');
+  const fsUploadMultiple = document.getElementById('fs-upload-multiple');
+  const fsDelayMultiple = document.getElementById('fs-delay-multiple');
+
   // Check if File System Access API is supported
   const isFileSystemAccessSupported = 'showOpenFilePicker' in window;
-  
+
   if (!isFileSystemAccessSupported) {
     if (fsResultSingle) fsResultSingle.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
     if (fsResultMultiple) fsResultMultiple.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
     if (fsResultSave) fsResultSave.innerHTML = '<div style="color: orange;">⚠️ File System Access API not supported in this browser</div>';
   }
+
+  let pickedSingle = null;
+  let pickedAt = 0;
+  let pickedMultiple = [];
+  let pickedAtMultiple = 0;
 
   // Open single file
   const fsOpenFile = document.getElementById('fs-open-file');
@@ -607,7 +652,7 @@ function initializeFileSystemAPI() {
         fsResultSingle.textContent = 'File System Access API not supported';
         return;
       }
-      
+
       try {
         const [fileHandle] = await window.showOpenFilePicker({
           types: [{
@@ -615,17 +660,92 @@ function initializeFileSystemAPI() {
             accept: {'*/*': []}
           }]
         });
-        
+
         const file = await fileHandle.getFile();
+        // fileHandle is deliberately not stored anywhere beyond this scope.
         fsResultSingle.innerHTML = `<strong>Selected file:</strong><br>
           Name: ${file.name}<br>
           Size: ${(file.size / 1024).toFixed(1)} KB<br>
           Type: ${file.type || 'unknown'}<br>
           Last Modified: ${new Date(file.lastModified).toLocaleString()}`;
+
+        pickedSingle = file;
+        pickedAt = Date.now();
+        if (fsActionResultSingle) fsActionResultSingle.innerHTML = '';
+        if (fsReadSingle) fsReadSingle.disabled = false;
+        if (fsUploadSingle) fsUploadSingle.disabled = false;
       } catch (err) {
         if (err.name !== 'AbortError') {
           fsResultSingle.textContent = 'Error: ' + err.message;
         }
+      }
+    });
+  }
+
+  // Read contents of the picked single file
+  if (fsReadSingle && fsActionResultSingle) {
+    fsReadSingle.addEventListener('click', async function() {
+      if (!pickedSingle) return;
+
+      const file = pickedSingle;
+      const elapsed = secondsSince(pickedAt);
+      try {
+        const buffer = await file.arrayBuffer();
+        const matches = buffer.byteLength === file.size;
+        fsActionResultSingle.innerHTML = `<div style="color: #2e7d32;">
+          <strong>✓ Read succeeded</strong><br>
+          Bytes read: ${buffer.byteLength} (expected ${file.size}) — ${matches ? 'match' : 'MISMATCH'}<br>
+          Time since pick: ${elapsed}s
+        </div>`;
+      } catch (err) {
+        fsActionResultSingle.innerHTML = `<div style="color: #c62828;">
+          <strong>✗ Read failed</strong><br>
+          ${formatFsError(err)}<br>
+          Time since pick: ${elapsed}s
+        </div>`;
+      }
+    });
+  }
+
+  // Upload the picked single file after a delay
+  if (fsUploadSingle && fsActionResultSingle) {
+    fsUploadSingle.addEventListener('click', async function() {
+      if (!pickedSingle) return;
+
+      const file = pickedSingle;
+      const delaySeconds = Math.max(0, parseInt(fsDelaySingle?.value, 10) || 0);
+
+      fsReadSingle.disabled = true;
+      fsUploadSingle.disabled = true;
+
+      await countdown(delaySeconds, (remaining) => {
+        fsActionResultSingle.innerHTML = `Uploading in ${remaining}s...`;
+      });
+
+      fsActionResultSingle.innerHTML = 'Uploading...';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const elapsedBeforeUpload = secondsSince(pickedAt);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        fsActionResultSingle.innerHTML = `<div style="color: #2e7d32;">
+          <strong>✓ Upload succeeded</strong><br>
+          Bytes received: ${data.bytesReceived} (expected ${file.size})<br>
+          Time since pick: ${elapsedBeforeUpload}s
+        </div>`;
+      } catch (err) {
+        fsActionResultSingle.innerHTML = `<div style="color: #c62828;">
+          <strong>✗ Upload failed</strong><br>
+          ${formatFsError(err)}<br>
+          Time since pick: ${elapsedBeforeUpload}s<br>
+          <em>Check the DevTools Network tab for a possible <code>net::ERR_FILE_NOT_FOUND</code> — the page can't see that string directly.</em>
+        </div>`;
+      } finally {
+        fsReadSingle.disabled = false;
+        fsUploadSingle.disabled = false;
       }
     });
   }
@@ -638,7 +758,7 @@ function initializeFileSystemAPI() {
         fsResultMultiple.textContent = 'File System Access API not supported';
         return;
       }
-      
+
       try {
         const fileHandles = await window.showOpenFilePicker({
           multiple: true,
@@ -647,19 +767,91 @@ function initializeFileSystemAPI() {
             accept: {'*/*': []}
           }]
         });
-        
+
         const files = await Promise.all(
           fileHandles.map(handle => handle.getFile())
         );
-        
+        // fileHandles is deliberately not stored anywhere beyond this scope.
+
         fsResultMultiple.innerHTML = `<strong>Selected ${files.length} files:</strong><br>` +
-          files.map(file => 
+          files.map(file =>
             `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
           ).join('<br>');
+
+        pickedMultiple = files;
+        pickedAtMultiple = Date.now();
+        if (fsActionResultMultiple) fsActionResultMultiple.innerHTML = '';
+        if (fsReadMultiple) fsReadMultiple.disabled = false;
+        if (fsUploadMultiple) fsUploadMultiple.disabled = false;
       } catch (err) {
         if (err.name !== 'AbortError') {
           fsResultMultiple.textContent = 'Error: ' + err.message;
         }
+      }
+    });
+  }
+
+  // Read contents of all picked files
+  if (fsReadMultiple && fsActionResultMultiple) {
+    fsReadMultiple.addEventListener('click', async function() {
+      if (!pickedMultiple.length) return;
+
+      const files = pickedMultiple;
+      const elapsed = secondsSince(pickedAtMultiple);
+      const settled = await Promise.allSettled(files.map(file => file.arrayBuffer()));
+
+      fsActionResultMultiple.innerHTML = `<strong>Read results (${elapsed}s since pick):</strong><br>` +
+        settled.map((result, i) => {
+          const file = files[i];
+          if (result.status === 'fulfilled') {
+            const matches = result.value.byteLength === file.size;
+            return `<div style="color: #2e7d32;">✓ ${file.name}: ${result.value.byteLength} bytes (expected ${file.size}) — ${matches ? 'match' : 'MISMATCH'}</div>`;
+          }
+          return `<div style="color: #c62828;">✗ ${file.name}: ${formatFsError(result.reason)}</div>`;
+        }).join('');
+    });
+  }
+
+  // Upload all picked files after a delay
+  if (fsUploadMultiple && fsActionResultMultiple) {
+    fsUploadMultiple.addEventListener('click', async function() {
+      if (!pickedMultiple.length) return;
+
+      const files = pickedMultiple;
+      const delaySeconds = Math.max(0, parseInt(fsDelayMultiple?.value, 10) || 0);
+
+      fsReadMultiple.disabled = true;
+      fsUploadMultiple.disabled = true;
+
+      await countdown(delaySeconds, (remaining) => {
+        fsActionResultMultiple.innerHTML = `Uploading in ${remaining}s...`;
+      });
+
+      fsActionResultMultiple.innerHTML = 'Uploading...';
+
+      const formData = new FormData();
+      files.forEach((file, i) => formData.append(`file${i}`, file));
+      const expectedTotal = files.reduce((sum, file) => sum + file.size, 0);
+
+      const elapsedBeforeUpload = secondsSince(pickedAtMultiple);
+      try {
+        const res = await fetch('/api/upload-multiple', { method: 'POST', body: formData });
+        const data = await res.json();
+        fsActionResultMultiple.innerHTML = `<div style="color: #2e7d32;">
+          <strong>✓ Upload succeeded</strong><br>
+          Bytes received: ${data.bytesReceived} (expected ${expectedTotal})<br>
+          Time since pick: ${elapsedBeforeUpload}s
+        </div>`;
+      } catch (err) {
+        fsActionResultMultiple.innerHTML = `<div style="color: #c62828;">
+          <strong>✗ Upload failed</strong><br>
+          ${formatFsError(err)}<br>
+          Time since pick: ${elapsedBeforeUpload}s<br>
+          <em>Check the DevTools Network tab for a possible <code>net::ERR_FILE_NOT_FOUND</code> — the page can't see that string directly.</em>
+        </div>`;
+      } finally {
+        fsReadMultiple.disabled = false;
+        fsUploadMultiple.disabled = false;
       }
     });
   }

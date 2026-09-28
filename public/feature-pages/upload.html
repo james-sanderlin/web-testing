@@ -141,7 +141,7 @@
       <div class="upload-icon">📂</div>
       <div class="upload-info">
         <h3>Open File (Modern API)</h3>
-        <p>Use File System Access API to open files</p>
+        <p>Use File System Access API to open a file, then read its contents or upload it after a delay</p>
         <span class="upload-meta">API • MODERN</span>
       </div>
     </div>
@@ -149,7 +149,23 @@
       <span class="material-icons">folder_open</span>
       Open File
     </button>
+    <div class="fs-actions">
+      <button id="fs-read-single" class="upload-btn" disabled>
+        <span class="material-icons">visibility</span>
+        Read Contents
+      </button>
+      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #555;">
+        Upload after
+        <input type="number" id="fs-delay-single" min="0" value="15" style="width: 4rem; padding: 0.3rem; border: 1px solid #ccc; border-radius: 4px;" />
+        s
+      </label>
+      <button id="fs-upload-single" class="upload-btn" disabled>
+        <span class="material-icons">cloud_upload</span>
+        Upload
+      </button>
+    </div>
     <div id="fs-result-single" class="upload-result"></div>
+    <div id="fs-action-result-single" class="upload-result"></div>
   </div>
 
   <!-- File System Access API - Open Multiple -->
@@ -158,7 +174,7 @@
       <div class="upload-icon">📂</div>
       <div class="upload-info">
         <h3>Open Multiple Files (Modern API)</h3>
-        <p>Use File System Access API for multiple files</p>
+        <p>Use File System Access API for multiple files, then read their contents or upload them after a delay</p>
         <span class="upload-meta">API • MULTIPLE</span>
       </div>
     </div>
@@ -166,7 +182,23 @@
       <span class="material-icons">folder_open</span>
       Open Multiple Files
     </button>
+    <div class="fs-actions">
+      <button id="fs-read-multiple" class="upload-btn" disabled>
+        <span class="material-icons">visibility</span>
+        Read Contents
+      </button>
+      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #555;">
+        Upload after
+        <input type="number" id="fs-delay-multiple" min="0" value="15" style="width: 4rem; padding: 0.3rem; border: 1px solid #ccc; border-radius: 4px;" />
+        s
+      </label>
+      <button id="fs-upload-multiple" class="upload-btn" disabled>
+        <span class="material-icons">cloud_upload</span>
+        Upload
+      </button>
+    </div>
     <div id="fs-result-multiple" class="upload-result"></div>
+    <div id="fs-action-result-multiple" class="upload-result"></div>
   </div>
 
   <!-- File System Access API - Save File -->
@@ -342,5 +374,22 @@ input[type="file"] {
 .file-input-btn.has-files:hover {
   background: #cce7ff;
   border-color: #005a87;
+}
+
+.fs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fs-actions .upload-btn {
+  flex: 1;
+  min-width: 140px;
+}
+
+.fs-actions .upload-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 </style>
