@@ -7,6 +7,7 @@ export const features = [
   { name: "Decrypt to Data URL", route: "#/decrypt-data-url", file: "feature-pages/decrypt-data-url.html" },
   { name: "DLP", route: "#/dlp", file: "feature-pages/dlp.html" },
   { name: "Download", route: "#/download", file: "feature-pages/download.html" },
+  { name: "Download - Multiple at Once", route: "#/download-multiple", file: "feature-pages/download-multiple.html" },
   { name: "Download Headers", route: "#/download-headers", file: "feature-pages/download-headers.html" },
   { name: "Download Headers (Simple)", route: "#/download-simple", file: "feature-pages/download-simple.html" },
   { name: "Download Mechanisms", route: "#/download-mechanisms", file: "feature-pages/download-mechanisms.html" },

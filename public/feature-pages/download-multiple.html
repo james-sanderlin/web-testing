@@ -1,0 +1,66 @@
+<h2>Download - Multiple at Once</h2>
+<p style="color:#666;margin-bottom:1.5rem;">Trigger several file downloads with a single click. Useful for testing multiple-download prompts and download handling in bulk.</p>
+
+<div class="multi-card">
+  <label for="multi-count" style="font-weight:600;font-size:0.9rem;color:#555;">Number of files</label>
+  <input type="number" id="multi-count" value="5" min="2" max="50"
+    style="padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.95rem;width:100px;" />
+  <button id="multi-download-btn" class="download-btn">
+    <span class="material-icons">download</span>
+    Download All
+  </button>
+</div>
+
+<p style="color:#666;font-size:0.85rem;margin:1rem 0;">
+  <span class="material-icons" style="font-size:1rem;vertical-align:middle;">info</span>
+  Chrome will ask once to "Allow multiple downloads" for this site.
+</p>
+
+<ul id="multi-results" style="list-style:none;padding:0;margin:0;font-family:monospace;font-size:0.85rem;color:#333;"></ul>
+
+<style>
+.multi-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  max-width: 600px;
+}
+
+#multi-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+  transition: background 0.15s;
+}
+
+#multi-download-btn:hover:not(:disabled) {
+  background: #bbdefb;
+}
+
+#multi-download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#multi-download-btn .material-icons {
+  font-size: 1.1rem;
+}
+
+#multi-results li {
+  padding: 0.25rem 0;
+}
+</style>
