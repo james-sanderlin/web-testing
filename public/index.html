@@ -37,13 +37,13 @@
     .header-title:hover {
       color: #6366f1;
     }
-    #search {
-      width: 100%;
-      margin-bottom: 0;
-      --md-outlined-text-field-container-shape: 4px;
-    }
-    .nav-search {
-      padding: 0 1rem 0.5rem;
+    .nav-heading {
+      padding: 0 1.5rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #888;
       flex-shrink: 0;
     }
     .main-layout {
@@ -62,19 +62,39 @@
       flex-direction: column;
       min-height: 0;
     }
-    #nav-links {
+    .nav-list {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
       background: none;
       border: none;
-      padding: 0.25rem 1rem 0;
+      padding: 0 1rem;
       list-style: none;
       margin: 0;
+    }
+    #nav-primary {
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #e5e5e5;
+      flex-shrink: 0;
+    }
+    #nav-primary li {
+      justify-content: flex-start !important;
+      gap: 0.6rem;
+    }
+    #nav-primary .material-icons {
+      font-size: 1.2rem;
+      color: #777;
+    }
+    #nav-primary li.selected .material-icons {
+      color: #6366f1;
+    }
+    #nav-links {
+      padding-top: 0.25rem;
       flex: 1 1 auto;
       overflow-y: auto;
     }
-    #nav-links li {
+    .nav-list li {
       cursor: pointer;
       min-width: 120px;
       border-radius: 4px;
@@ -87,12 +107,12 @@
       align-items: center;
       justify-content: space-between;
     }
-    .nav-section-divider {
-      height: 0;
-      margin: 0.4rem 1rem;
-      border-bottom: 1px solid #e5e5e5;
-      padding: 0 !important;
-      cursor: default;
+    .nav-empty {
+      color: #999;
+      font-size: 0.85rem !important;
+      line-height: 1.4;
+      cursor: default !important;
+      display: block !important;
     }
     .star-icon {
       font-size: 1.1rem;
@@ -107,13 +127,16 @@
       opacity: 1;
       color: #f59e0b;
     }
-    #nav-links li:hover .star-icon {
+    .nav-list li:hover .star-icon {
       opacity: 1;
     }
-    #nav-links li.selected, #nav-links li[aria-selected="true"] {
+    .nav-list li.selected, .nav-list li[aria-selected="true"] {
       background: #e0e7ff;
     }
-    #nav-links li:focus {
+    .nav-list li:hover:not(.selected):not(.nav-empty) {
+      background: #f5f5f5;
+    }
+    .nav-list li:focus {
       box-shadow: 0 0 0 2px #6366f1;
     }
     main#content {
@@ -121,6 +144,138 @@
       padding: 2rem;
       overflow-y: auto;
       min-width: 0;
+    }
+
+    /* Shared discovery styles (home + browse) */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #888;
+      margin: 2rem 0 0.75rem;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+    .page-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 0.75rem 0.9rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .page-card:hover {
+      border-color: #6366f1;
+      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.15);
+    }
+    .page-card .page-card-body {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .page-card .page-card-name {
+      font-weight: 500;
+      color: #2563eb;
+    }
+    .page-card .page-card-desc {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.2rem;
+      line-height: 1.35;
+    }
+    .page-card .star-icon {
+      opacity: 0.35;
+    }
+    .page-card:hover .star-icon,
+    .page-card .star-icon.starred {
+      opacity: 1;
+    }
+    .cat-tile {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+      text-decoration: none;
+      color: #333;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .cat-tile:hover {
+      border-color: #6366f1;
+      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.15);
+    }
+    .cat-tile .material-icons {
+      color: #6366f1;
+    }
+    .cat-tile .cat-tile-count {
+      margin-left: auto;
+      color: #999;
+      font-size: 0.85rem;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .cat-chip {
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font: inherit;
+      font-size: 0.9rem;
+      color: #444;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .cat-chip:hover {
+      border-color: #6366f1;
+    }
+    .cat-chip.active {
+      background: #e0e7ff;
+      border-color: #6366f1;
+      color: #3730a3;
+    }
+    #browse-filter {
+      width: 100%;
+      max-width: 420px;
+      box-sizing: border-box;
+      font: inherit;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      outline: none;
+    }
+    #browse-filter:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px #e0e7ff;
+    }
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+    .recent-link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .recent-link:hover {
+      text-decoration: underline;
+      color: #1d4ed8;
+    }
+    .empty-note {
+      color: #888;
     }
   </style>
 </head>
@@ -130,18 +285,9 @@
   </header>
   <div class="main-layout">
     <nav>
-      <div class="nav-search">
-        <md-outlined-text-field
-          id="search"
-          label="Search"
-          type="search"
-          autocomplete="off"
-        >
-          <span slot="leading-icon" class="material-icons">search</span>
-          <span slot="trailing-icon" style="font-family:monospace;opacity:0.7;font-size:0.95em;user-select:none;display:flex;align-items:center;">⌘K</span>
-        </md-outlined-text-field>
-      </div>
-      <ul id="nav-links"></ul>
+      <ul id="nav-primary" class="nav-list"></ul>
+      <div class="nav-heading">Favorites</div>
+      <ul id="nav-links" class="nav-list"></ul>
     </nav>
     <main id="content">Loading....</main>
   </div>

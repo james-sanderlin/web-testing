@@ -1,50 +1,59 @@
-import { features } from './features.js';
+import { features, CATEGORIES } from './features.js';
 import { setupNav } from './nav.js';
+import * as starred from './starred.js';
 
-// Make features available globally for page scripts
-window.features = features;
+const RECENT_KEY = 'recent-pages';
+const RECENT_LIMIT = 5;
 
+const primaryList = document.getElementById('nav-primary');
 const navList = document.getElementById('nav-links');
-const search = document.getElementById('search');
 const content = document.getElementById('content');
 const homeLink = document.getElementById('home-link');
 
-const homePage = { name: "Home", route: "#/home", file: "feature-pages/home.html" };
+const standalonePages = [
+  { name: "Home", route: "#/home", file: "feature-pages/home.html" },
+  { name: "Browse", route: "#/browse", file: "feature-pages/browse.html" },
+];
+
+// Available to page scripts, which are regular scripts and cannot import
+window.features = features;
+window.CATEGORIES = CATEGORIES;
+window.starred = starred;
+window.getRecent = getRecent;
 
 homeLink.addEventListener('click', () => {
-  location.hash = homePage.route;
+  location.hash = '#/home';
 });
 
-function addRecent(route) {
-  if (route === '#/home') return;
-  const key = 'recent-pages';
-  let recent = [];
+function getRecent() {
   try {
-    recent = JSON.parse(localStorage.getItem(key)) || [];
-  } catch {}
-  // Remove if already present, then add to front
-  recent = recent.filter(r => r !== route);
-  recent.unshift(route);
-  // Limit to 5
-  if (recent.length > 5) recent = recent.slice(0, 5);
-  localStorage.setItem(key, JSON.stringify(recent));
+    return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+  } catch { return []; }
 }
 
-const nav = setupNav(features, navList, search, (route) => {
+function addRecent(route) {
+  if (standalonePages.some(p => p.route === route)) return;
+  let recent = getRecent().filter(r => r !== route);
+  recent.unshift(route);
+  if (recent.length > RECENT_LIMIT) recent = recent.slice(0, RECENT_LIMIT);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+}
+
+const nav = setupNav(features, primaryList, navList, (route) => {
   location.hash = route;
-  search.value = '';
-  nav.renderNav('');
-  search.blur();
   addRecent(route);
 });
 
 function loadPage(isNavigation = false) {
-  const route = location.hash || "#/home";
-  const match = features.find(f => f.route === route) || (route === "#/home" ? homePage : null);
+  const [route, queryString] = (location.hash || "#/home").split('?');
+  const match = features.find(f => f.route === route)
+    || standalonePages.find(p => p.route === route);
   if (!match) {
     content.innerHTML = "<h2>Page not found</h2>";
     return;
   }
+
+  window.routeParams = new URLSearchParams(queryString || '');
 
   // Only clear search parameters when navigating between different pages, not on page load/refresh
   if (isNavigation) {
@@ -55,8 +64,7 @@ function loadPage(isNavigation = false) {
     }
   }
 
-  // Track recent page on navigation (for direct hash changes/bookmarks)
-  if (route !== '#/home') addRecent(route);
+  addRecent(route);
 
   fetch(match.file)
     .then(res => res.text())
@@ -91,11 +99,6 @@ function loadPage(isNavigation = false) {
 
 window.addEventListener("hashchange", () => {
   loadPage(true); // This is navigation between pages
-  nav.renderNav(search.value);
-  
-  // If we're navigating to home, update recent links
-  if (location.hash === '#/home' && window.onNavigate_home) {
-    setTimeout(window.onNavigate_home, 100); // Small delay to ensure DOM is ready
-  }
+  nav.renderNav();
 });
 window.addEventListener("load", () => loadPage(false)); // This is initial load/refresh

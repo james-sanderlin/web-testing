@@ -61,16 +61,24 @@ function onNavigate_<handler_name>() {
 
 ## Step 4: Register in features.js
 
-Add an entry to the `features` array in `public/features.js`, maintaining **alphabetical order by name**:
+Add an entry to the `features` array in `public/features.js`, maintaining **alphabetical order by name**. All five fields are required:
 
 ```js
-{ name: "Display Name", route: "#/<page-name>", file: "feature-pages/<page-name>.html" },
+{ name: "Display Name", route: "#/<page-name>", file: "feature-pages/<page-name>.html",
+  category: "<category-id>", description: "One line on what this page tests." },
 ```
+
+Pick `category` from the `CATEGORIES` ids at the top of `features.js`:
+`downloads`, `uploads`, `files`, `storage`, `security`. Keep `description` to one short
+sentence — it is shown on the Browse page card.
+
+The sidebar shows favorites only, so a new page is reached through `#/browse` (or by
+starring it) rather than appearing in the nav automatically.
 
 ## Step 5: Verify
 
 After creating the files, confirm:
 1. The handler function name matches the route with hyphens→underscores conversion
-2. The features.js entry is in alphabetical order
+2. The features.js entry is in alphabetical order and includes `category` and `description`
 3. The HTML file has no document wrapper tags
 4. The JS file has no import/export statements

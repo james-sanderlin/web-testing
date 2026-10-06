@@ -9,7 +9,8 @@ public/
   index.html          # App shell (header, nav sidebar, content area)
   main.js             # Routing, page loading, recent pages tracking
   nav.js              # Sidebar rendering, search, keyboard nav, starring
-  features.js         # Centralized feature registry (array of {name, route, file})
+  features.js         # Feature registry ({name, route, file, category, description}) + CATEGORIES
+  starred.js          # Favorites state shared by the sidebar and the browse page
   feature-pages/      # Individual page HTML + JS pairs
 ```
 
@@ -69,15 +70,21 @@ window.onNavigate_my_page = function() {
 
 ### 3. Register in `public/features.js`
 
-Add an entry to the array, maintaining **alphabetical order by name**:
+Add an entry to the array, maintaining **alphabetical order by name**. All five fields are required:
 
 ```js
-{ name: "My New Page", route: "#/my-page", file: "feature-pages/my-page.html" },
+{ name: "My New Page", route: "#/my-page", file: "feature-pages/my-page.html",
+  category: "downloads", description: "One line on what this page tests." },
 ```
 
-- `name`: Display name in sidebar. Do NOT include "Test" or "Demo" — the whole app is for testing.
+- `name`: Display name. Do NOT include "Test" or "Demo" — the whole app is for testing.
 - `route`: Hash route (must start with `#/`)
 - `file`: Path to HTML file relative to `public/`
+- `category`: One of the `CATEGORIES` ids in `features.js` — `downloads`, `uploads`, `files`, `storage`, `security`
+- `description`: One short sentence, shown on the Browse page card
+
+New pages are **not** added to the sidebar — they appear on the Browse page under their
+category. The sidebar lists favorites only.
 
 ### Common Mistakes to Avoid
 
@@ -85,6 +92,7 @@ Add an entry to the array, maintaining **alphabetical order by name**:
 - Forgetting to convert hyphens to underscores in the handler name
 - Wrapping the HTML in `<html>`/`<body>` tags (it's a fragment injected into `#content`)
 - Not inserting the features.js entry in alphabetical order
+- Omitting `category` or `description` from the features.js entry
 - Creating the handler as a module export instead of a global function/window property
 
 ## Running Locally
@@ -98,7 +106,11 @@ Starts Express server on http://localhost:3000.
 ## Key Architectural Notes
 
 - **Routing**: Hash-based (`#/route`). `main.js` listens to `hashchange`, fetches the HTML fragment, injects it, then lazy-loads the JS.
-- **Home page**: Not in `features.js`. Handled specially in `main.js` as a standalone route. The header title ("Browser Test Lab") links to `#/home`.
-- **Sidebar starring**: Stored in `localStorage` key `starred-pages` (array of route strings). Managed in `nav.js`.
-- **Recent pages**: Stored in `localStorage` key `recent-pages` (last 5 visited). Displayed on home page.
+- **Standalone routes**: `#/home` and `#/browse` live in the `standalonePages` array in `main.js`, not in `features.js`, so they never appear in the catalog or get starred. The header title links to `#/home`.
+- **Sidebar**: Fixed Home/Browse links at the top (`PRIMARY_LINKS` in `nav.js`), then favorites only. `Cmd/Ctrl+K` jumps to `#/browse` and focuses its filter.
+- **Discovery**: `#/browse` is the full categorized, filterable catalog; the home page shows recents plus category tiles linking to `#/browse?cat=<id>`.
+- **Query params**: `main.js` splits the hash on `?` for route lookup and exposes `window.routeParams` (a `URLSearchParams`) to page handlers.
+- **Globals for page scripts**: `main.js` exposes `window.features`, `window.CATEGORIES`, `window.starred`, and `window.getRecent()` since page scripts cannot `import`.
+- **Favorites**: `localStorage` key `starred-pages` (array of routes), managed by `starred.js`. Download and Upload are seeded for first-time users, guarded by the `starred-pages-initialized` key so unstarring sticks.
+- **Recent pages**: `localStorage` key `recent-pages` (last 5 visited, standalone routes excluded). Displayed on home page.
 - **API endpoints**: Express server in `api/index.js` handles upload and download routes.

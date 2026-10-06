@@ -1,66 +1,75 @@
-// Home page logic: show recently accessed pages from localStorage
+// Home page: recently accessed pages and category entry points
 
 (function() {
-  const recentKey = 'recent-pages';
-
-  function getRecent() {
-    try {
-      return JSON.parse(localStorage.getItem(recentKey)) || [];
-    } catch {
-      return [];
-    }
-  }
-
   function renderRecent() {
-    console.log('Rendering recent links');
-    const recentLinks = document.getElementById('recent-links');
-    if (!recentLinks) {
-      console.log('recent-links element not found');
-      return;
-    }
-    
-    // Access features from window since it's available globally from main.js
-    const features = window.features || [];
-    console.log('Features available:', features.length);
-    
-    const recent = getRecent();
-    console.log('Recent pages:', recent);
-    
+    var recentLinks = document.getElementById('recent-links');
+    if (!recentLinks) return;
+
+    var features = window.features || [];
+    var recent = (window.getRecent ? window.getRecent() : [])
+      .map(function(route) {
+        return features.find(function(f) { return f.route === route; });
+      })
+      .filter(Boolean);
+
     recentLinks.innerHTML = '';
-    
+
     if (!recent.length) {
-      recentLinks.innerHTML = '<div style="color:#888;">No recent pages yet. Visit other pages to see them here!</div>';
+      recentLinks.innerHTML = '<div class="empty-note">No recent pages yet. Visit other pages to see them here!</div>';
       return;
     }
-    
-    recent.forEach(route => {
-      const feature = features.find(f => f.route === route);
-      if (feature) {
-        console.log('Creating button for:', feature.name);
-        // Create a Material-style button (md-filled-button)
-        const btn = document.createElement('button');
-        btn.className = 'recent-material-btn';
-        btn.textContent = feature.name;
-        btn.onclick = () => { 
-          console.log('Navigating to:', feature.route);
-          location.hash = feature.route; 
-        };
-        btn.setAttribute('aria-label', `Go to ${feature.name}`);
-        recentLinks.appendChild(btn);
-      } else {
-        console.log('Feature not found for route:', route);
-      }
+
+    recent.forEach(function(feature) {
+      var link = document.createElement('a');
+      link.className = 'recent-link';
+      link.href = feature.route;
+      link.textContent = feature.name;
+      recentLinks.appendChild(link);
     });
   }
 
-  // Set up navigation handler
+  function renderCategories() {
+    var container = document.getElementById('home-categories');
+    if (!container) return;
+
+    var features = window.features || [];
+    container.innerHTML = '';
+
+    (window.CATEGORIES || []).forEach(function(cat) {
+      var count = features.filter(function(f) { return f.category === cat.id; }).length;
+      if (!count) return;
+
+      var tile = document.createElement('a');
+      tile.className = 'cat-tile';
+      tile.href = '#/browse?cat=' + cat.id;
+
+      var icon = document.createElement('span');
+      icon.className = 'material-icons';
+      icon.textContent = cat.icon;
+      tile.appendChild(icon);
+
+      var name = document.createElement('span');
+      name.textContent = cat.name;
+      tile.appendChild(name);
+
+      var countEl = document.createElement('span');
+      countEl.className = 'cat-tile-count';
+      countEl.textContent = count;
+      tile.appendChild(countEl);
+
+      container.appendChild(tile);
+    });
+
+    var browseAll = document.getElementById('home-browse-all');
+    if (browseAll) browseAll.textContent = 'Browse all ' + features.length + ' pages →';
+  }
+
   window.onNavigate_home = function() {
-    console.log('onNavigate_home called');
     renderRecent();
+    renderCategories();
   };
-  
-  // Also render immediately if we're already on the home page
+
   if (document.getElementById('recent-links')) {
-    renderRecent();
+    window.onNavigate_home();
   }
 })();
