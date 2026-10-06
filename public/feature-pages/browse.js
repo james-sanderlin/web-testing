@@ -113,9 +113,8 @@
     var container = document.getElementById('browse-tiles');
     if (!container) return;
     container.innerHTML = '';
-    categories()
-      .filter(function(cat) { return countIn(cat.id); })
-      .concat([{ id: ALL, name: 'All pages', icon: 'apps' }])
+    [{ id: ALL, name: 'All pages', icon: 'apps' }]
+      .concat(categories().filter(function(cat) { return countIn(cat.id); }))
       .forEach(function(cat) { container.appendChild(createTile(cat)); });
   }
 
