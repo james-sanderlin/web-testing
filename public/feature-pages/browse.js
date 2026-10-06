@@ -1,12 +1,27 @@
-// Browse page: categorized, filterable catalog of every feature page
+// Browse page: category overview, plus a categorized, filterable catalog
 
 (function() {
-  var activeCat = 'all';
+  var OVERVIEW = 'overview';
+  var ALL = 'all';
+
+  var activeCat = OVERVIEW;
   var filterText = '';
 
+  function categories() {
+    return window.CATEGORIES || [];
+  }
+
+  function allFeatures() {
+    return window.features || [];
+  }
+
   function categoryName(id) {
-    var cat = (window.CATEGORIES || []).find(function(c) { return c.id === id; });
+    var cat = categories().find(function(c) { return c.id === id; });
     return cat ? cat.name : 'Other';
+  }
+
+  function countIn(id) {
+    return allFeatures().filter(function(f) { return f.category === id; }).length;
   }
 
   function matches(feature) {
@@ -15,6 +30,13 @@
       .join(' ')
       .toLowerCase();
     return haystack.indexOf(filterText.toLowerCase()) !== -1;
+  }
+
+  function setCat(id) {
+    activeCat = id;
+    var hash = id === OVERVIEW ? '#/browse' : '#/browse?cat=' + id;
+    history.replaceState({}, '', location.pathname + location.search + hash);
+    render();
   }
 
   function createCard(feature) {
@@ -61,57 +83,68 @@
     return grid;
   }
 
-  function renderChips() {
-    var chips = document.getElementById('browse-chips');
-    if (!chips) return;
-    chips.innerHTML = '';
-
-    var features = window.features || [];
-    var options = [{ id: 'all', name: 'All (' + features.length + ')' }];
-    (window.CATEGORIES || []).forEach(function(cat) {
-      var count = features.filter(function(f) { return f.category === cat.id; }).length;
-      if (count) options.push({ id: cat.id, name: cat.name + ' (' + count + ')' });
+  function createTile(cat) {
+    var tile = document.createElement('a');
+    tile.className = 'cat-tile' + (cat.id === activeCat ? ' active' : '');
+    tile.href = '#/browse?cat=' + cat.id;
+    tile.addEventListener('click', function(e) {
+      e.preventDefault();
+      setCat(cat.id);
     });
 
-    options.forEach(function(opt) {
-      var chip = document.createElement('button');
-      chip.className = 'cat-chip' + (opt.id === activeCat ? ' active' : '');
-      chip.textContent = opt.name;
-      chip.addEventListener('click', function() {
-        activeCat = opt.id;
-        var hash = opt.id === 'all' ? '#/browse' : '#/browse?cat=' + opt.id;
-        history.replaceState({}, '', location.pathname + location.search + hash);
-        render();
-      });
-      chips.appendChild(chip);
-    });
+    var icon = document.createElement('span');
+    icon.className = 'material-icons';
+    icon.textContent = cat.icon;
+    tile.appendChild(icon);
+
+    var name = document.createElement('span');
+    name.textContent = cat.name;
+    tile.appendChild(name);
+
+    var count = document.createElement('span');
+    count.className = 'cat-tile-count';
+    count.textContent = cat.id === ALL ? allFeatures().length : countIn(cat.id);
+    tile.appendChild(count);
+
+    return tile;
+  }
+
+  function renderTiles() {
+    var container = document.getElementById('browse-tiles');
+    if (!container) return;
+    container.innerHTML = '';
+    categories()
+      .filter(function(cat) { return countIn(cat.id); })
+      .concat([{ id: ALL, name: 'All pages', icon: 'apps' }])
+      .forEach(function(cat) { container.appendChild(createTile(cat)); });
   }
 
   function render() {
-    renderChips();
+    renderTiles();
 
     var results = document.getElementById('browse-results');
     if (!results) return;
     results.innerHTML = '';
 
-    var features = (window.features || []).filter(matches);
-
-    // An active filter flattens the view; otherwise group by category
+    // An active filter always searches the whole catalog, flattened
     if (filterText) {
-      if (!features.length) {
+      var hits = allFeatures().filter(matches);
+      if (!hits.length) {
         results.innerHTML = '<p class="empty-note">No pages match that filter.</p>';
         return;
       }
-      results.appendChild(createGrid(features));
+      results.appendChild(createGrid(hits));
       return;
     }
 
-    var categories = (window.CATEGORIES || []).filter(function(cat) {
-      return activeCat === 'all' || cat.id === activeCat;
+    if (activeCat === OVERVIEW) return;
+
+    var shown = categories().filter(function(cat) {
+      return activeCat === ALL || cat.id === activeCat;
     });
 
-    categories.forEach(function(cat) {
-      var items = features.filter(function(f) { return f.category === cat.id; });
+    shown.forEach(function(cat) {
+      var items = allFeatures().filter(function(f) { return f.category === cat.id; });
       if (!items.length) return;
       var label = document.createElement('div');
       label.className = 'section-label';
@@ -120,21 +153,22 @@
       results.appendChild(createGrid(items));
     });
 
-    var known = (window.CATEGORIES || []).map(function(c) { return c.id; });
-    var uncategorized = features.filter(function(f) { return known.indexOf(f.category) === -1; });
-    if (uncategorized.length && activeCat === 'all') {
-      var label = document.createElement('div');
-      label.className = 'section-label';
-      label.textContent = 'Other';
-      results.appendChild(label);
-      results.appendChild(createGrid(uncategorized));
+    if (activeCat === ALL) {
+      var known = categories().map(function(c) { return c.id; });
+      var other = allFeatures().filter(function(f) { return known.indexOf(f.category) === -1; });
+      if (other.length) {
+        var label = document.createElement('div');
+        label.className = 'section-label';
+        label.textContent = 'Other';
+        results.appendChild(label);
+        results.appendChild(createGrid(other));
+      }
     }
   }
 
   window.onNavigate_browse = function() {
     var params = window.routeParams;
-    var cat = params ? params.get('cat') : null;
-    activeCat = cat || 'all';
+    activeCat = (params && params.get('cat')) || OVERVIEW;
     filterText = '';
 
     var filter = document.getElementById('browse-filter');
@@ -142,7 +176,12 @@
       filter.value = '';
       filter.addEventListener('input', function(e) {
         filterText = e.target.value;
-        render();
+        // The filter always searches the whole catalog, so the selection follows it
+        if (filterText && activeCat !== ALL) {
+          setCat(ALL);
+        } else {
+          render();
+        }
       });
       filter.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {

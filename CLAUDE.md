@@ -106,11 +106,12 @@ Starts Express server on http://localhost:3000.
 ## Key Architectural Notes
 
 - **Routing**: Hash-based (`#/route`). `main.js` listens to `hashchange`, fetches the HTML fragment, injects it, then lazy-loads the JS.
-- **Standalone routes**: `#/home` and `#/browse` live in the `standalonePages` array in `main.js`, not in `features.js`, so they never appear in the catalog or get starred. The header title links to `#/home`.
-- **Sidebar**: Fixed Home/Browse links at the top (`PRIMARY_LINKS` in `nav.js`), then favorites only. `Cmd/Ctrl+K` jumps to `#/browse` and focuses its filter.
-- **Discovery**: `#/browse` is the full categorized, filterable catalog; the home page shows recents plus category tiles linking to `#/browse?cat=<id>`.
+- **Landing route**: `#/browse` is the default route (`HOME_ROUTE` in `main.js`) and the header title links to it. It lives in the `standalonePages` array, not in `features.js`, so it never appears in the catalog or gets starred. There is no separate home page — `#/home` redirects to `#/browse` for old links.
+- **Sidebar**: A fixed Browse link at the top (`PRIMARY_LINKS` in `nav.js`), then Favorites, then Recents. `Cmd/Ctrl+K` jumps to `#/browse` and focuses its filter.
+- **Page header star**: Page fragments own their own `<h2>`, so `main.js` appends a `.page-star` toggle to the first `<h2>` after injecting the fragment (`decoratePageHeader`). Standalone routes get none.
+- **Discovery**: `#/browse` shows a persistent row of category tiles plus an "All pages" tile; nothing is selected on arrival. `#/browse?cat=<id>` selects one category and `#/browse?cat=all` the whole catalog grouped by category. The filter box always searches every page, so typing switches the selection to All pages.
 - **Query params**: `main.js` splits the hash on `?` for route lookup and exposes `window.routeParams` (a `URLSearchParams`) to page handlers.
 - **Globals for page scripts**: `main.js` exposes `window.features`, `window.CATEGORIES`, `window.starred`, and `window.getRecent()` since page scripts cannot `import`.
 - **Favorites**: `localStorage` key `starred-pages` (array of routes), managed by `starred.js`. Download and Upload are seeded for first-time users, guarded by the `starred-pages-initialized` key so unstarring sticks.
-- **Recent pages**: `localStorage` key `recent-pages` (last 5 visited, standalone routes excluded). Displayed on home page.
+- **Recent pages**: `localStorage` key `recent-pages` (last 12 visited, standalone routes excluded). The sidebar Recents section shows the 5 most recent after dropping any that are already favorites, and holds its order while you navigate within the list (`recentRoutes` in `nav.js`).
 - **API endpoints**: Express server in `api/index.js` handles upload and download routes.

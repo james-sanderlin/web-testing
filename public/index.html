@@ -89,10 +89,13 @@
     #nav-primary li.selected .material-icons {
       color: #6366f1;
     }
-    #nav-links {
-      padding-top: 0.25rem;
+    .nav-scroll {
       flex: 1 1 auto;
       overflow-y: auto;
+      min-height: 0;
+    }
+    #recent-heading {
+      margin-top: 1.25rem;
     }
     .nav-list li {
       cursor: pointer;
@@ -139,6 +142,22 @@
     .nav-list li:focus {
       box-shadow: 0 0 0 2px #6366f1;
     }
+    .page-star {
+      font-family: 'Material Icons';
+      font-size: 1.4rem;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+      color: #c4c4c4;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    .page-star:hover {
+      color: #f59e0b;
+    }
+    .page-star.starred {
+      color: #f59e0b;
+    }
     main#content {
       flex-grow: 1;
       padding: 2rem;
@@ -146,7 +165,7 @@
       min-width: 0;
     }
 
-    /* Shared discovery styles (home + browse) */
+    /* Browse page styles */
     .section-label {
       font-size: 0.75rem;
       font-weight: 500;
@@ -204,9 +223,10 @@
       background: white;
       border: 1px solid #e5e5e5;
       border-radius: 6px;
-      padding: 0.9rem 1rem;
+      padding: 1rem 1.1rem;
       text-decoration: none;
       color: #333;
+      font-size: 1rem;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .cat-tile:hover {
@@ -221,30 +241,16 @@
       color: #999;
       font-size: 0.85rem;
     }
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin: 1rem 0;
-    }
-    .cat-chip {
-      border: 1px solid #ddd;
-      background: white;
-      border-radius: 999px;
-      padding: 0.35rem 0.9rem;
-      font: inherit;
-      font-size: 0.9rem;
-      color: #444;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .cat-chip:hover {
-      border-color: #6366f1;
-    }
-    .cat-chip.active {
+    .cat-tile.active {
       background: #e0e7ff;
       border-color: #6366f1;
       color: #3730a3;
+    }
+    .cat-tile.active .cat-tile-count {
+      color: #6366f1;
+    }
+    #browse-tiles {
+      margin: 1.25rem 0 0.5rem;
     }
     #browse-filter {
       width: 100%;
@@ -260,20 +266,6 @@
       border-color: #6366f1;
       box-shadow: 0 0 0 2px #e0e7ff;
     }
-    .recent-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: flex-start;
-    }
-    .recent-link {
-      color: #2563eb;
-      text-decoration: none;
-    }
-    .recent-link:hover {
-      text-decoration: underline;
-      color: #1d4ed8;
-    }
     .empty-note {
       color: #888;
     }
@@ -286,8 +278,12 @@
   <div class="main-layout">
     <nav>
       <ul id="nav-primary" class="nav-list"></ul>
-      <div class="nav-heading">Favorites</div>
-      <ul id="nav-links" class="nav-list"></ul>
+      <div class="nav-scroll">
+        <div class="nav-heading">Favorites</div>
+        <ul id="nav-links" class="nav-list"></ul>
+        <div class="nav-heading" id="recent-heading" hidden>Recents</div>
+        <ul id="nav-recents" class="nav-list"></ul>
+      </div>
     </nav>
     <main id="content">Loading....</main>
   </div>

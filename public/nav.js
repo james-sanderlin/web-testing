@@ -1,39 +1,67 @@
-// nav.js: primary links + favorites sidebar for Browser Test Lab
+// nav.js: primary links, favorites, and recents sidebar for Browser Test Lab
 
 import * as starred from './starred.js';
 
 const BROWSE_ROUTE = '#/browse';
+const RECENT_SHOWN = 5;
 
 const PRIMARY_LINKS = [
-  { name: 'Home', route: '#/home', icon: 'home' },
   { name: 'Browse', route: BROWSE_ROUTE, icon: 'grid_view' },
 ];
 
-export function setupNav(features, primaryList, navList, onNavClick) {
+export function setupNav(options) {
+  const { features, primaryList, navList, recentList, recentHeading, getRecent, onNavClick } = options;
+
   starred.seedDefaults();
 
+  // Routes currently shown under Recents, kept in place so navigating within
+  // the list doesn't shuffle it under the cursor
+  let shownRecents = [];
+
+  function recentRoutes(route) {
+    const starredRoutes = starred.get();
+    // Favorites already sit in the nav, so recents only covers everything else
+    const mru = getRecent().filter(r => !starredRoutes.includes(r));
+    const kept = shownRecents.filter(r => mru.includes(r));
+
+    // Arriving somewhere new re-sorts; anything else keeps the existing order
+    const order = mru.includes(route) && !kept.includes(route)
+      ? mru
+      : kept.concat(mru.filter(r => !kept.includes(r)));
+
+    shownRecents = order.slice(0, RECENT_SHOWN);
+    return shownRecents;
+  }
+
   function currentRoute() {
-    return (location.hash || '#/home').split('?')[0];
+    return (location.hash || BROWSE_ROUTE).split('?')[0];
   }
 
   function renderNav() {
     const route = currentRoute();
+    const starredRoutes = starred.get();
 
     primaryList.innerHTML = '';
     PRIMARY_LINKS.forEach(link => primaryList.appendChild(createPrimaryItem(link, route)));
 
     navList.innerHTML = '';
-    const starredRoutes = starred.get();
-    const starredFeatures = features.filter(f => starredRoutes.includes(f.route));
-
-    if (!starredFeatures.length) {
+    const favorites = features.filter(f => starredRoutes.includes(f.route));
+    if (!favorites.length) {
       const empty = document.createElement('li');
       empty.className = 'nav-empty';
       empty.textContent = 'No favorites yet — star pages from Browse.';
       navList.appendChild(empty);
-      return;
+    } else {
+      favorites.forEach(f => navList.appendChild(createNavItem(f, route)));
     }
-    starredFeatures.forEach(f => navList.appendChild(createNavItem(f, route)));
+
+    const recents = recentRoutes(route)
+      .map(r => features.find(f => f.route === r))
+      .filter(Boolean);
+
+    recentList.innerHTML = '';
+    recentHeading.hidden = !recents.length;
+    recents.forEach(f => recentList.appendChild(createNavItem(f, route)));
   }
 
   function markSelected(item, isSelected) {
@@ -79,10 +107,11 @@ export function setupNav(features, primaryList, navList, onNavClick) {
     label.style.whiteSpace = 'nowrap';
     item.appendChild(label);
 
+    const isStarred = starred.isStarred(feature.route);
     const star = document.createElement('span');
-    star.className = 'material-icons star-icon starred';
-    star.textContent = 'star';
-    star.title = 'Remove from favorites';
+    star.className = 'material-icons star-icon' + (isStarred ? ' starred' : '');
+    star.textContent = isStarred ? 'star' : 'star_border';
+    star.title = isStarred ? 'Remove from favorites' : 'Add to favorites';
     star.addEventListener('click', (e) => {
       e.stopPropagation();
       starred.toggle(feature.route);
