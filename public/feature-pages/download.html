@@ -69,6 +69,9 @@
             <option value="application/json">application/json</option>
             <option value="application/xml">application/xml</option>
             <option value="application/x-msdownload">application/x-msdownload (EXE)</option>
+            <option value="application/x-apple-diskimage">application/x-apple-diskimage (DMG)</option>
+            <option value="application/x-iso9660-image">application/x-iso9660-image (ISO)</option>
+            <option value="application/x-rpm">application/x-rpm (RPM)</option>
             <option value="message/rfc822">message/rfc822 (EML)</option>
           </datalist>
           <button id="apply-mime" onclick="applyMimeOverride()" style="
@@ -532,6 +535,51 @@
       </div>
     </div>
     <button class="download-btn" onclick="downloadViaAPI('exe', 'test-exe.exe')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- ISO disk image -->
+  <div class="file-card" data-filename="sample.iso" data-type="archive" data-size="large">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">album</span></div>
+      <div class="file-info">
+        <h3>ISO Disk Image <span class="file-meta">ISO &bull; 900KB</span></h3>
+        <p>ISO 9660 disc image</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('iso', 'sample.iso')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- DMG disk image -->
+  <div class="file-card" data-filename="sample.dmg" data-type="archive" data-size="small">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">laptop_mac</span></div>
+      <div class="file-info">
+        <h3>DMG Disk Image <span class="file-meta">DMG &bull; 19KB</span></h3>
+        <p>Apple disk image</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('dmg', 'sample.dmg')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- RPM package -->
+  <div class="file-card" data-filename="sample.rpm" data-type="exe" data-size="small">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">terminal</span></div>
+      <div class="file-info">
+        <h3>RPM Package <span class="file-meta">RPM &bull; 6.5KB</span></h3>
+        <p>Linux RPM package</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('rpm', 'sample.rpm')">
       <span class="material-icons">download</span>
       Download
     </button>
