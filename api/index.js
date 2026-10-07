@@ -117,6 +117,12 @@ function getMimeType(filename) {
   return defaultMimeTypes[ext] || 'application/octet-stream';
 }
 
+function applyExtensionOverride(filename, extension) {
+  const ext = String(extension || '').replace(/^\.+/, '').replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!ext) return filename;
+  return path.basename(filename, path.extname(filename)) + '.' + ext;
+}
+
 // One-time download token store
 const oneTimeTokens = new Map();
 
@@ -136,7 +142,7 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
 
 // API endpoint for download testing with real headers
 app.get('/api/download-test', (req, res) => {
-  const { filename, headers, disposition, mimeType, test } = req.query;
+  const { filename, headers, disposition, mimeType, test, extension } = req.query;
   
   if (!filename) {
     return res.status(400).json({ error: 'filename parameter is required' });
@@ -149,6 +155,7 @@ app.get('/api/download-test', (req, res) => {
     disposition,
     mimeType,
     test,
+    extension,
     userAgent: req.get('User-Agent'),
     timestamp: new Date().toISOString()
   });
@@ -169,7 +176,12 @@ app.get('/api/download-test', (req, res) => {
   
   // Get file info
   const stats = fs.statSync(filePath);
-  const downloadFilename = test ? `${path.basename(filename, path.extname(filename))}-${test}${path.extname(filename)}` : filename;
+  const suffixedFilename = test ? `${path.basename(filename, path.extname(filename))}-${test}${path.extname(filename)}` : filename;
+  const downloadFilename = applyExtensionOverride(suffixedFilename, extension);
+
+  if (downloadFilename !== suffixedFilename) {
+    console.log(`⚠️ Extension Override: Saving ${suffixedFilename} as ${downloadFilename}`);
+  }
   
   console.log(`✅ File found: ${filePath} (${stats.size} bytes)`);
   
@@ -270,7 +282,7 @@ app.get('/api/dynamic-7z', async (req, res) => {
     console.log(`✅ Dynamic 7z: ${downloadName} (${archive.length} bytes, password "${password}")`);
 
     res.setHeader('Content-Type', req.query.mimeType || getMimeType(downloadName));
-    res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${applyExtensionOverride(downloadName, req.query.extension)}"`);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');

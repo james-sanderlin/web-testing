@@ -1,5 +1,19 @@
 // Global MIME override state
 let globalMimeOverride = null;
+// Global extension override state
+let globalExtensionOverride = null;
+
+function sanitizeExtension(value) {
+  return String(value || '').replace(/^\.+/, '').replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+// Mirrors the server's applyExtensionOverride for browser-built downloads
+function overrideFilename(name) {
+  if (!globalExtensionOverride) return name;
+  const dot = name.lastIndexOf('.');
+  const base = dot > 0 ? name.slice(0, dot) : name;
+  return base + '.' + globalExtensionOverride;
+}
 
 // Download page logic
 function initializeDownloadPage() {
@@ -12,6 +26,13 @@ function initializeDownloadPage() {
   if (savedMime) {
     globalMimeOverride = savedMime;
     updateMimeStatus();
+  }
+
+  // Load extension override from localStorage
+  const savedExtension = sanitizeExtension(localStorage.getItem('extensionOverride'));
+  if (savedExtension) {
+    globalExtensionOverride = savedExtension;
+    updateExtensionStatus();
   }
   
   if (searchInput) {
@@ -136,7 +157,7 @@ window.downloadSampleImage = function() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'sample-image.png';
+    a.download = overrideFilename('sample-image.png');
     a.click();
     URL.revokeObjectURL(url);
   }, 'image/png');
@@ -156,7 +177,7 @@ window.downloadSampleVideo = function() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'sample-video.mp4';
+  a.download = overrideFilename('sample-video.mp4');
   a.click();
   URL.revokeObjectURL(url);
 };
@@ -221,7 +242,7 @@ startxref
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'sample-document.pdf';
+  a.download = overrideFilename('sample-document.pdf');
   a.click();
   URL.revokeObjectURL(url);
 };
@@ -237,7 +258,7 @@ function downloadTextFile(content, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = overrideFilename(filename);
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -298,6 +319,11 @@ function updateDownloadLinks() {
     } else {
       url.searchParams.delete('mimeType');
     }
+    if (globalExtensionOverride) {
+      url.searchParams.set('extension', globalExtensionOverride);
+    } else {
+      url.searchParams.delete('extension');
+    }
     link.href = url.toString();
   });
 }
@@ -310,6 +336,11 @@ window.downloadViaAPI = function(fileType, originalFilename) {
   // Add MIME override if active
   if (globalMimeOverride) {
     url.searchParams.set('mimeType', globalMimeOverride);
+  }
+
+  // Add extension override if active
+  if (globalExtensionOverride) {
+    url.searchParams.set('extension', globalExtensionOverride);
   }
   
   // Create a temporary link and click it
@@ -330,6 +361,10 @@ window.downloadDynamic7z = function() {
     url.searchParams.set('mimeType', globalMimeOverride);
   }
 
+  if (globalExtensionOverride) {
+    url.searchParams.set('extension', globalExtensionOverride);
+  }
+
   const a = document.createElement('a');
   a.href = url.toString();
   a.style.display = 'none';
@@ -340,9 +375,52 @@ window.downloadDynamic7z = function() {
 
 // Helper function to get download URL with MIME override
 window.getDownloadUrl = function(baseUrl) {
-  if (!globalMimeOverride) return baseUrl;
+  if (!globalMimeOverride && !globalExtensionOverride) return baseUrl;
   
   const url = new URL(baseUrl, window.location.origin);
-  url.searchParams.set('mimeType', globalMimeOverride);
+  if (globalMimeOverride) url.searchParams.set('mimeType', globalMimeOverride);
+  if (globalExtensionOverride) url.searchParams.set('extension', globalExtensionOverride);
   return url.toString();
 };
+
+// Extension Override Functions
+window.applyExtensionOverride = function() {
+  const input = document.getElementById('extension-override');
+  const extension = sanitizeExtension(input.value.trim());
+
+  if (extension) {
+    globalExtensionOverride = extension;
+    localStorage.setItem('extensionOverride', extension);
+    updateExtensionStatus();
+
+    alert(`Extension override set to: .${extension}\n\nAll file downloads will now be saved with this extension.`);
+  } else {
+    alert('Please enter a valid extension (e.g., exe)');
+  }
+};
+
+window.clearExtensionOverride = function() {
+  globalExtensionOverride = null;
+  localStorage.removeItem('extensionOverride');
+  const input = document.getElementById('extension-override');
+  if (input) input.value = '';
+  updateExtensionStatus();
+};
+
+function updateExtensionStatus() {
+  const statusDiv = document.getElementById('extension-status');
+  const statusValue = document.getElementById('extension-status-value');
+  const clearBtn = document.getElementById('clear-extension');
+  const input = document.getElementById('extension-override');
+
+  if (globalExtensionOverride) {
+    if (statusDiv) statusDiv.style.display = 'block';
+    if (statusValue) statusValue.textContent = '.' + globalExtensionOverride;
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+    if (input) input.value = globalExtensionOverride;
+  } else {
+    if (statusDiv) statusDiv.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+  updateDownloadLinks();
+}

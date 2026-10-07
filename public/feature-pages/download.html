@@ -89,6 +89,44 @@
         </div>
       </div>
 
+      <!-- Extension Override -->
+      <div style="padding:0.75rem;background:#fff;border:1px solid #e0e0e0;border-radius:6px;">
+        <div style="font-weight:600;margin-bottom:0.5rem;font-size:0.85rem;color:#555;">Extension Override</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          <input type="text" id="extension-override" list="file-extensions" placeholder="e.g., exe"
+            style="flex:1;min-width:180px;padding:0.5rem;border:1px solid #ccc;border-radius:4px;font-size:0.85rem;" />
+          <datalist id="file-extensions">
+            <option value="exe"></option>
+            <option value="txt"></option>
+            <option value="pdf"></option>
+            <option value="zip"></option>
+            <option value="csv"></option>
+            <option value="html"></option>
+            <option value="png"></option>
+            <option value="jpg"></option>
+            <option value="docx"></option>
+            <option value="js"></option>
+            <option value="bat"></option>
+            <option value="sh"></option>
+            <option value="iso"></option>
+            <option value="dmg"></option>
+            <option value="rpm"></option>
+          </datalist>
+          <button id="apply-extension" onclick="applyExtensionOverride()" style="
+            display:inline-flex;align-items:center;gap:0.3rem;
+            padding:0.4rem 0.75rem;border-radius:6px;cursor:pointer;
+            font-size:0.8rem;font-weight:500;
+            background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;
+          ">Apply</button>
+          <button id="clear-extension" onclick="clearExtensionOverride()" style="
+            display:none;
+            padding:0.4rem 0.75rem;border-radius:6px;cursor:pointer;
+            font-size:0.8rem;font-weight:500;
+            background:#f5f5f5;color:#555;border:1px solid #ddd;
+          ">Clear</button>
+        </div>
+      </div>
+
       <!-- External Resources -->
       <div style="padding:0.75rem;background:#fff;border:1px solid #e0e0e0;border-radius:6px;">
         <div style="font-weight:600;margin-bottom:0.5rem;font-size:0.85rem;color:#555;">External Resources</div>
@@ -111,6 +149,17 @@
   <span class="material-icons" style="font-size:1.1rem;color:#f9a825;vertical-align:middle;">warning</span>
   <strong>MIME Override Active:</strong> <span id="mime-status-value"></span>
   <button onclick="clearMimeOverride()" style="
+    margin-left:0.75rem;padding:0.3rem 0.6rem;border-radius:6px;cursor:pointer;
+    font-size:0.8rem;font-weight:500;
+    background:#fbe9e7;color:#c62828;border:1px solid #ef9a9a;
+  ">Clear</button>
+</div>
+
+<!-- Extension Override Status -->
+<div id="extension-status" style="display:none;padding:0.75rem 1rem;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;margin-bottom:1rem;font-size:0.85rem;">
+  <span class="material-icons" style="font-size:1.1rem;color:#f9a825;vertical-align:middle;">warning</span>
+  <strong>Extension Override Active:</strong> <span id="extension-status-value"></span>
+  <button onclick="clearExtensionOverride()" style="
     margin-left:0.75rem;padding:0.3rem 0.6rem;border-radius:6px;cursor:pointer;
     font-size:0.8rem;font-weight:500;
     background:#fbe9e7;color:#c62828;border:1px solid #ef9a9a;
