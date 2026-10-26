@@ -108,6 +108,38 @@
   <div id="um-synthetic-result" class="um-result"></div>
 </div>
 
+<div class="um-card">
+  <div class="um-head"><span class="um-id" onclick="copyTagId(this)" title="Click to copy">UM-07</span><h3>Detached <code>input.click()</code></h3><span class="um-tag um-tag-a">BUTTON</span></div>
+  <p>Script creates an <code>&lt;input type="file"&gt;</code> with <code>document.createElement</code>,
+     never appends it to the page, and opens the picker during the button's user-activation window.
+     Files come back through the detached element's own <code>change</code> event, so nothing in the
+     document ever sees them. The variants below reach the same picker through other call paths.</p>
+  <button id="um-detached-click" class="um-btn">Open Picker (detached click)</button>
+  <div id="um-detached-click-result" class="um-result"></div>
+
+  <details class="um-variants">
+    <summary>3 more variants (showPicker, HTMLElement.prototype.click, dispatchEvent)</summary>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>input.showPicker()</code> on a detached input</div>
+      <button id="um-detached-showpicker" class="um-btn">Open Picker (detached showPicker)</button>
+      <div id="um-detached-showpicker-result" class="um-result"></div>
+    </div>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>HTMLElement.prototype.click.call(input)</code> — skips any override placed only on <code>HTMLInputElement.prototype</code></div>
+      <button id="um-detached-proto-click" class="um-btn">Open Picker (prototype click)</button>
+      <div id="um-detached-proto-click-result" class="um-result"></div>
+    </div>
+
+    <div class="um-subcase">
+      <div class="um-subcase-label"><code>input.dispatchEvent(new MouseEvent('click'))</code> — synthetic click that never calls <code>click()</code> or <code>showPicker()</code></div>
+      <button id="um-detached-dispatch" class="um-btn">Open Picker (dispatchEvent)</button>
+      <div id="um-detached-dispatch-result" class="um-result"></div>
+    </div>
+  </details>
+</div>
+
 </div>
 
 <div class="um-examples">
@@ -128,6 +160,7 @@
       <tr><td>UM-04</td><td><code>navigator.clipboard.read()</code></td><td><em>add an example</em></td><td></td></tr>
       <tr><td>UM-05</td><td><code>showOpenFilePicker()</code> (+ showDirectoryPicker variant)</td><td><em>add an example</em></td><td></td></tr>
       <tr><td>UM-06</td><td><code>new File()</code></td><td><em>add an example</em></td><td></td></tr>
+      <tr><td>UM-07</td><td>Detached <code>input.click()</code> (+ showPicker, prototype click, dispatchEvent variants)</td><td>monday.com, Microsoft 365</td><td>IL-156099</td></tr>
     </tbody>
   </table>
 </div>

@@ -223,4 +223,33 @@ function onNavigate_upload_mechanisms() {
       set('um-synthetic-result', describeFiles([file]) + '\n→ Ready to hand to FormData/fetch just like a user-selected file.', 'ok');
     };
   }
+
+  function wireDetachedPicker(btnId, resultId, openPicker) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.onclick = function () {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      input.addEventListener('change', function () {
+        var desc = describeFiles(input.files);
+        if (desc) set(resultId, 'Detached input (isConnected=' + input.isConnected + '):\n' + desc, 'ok');
+        else set(resultId, 'No files selected.', 'fail');
+      });
+      try {
+        openPicker(input);
+      } catch (err) {
+        set(resultId, 'Picker error: ' + err, 'fail');
+      }
+    };
+  }
+  wireDetachedPicker('um-detached-click', 'um-detached-click-result', function (input) { input.click(); });
+  wireDetachedPicker('um-detached-showpicker', 'um-detached-showpicker-result', function (input) {
+    if (typeof input.showPicker !== 'function') throw new Error('showPicker is not available in this browser.');
+    input.showPicker();
+  });
+  wireDetachedPicker('um-detached-proto-click', 'um-detached-proto-click-result', function (input) { HTMLElement.prototype.click.call(input); });
+  wireDetachedPicker('um-detached-dispatch', 'um-detached-dispatch-result', function (input) {
+    input.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  });
 }
