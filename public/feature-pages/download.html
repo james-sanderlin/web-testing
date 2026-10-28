@@ -65,6 +65,11 @@
             <option value="application/x-7z-compressed">application/x-7z-compressed</option>
             <option value="application/gzip">application/gzip</option>
             <option value="application/x-tar">application/x-tar</option>
+            <option value="application/java-archive">application/java-archive (JAR)</option>
+            <option value="application/x-java-archive">application/x-java-archive (JAR alt)</option>
+            <option value="application/x-gtar">application/x-gtar (GTAR)</option>
+            <option value="application/x-compress">application/x-compress (Z)</option>
+            <option value="application/x-gtar-compressed">application/x-gtar-compressed (TAZ)</option>
             <option value="application/octet-stream">application/octet-stream</option>
             <option value="application/json">application/json</option>
             <option value="application/xml">application/xml</option>
@@ -111,6 +116,11 @@
             <option value="iso"></option>
             <option value="dmg"></option>
             <option value="rpm"></option>
+            <option value="jar"></option>
+            <option value="gtar"></option>
+            <option value="taz"></option>
+            <option value="Z"></option>
+            <option value="zipx"></option>
           </datalist>
           <button id="apply-extension" onclick="applyExtensionOverride()" style="
             display:inline-flex;align-items:center;gap:0.3rem;
@@ -509,6 +519,96 @@
       </div>
     </div>
     <button class="download-btn" onclick="downloadDynamic7z()">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- JAR detected by its .class entry -->
+  <div class="file-card" data-filename="sample-class.jar" data-type="archive" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>JAR with Class <span class="file-meta">JAR &bull; 568B</span></h3>
+        <p>Runnable JAR detected by its .class file, no magic bytes</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('jar', 'sample-class.jar')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- JAR detected by its 0xCAFE magic bytes -->
+  <div class="file-card" data-filename="sample-magic.jar" data-type="archive" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>JAR with Magic Bytes <span class="file-meta">JAR &bull; 457B</span></h3>
+        <p>JAR detected by its 0xCAFE header, no .class file</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('jar', 'sample-magic.jar')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- GNU tar -->
+  <div class="file-card" data-filename="sample.gtar" data-type="archive" data-size="small">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>GNU TAR <span class="file-meta">GTAR &bull; 2KB</span></h3>
+        <p>GNU tar format archive</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('gtar', 'sample.gtar')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- tar compressed with LZW -->
+  <div class="file-card" data-filename="sample.taz" data-type="archive" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>Compressed TAR <span class="file-meta">TAZ &bull; 272B</span></h3>
+        <p>Tar compressed with LZW</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('taz', 'sample.taz')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- Unix compress (.Z) -->
+  <div class="file-card" data-filename="sample.txt.Z" data-type="archive" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>Unix Compressed <span class="file-meta">Z &bull; 35B</span></h3>
+        <p>LZW-compressed text file</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('Z', 'sample.txt.Z')">
+      <span class="material-icons">download</span>
+      Download
+    </button>
+  </div>
+
+  <!-- ZIPX (PPMd) -->
+  <div class="file-card" data-filename="sample.zipx" data-type="archive" data-size="tiny">
+    <div class="file-content">
+      <div class="file-icon"><span class="material-icons">folder_zip</span></div>
+      <div class="file-info">
+        <h3>ZIPX Archive <span class="file-meta">ZIPX &bull; 183B</span></h3>
+        <p>Extended zip, PPMd compression</p>
+      </div>
+    </div>
+    <button class="download-btn" onclick="downloadViaAPI('zipx', 'sample.zipx')">
       <span class="material-icons">download</span>
       Download
     </button>
