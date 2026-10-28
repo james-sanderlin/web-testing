@@ -57,4 +57,6 @@ export const features = [
     category: "uploads", description: "Upload files to the test server." },
   { name: "Upload Mechanisms", route: "#/upload-mechanisms", file: "feature-pages/upload-mechanisms.html",
     category: "uploads", description: "Compare form, fetch, XHR, and drag-drop upload paths." },
+  { name: "ZIPX Detection", route: "#/zipx-detection", file: "feature-pages/zipx-detection.html",
+    category: "downloads", description: "Zipx archives for each extended compression method." },
 ];

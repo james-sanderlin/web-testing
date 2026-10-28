@@ -1,0 +1,116 @@
+<h2>ZIPX Detection</h2>
+<p>Zipx archives for each extended compression method. The files contain headers only: the payload is stored uncompressed and the method field is set in both the local and central headers, so the method is detectable but the archive will not extract.</p>
+
+<!-- Combined override -->
+<div style="border:1px solid #e0e0e0;border-radius:8px;padding:1rem;margin-bottom:1rem;background:#fafafa;">
+  <div style="font-weight:600;margin-bottom:0.5rem;font-size:0.85rem;color:#555;">Extension and MIME Override</div>
+  <div style="display:flex;gap:1.25rem;flex-wrap:wrap;font-size:0.9rem;">
+    <label><input type="radio" name="zipx-override" value="" checked> None</label>
+    <label><input type="radio" name="zipx-override" value="png"> PNG (.png, image/png)</label>
+    <label><input type="radio" name="zipx-override" value="txt"> TXT (.txt, text/plain)</label>
+  </div>
+</div>
+
+<div id="zipx-override-status" style="display:none;padding:0.75rem 1rem;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;margin-bottom:1rem;font-size:0.85rem;">
+  <span class="material-icons" style="font-size:1.1rem;color:#f9a825;vertical-align:middle;">warning</span>
+  <strong>Override active:</strong> <span id="zipx-override-status-value"></span>
+  <button id="zipx-override-clear" style="
+    margin-left:0.75rem;padding:0.3rem 0.6rem;border-radius:6px;cursor:pointer;
+    font-size:0.8rem;font-weight:500;
+    background:#fbe9e7;color:#c62828;border:1px solid #ef9a9a;
+  ">Clear</button>
+</div>
+
+<h3>Extended compression methods</h3>
+<div id="zipx-method-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1.5rem;margin-bottom:1.5rem;"></div>
+
+<h3>Encrypted (method 99)</h3>
+<div id="zipx-aes-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1.5rem;"></div>
+
+<style>
+.file-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+}
+
+.file-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-icon .material-icons {
+  font-size: 2rem;
+  color: #26a69a;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.file-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.file-meta {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  margin-left: 0.35rem;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+  transition: background 0.15s;
+}
+
+.download-btn:hover {
+  background: #bbdefb;
+}
+
+.download-btn .material-icons {
+  font-size: 1.1rem;
+}
+</style>

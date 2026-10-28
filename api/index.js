@@ -301,6 +301,135 @@ app.get('/api/dynamic-7z', async (req, res) => {
   }
 });
 
+// ZIPX detection archives. Each one is a minimal single-entry zip whose compression
+// method field is set to an extended method. The payload is stored uncompressed, so the
+// method is detectable from the headers but the archive will not extract.
+const ZIPX_METHODS = new Set([12, 14, 93, 94, 95, 96, 97, 98, 99]);
+
+let crcTable = null;
+function crc32(buf) {
+  if (!crcTable) {
+    crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      }
+      crcTable[n] = c >>> 0;
+    }
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) {
+    crc = crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function buildZipx(method) {
+  const isAes = method === 99;
+  const name = Buffer.from('sample.txt');
+  const data = Buffer.from(`ZIPX detection sample, method ${method}`);
+
+  let payload = data;
+  let extra = Buffer.alloc(0);
+  let crc = crc32(data);
+  let flags = 0;
+  let versionNeeded = 63;
+
+  if (isAes) {
+    // WinZip AES (AE-2): salt, password verifier, data, authentication code.
+    payload = Buffer.concat([
+      Buffer.alloc(16, 0xA5),
+      Buffer.from([0x5A, 0xA5]),
+      data,
+      Buffer.alloc(10, 0x3C)
+    ]);
+    extra = Buffer.alloc(11);
+    extra.writeUInt16LE(0x9901, 0); // header ID
+    extra.writeUInt16LE(7, 2);      // data size
+    extra.writeUInt16LE(0x0002, 4); // vendor version (AE-2)
+    extra.write('AE', 6, 'ascii');  // vendor ID
+    extra.writeUInt8(0x03, 8);      // strength (AES-256)
+    extra.writeUInt16LE(98, 9);     // actual compression method (PPMd)
+    crc = 0;
+    flags = 1;
+    versionNeeded = 51;
+  }
+
+  const dosTime = 0x6000; // 12:00:00
+  const dosDate = 0x5A21; // 2025-01-01
+
+  const local = Buffer.alloc(30);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(versionNeeded, 4);
+  local.writeUInt16LE(flags, 6);
+  local.writeUInt16LE(method, 8);
+  local.writeUInt16LE(dosTime, 10);
+  local.writeUInt16LE(dosDate, 12);
+  local.writeUInt32LE(crc, 14);
+  local.writeUInt32LE(payload.length, 18);
+  local.writeUInt32LE(data.length, 22);
+  local.writeUInt16LE(name.length, 26);
+  local.writeUInt16LE(extra.length, 28);
+
+  const localPart = Buffer.concat([local, name, extra, payload]);
+
+  const central = Buffer.alloc(46);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(63, 4); // version made by
+  central.writeUInt16LE(versionNeeded, 6);
+  central.writeUInt16LE(flags, 8);
+  central.writeUInt16LE(method, 10);
+  central.writeUInt16LE(dosTime, 12);
+  central.writeUInt16LE(dosDate, 14);
+  central.writeUInt32LE(crc, 16);
+  central.writeUInt32LE(payload.length, 20);
+  central.writeUInt32LE(data.length, 24);
+  central.writeUInt16LE(name.length, 28);
+  central.writeUInt16LE(extra.length, 30);
+  central.writeUInt16LE(0, 32); // comment length
+  central.writeUInt16LE(0, 34); // disk number start
+  central.writeUInt16LE(0, 36); // internal attributes
+  central.writeUInt32LE(0, 38); // external attributes
+  central.writeUInt32LE(0, 42); // local header offset
+
+  const centralPart = Buffer.concat([central, name, extra]);
+
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(1, 8);
+  eocd.writeUInt16LE(1, 10);
+  eocd.writeUInt32LE(centralPart.length, 12);
+  eocd.writeUInt32LE(localPart.length, 16);
+  eocd.writeUInt16LE(0, 20);
+
+  return Buffer.concat([localPart, centralPart, eocd]);
+}
+
+app.get('/api/zipx', (req, res) => {
+  const method = Number(req.query.method);
+  if (!ZIPX_METHODS.has(method)) {
+    return res.status(400).json({
+      error: 'method must be one of ' + Array.from(ZIPX_METHODS).join(', ')
+    });
+  }
+
+  const downloadName = `zipx-method-${method}.zipx`;
+  const finalName = applyExtensionOverride(downloadName, req.query.extension);
+  const archive = buildZipx(method);
+  console.log(`✅ ZIPX: ${finalName} (method ${method}, ${archive.length} bytes)`);
+
+  res.setHeader('Content-Type', req.query.mimeType || getMimeType(downloadName));
+  res.setHeader('Content-Disposition', `attachment; filename="${finalName}"`);
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Content-Length', archive.length);
+  res.end(archive);
+});
+
 // Generate a one-time download token
 app.post('/api/one-time-token', (req, res) => {
   const { file, ttlMs } = req.body;
