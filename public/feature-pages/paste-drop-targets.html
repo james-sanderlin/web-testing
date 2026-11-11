@@ -1,0 +1,124 @@
+<h2>Paste &amp; Drop Targets</h2>
+<p style="color: #555; max-width: 860px;">
+  Text-like targets that receive a pasted or dropped file (e.g. a screenshot pasted as <code>image.png</code>)
+  and do different things with it. Every case logs the raw event, what the browser did by default, and
+  any network request the page made, so you can compare an upload audit against what actually left the machine.
+  Clipboard screenshots arrive as a file named <code>image.png</code>; files dragged from Finder/Explorer keep their real name.
+</p>
+<p style="color: #555; max-width: 860px;">
+  <b>Scan check:</b> the Island browser holds a paste or drop until its file scan finishes. Each card shows how long the event
+  took to arrive after <kbd>Cmd/Ctrl+V</kbd> (or the last real dragover): over <b>150 ms</b> means it was held for a scan.
+  Use the keyboard shortcut to paste, not the context menu. Compare against plain Chrome to see the unscanned baseline.
+</p>
+
+<div class="pd-toolbar">
+  <label><input type="checkbox" id="pd-guard"> Catch unhandled drops at <code>window</code> (stops Chrome opening the file; changes default behavior)</label>
+  <button id="pd-clear" class="pd-btn pd-btn-ghost">Clear logs</button>
+</div>
+
+<div id="pd-grid">
+
+<div class="pd-card" data-case="PD-01">
+  <div class="pd-head"><span class="pd-id">PD-01</span><h3>Plain <code>&lt;input type="text"&gt;</code></h3><span class="pd-tag pd-none">NO HANDLERS</span></div>
+  <p>No page JS. Shows what the browser does on its own with a pasted/dropped file.</p>
+  <input type="text" class="pd-target pd-input" placeholder="Paste or drop here">
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-02">
+  <div class="pd-head"><span class="pd-id">PD-02</span><h3>Plain <code>&lt;textarea&gt;</code></h3><span class="pd-tag pd-none">NO HANDLERS</span></div>
+  <p>No page JS.</p>
+  <textarea class="pd-target pd-input" rows="3" placeholder="Paste or drop here"></textarea>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-03">
+  <div class="pd-head"><span class="pd-id">PD-03</span><h3>Plain <code>contenteditable</code></h3><span class="pd-tag pd-none">NO HANDLERS</span></div>
+  <p>No page JS. Watches the DOM to see whether the browser inserts the image natively.</p>
+  <div class="pd-target pd-editable" contenteditable="true">Paste or drop here</div>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-04">
+  <div class="pd-head"><span class="pd-id">PD-04</span><h3>Non-editable focus</h3><span class="pd-tag pd-none">NO HANDLERS</span></div>
+  <p>Click this box (focusable, not editable), then paste. Tests a paste with nothing editable focused.</p>
+  <div class="pd-target pd-plain" tabindex="0">Click me, then paste</div>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-05">
+  <div class="pd-head"><span class="pd-id">PD-05</span><h3>Accepts drop, ignores files</h3><span class="pd-tag pd-local">SWALLOWED</span></div>
+  <p>A text input whose page calls <code>preventDefault()</code> on dragover/drop/paste (common in SPAs) but never reads the file.</p>
+  <input type="text" class="pd-target pd-input" placeholder="Paste or drop here">
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-06">
+  <div class="pd-head"><span class="pd-id">PD-06</span><h3>Reads file locally</h3><span class="pd-tag pd-local">LOCAL ONLY</span></div>
+  <p>Reads the file with <code>FileReader</code> and shows a preview. Nothing is sent.</p>
+  <input type="text" class="pd-target pd-input" placeholder="Paste or drop here">
+  <div class="pd-preview"></div>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-07">
+  <div class="pd-head"><span class="pd-id">PD-07</span><h3>Uploads immediately</h3><span class="pd-tag pd-net">SENT</span></div>
+  <p>A textarea that POSTs the file to <code>/api/upload</code> as soon as it's pasted or dropped.</p>
+  <textarea class="pd-target pd-input" rows="3" placeholder="Paste or drop here"></textarea>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-08">
+  <div class="pd-head"><span class="pd-id">PD-08</span><h3>Chat composer (send later)</h3><span class="pd-tag pd-net">SENT ON SEND</span></div>
+  <p>Attaches the file on paste/drop; it only leaves on <b>Send</b>. Remove the attachment to model a user who notices the mistake.</p>
+  <textarea class="pd-target pd-input" rows="2" placeholder="Type a message, paste or drop a file"></textarea>
+  <div class="pd-attachments"></div>
+  <button class="pd-btn pd-send">Send</button>
+  <pre class="pd-log"></pre>
+</div>
+
+<div class="pd-card" data-case="PD-09">
+  <div class="pd-head"><span class="pd-id">PD-09</span><h3>Rich editor, inline image</h3><span class="pd-tag pd-net">SENT AS TEXT</span></div>
+  <p>Inserts the image as a base64 <code>&lt;img&gt;</code>. On <b>Submit</b> the HTML goes out as a plain text form field, not a file upload.</p>
+  <div class="pd-target pd-editable" contenteditable="true">Paste or drop here</div>
+  <button class="pd-btn pd-submit">Submit</button>
+  <pre class="pd-log"></pre>
+</div>
+
+</div>
+
+<h3 style="margin-top: 2rem;">Page-wide log</h3>
+<p style="color: #555; margin-top: 0;">Every outgoing request from this page (fetch, XHR, sendBeacon) with its body size, plus paste/drop events that landed outside a card. Kept in sessionStorage, so it survives Chrome opening a dropped file in this tab.</p>
+<pre id="pd-global-log" class="pd-log pd-global"></pre>
+
+<style>
+.pd-toolbar { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; font-size: 0.9rem; }
+#pd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem; }
+.pd-card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; background: #fff; min-width: 0; }
+.pd-card p { color: #555; font-size: 0.875rem; margin: 0.25rem 0 0.75rem; }
+.pd-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.pd-head h3 { margin: 0; font-size: 1rem; }
+.pd-id { font: 600 0.75rem monospace; background: #eef; color: #335; padding: 2px 6px; border-radius: 4px; }
+.pd-tag { font-size: 0.7rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: auto; }
+.pd-none { background: #eee; color: #444; }
+.pd-local { background: #e6f4ea; color: #1e6b34; }
+.pd-net { background: #fde7e7; color: #a12020; }
+.pd-input, .pd-editable, .pd-plain { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; border: 1px solid #bbb; border-radius: 6px; }
+.pd-editable { min-height: 3.5rem; background: #fcfcff; overflow: auto; }
+.pd-editable img { max-width: 100%; max-height: 120px; }
+.pd-plain { min-height: 2.5rem; background: #f6f6f6; color: #666; cursor: pointer; }
+.pd-plain:focus, .pd-input:focus, .pd-editable:focus { outline: 2px solid #4a7dff; }
+.pd-over { outline: 2px dashed #4a7dff !important; }
+.pd-preview img { max-width: 100%; max-height: 120px; margin-top: 0.5rem; border: 1px solid #ddd; }
+.pd-attachments { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.pd-chip { background: #eef; border-radius: 12px; padding: 2px 8px; font-size: 0.8rem; }
+.pd-chip button { border: none; background: none; cursor: pointer; color: #a12020; }
+.pd-btn { margin-top: 0.5rem; padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid #4a7dff; background: #4a7dff; color: #fff; cursor: pointer; }
+.pd-btn-ghost { background: #fff; color: #4a7dff; margin-top: 0; }
+.pd-log { background: #f7f7f9; border-radius: 6px; padding: 0.5rem; font-size: 0.75rem; margin: 0.75rem 0 0; min-height: 1.5rem; max-height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.pd-global { max-height: 260px; }
+.pd-warn { color: #a12020; font-weight: 600; }
+.pd-scan { flex-basis: 100%; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; margin-top: 0.4rem; }
+.pd-scan-held { background: #fff3cd; color: #7a5300; }
+.pd-scan-fast { background: #eef; color: #335; }
+</style>

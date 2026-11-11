@@ -43,6 +43,8 @@ export const features = [
     category: "storage", description: "Inspect and modify localStorage entries." },
   { name: "One-Time Downloads", route: "#/one-time-downloads", file: "feature-pages/one-time-downloads.html",
     category: "downloads", description: "Single-use download links that expire after one fetch." },
+  { name: "Paste & Drop Targets", route: "#/paste-drop-targets", file: "feature-pages/paste-drop-targets.html",
+    category: "uploads", description: "Paste or drop files into text inputs that ignore, read, or upload them." },
   { name: "PDF", route: "#/pdf", file: "feature-pages/pdf.html",
     category: "files", description: "Inline PDF viewing and embedding." },
   { name: "Plupload", route: "#/plupload", file: "feature-pages/plupload.html",
