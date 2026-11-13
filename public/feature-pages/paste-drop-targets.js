@@ -412,6 +412,34 @@ var PD_BEHAVIORS = {
   'PD-10': pdWireBodyPaste,
 };
 
+function pdApplyFocus(caseId) {
+  var cards = document.querySelectorAll('#pd-grid .pd-card');
+  var found = caseId && document.querySelector('#pd-grid .pd-card[data-case="' + caseId + '"]');
+  var focused = found ? caseId : null;
+  cards.forEach(function (card) {
+    card.hidden = !!focused && card.dataset.case !== focused;
+    var btn = card.querySelector('.pd-focus');
+    if (btn) btn.textContent = focused ? 'Show all' : 'Focus';
+  });
+  document.getElementById('pd-grid').classList.toggle('pd-focused', !!focused);
+
+  var url = new URL(window.location.href);
+  if (focused) url.searchParams.set('case', focused);
+  else url.searchParams.delete('case');
+  window.history.replaceState(window.history.state, '', url);
+}
+
+function pdAddFocusButton(card) {
+  if (card.querySelector('.pd-focus')) return;
+  var btn = document.createElement('button');
+  btn.className = 'pd-focus pd-btn pd-btn-ghost';
+  btn.title = 'Show only this case (the URL becomes a shareable link)';
+  btn.onclick = function () {
+    pdApplyFocus(document.getElementById('pd-grid').classList.contains('pd-focused') ? null : card.dataset.case);
+  };
+  card.querySelector('.pd-head').appendChild(btn);
+}
+
 function onNavigate_paste_drop_targets() {
   var grid = document.getElementById('pd-grid');
   if (!grid) return;
@@ -426,7 +454,9 @@ function onNavigate_paste_drop_targets() {
     card.querySelector('.pd-log').textContent = (logs[caseId] || []).join('\n');
     if (card.querySelector('.pd-target')) pdInstrumentCard(card);
     if (PD_BEHAVIORS[caseId]) PD_BEHAVIORS[caseId](card);
+    pdAddFocusButton(card);
   });
+  pdApplyFocus(new URLSearchParams(window.location.search).get('case'));
 
   document.getElementById('pd-clear').onclick = function () {
     pdSaveLogs({});
