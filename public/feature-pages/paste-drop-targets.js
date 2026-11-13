@@ -459,10 +459,8 @@ function pdApplyFocus(caseId) {
   });
   document.getElementById('pd-grid').classList.toggle('pd-focused', !!focused);
 
-  var url = new URL(window.location.href);
-  if (focused) url.searchParams.set('case', focused);
-  else url.searchParams.delete('case');
-  window.history.replaceState(window.history.state, '', url);
+  var hash = '#/paste-drop-targets' + (focused ? '?case=' + focused : '');
+  if (location.hash !== hash) history.replaceState({}, '', location.pathname + location.search + hash);
 }
 
 function pdAddFocusButton(card) {
@@ -492,7 +490,7 @@ function onNavigate_paste_drop_targets() {
     if (PD_BEHAVIORS[caseId]) PD_BEHAVIORS[caseId](card);
     pdAddFocusButton(card);
   });
-  pdApplyFocus(new URLSearchParams(window.location.search).get('case'));
+  pdApplyFocus(window.routeParams && window.routeParams.get('case'));
 
   document.getElementById('pd-clear').onclick = function () {
     pdSaveLogs({});
