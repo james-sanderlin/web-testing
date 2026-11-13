@@ -403,6 +403,41 @@ function pdWireBodyPaste(card) {
   window.addEventListener('paste', pdHandleBodyPaste);
 }
 
+function pdInvisibleDropMode() {
+  var checked = document.querySelector('input[name="pd11-mode"]:checked');
+  return checked ? checked.value : 'off';
+}
+
+function pdIsCardTarget(e) {
+  return e.target instanceof Element && !!e.target.closest('.pd-target');
+}
+
+function pdHandleInvisibleDrop(e) {
+  if (pdInvisibleDropMode() === 'off' || pdIsCardTarget(e) || !pdHasFiles(e)) return;
+  e.preventDefault();
+  var caseId = 'PD-11';
+  var files = pdFilesFrom(e);
+  pdLog(caseId, 'took a drop on ' + pdDescribeElement(e.target) + ' with no visible UI: ' + pdDescribeFiles(files));
+  files.forEach(function (file) {
+    pdReadAsDataUrl(file).then(function () { pdLog(caseId, 'read ' + file.name + ' (' + file.size + ' B) silently'); });
+  });
+  if (pdInvisibleDropMode() === 'send') {
+    var fd = new FormData();
+    files.forEach(function (f) { fd.append('file', f, f.name); });
+    pdLog(caseId, 'uploading ' + pdDescribeFiles(files));
+    pdUpload(caseId, fd);
+  }
+}
+
+function pdWireInvisibleDrop() {
+  if (window.__pdInvisibleDropInstalled) return;
+  window.__pdInvisibleDropInstalled = true;
+  window.addEventListener('dragover', function (e) {
+    if (pdInvisibleDropMode() !== 'off' && !pdIsCardTarget(e) && pdHasFiles(e)) e.preventDefault();
+  });
+  window.addEventListener('drop', pdHandleInvisibleDrop);
+}
+
 var PD_BEHAVIORS = {
   'PD-05': pdWireSwallow,
   'PD-06': pdWireLocalPreview,
@@ -410,6 +445,7 @@ var PD_BEHAVIORS = {
   'PD-08': pdWireChatComposer,
   'PD-09': pdWireRichEditor,
   'PD-10': pdWireBodyPaste,
+  'PD-11': pdWireInvisibleDrop,
 };
 
 function pdApplyFocus(caseId) {
