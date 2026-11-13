@@ -85,6 +85,19 @@
   <pre class="pd-log"></pre>
 </div>
 
+<div class="pd-card" data-case="PD-10">
+  <div class="pd-head"><span class="pd-id">PD-10</span><h3>Nothing focused (page body)</h3><span class="pd-tag pd-none">PAGE-WIDE</span></div>
+  <p>Click <b>Focus page body</b> (or any plain text), then press <kbd>Cmd/Ctrl+V</kbd>. No input has focus, so the paste goes to <code>&lt;body&gt;</code>. A page-wide listener decides what the page does with it.</p>
+  <div class="pd-modes">
+    <label><input type="radio" name="pd10-mode" value="ignore" checked> Ignore (no page JS reads it)</label>
+    <label><input type="radio" name="pd10-mode" value="read"> Read locally</label>
+    <label><input type="radio" name="pd10-mode" value="send"> Read and send</label>
+  </div>
+  <button class="pd-btn pd-focus-body">Focus page body</button>
+  <div class="pd-preview"></div>
+  <pre class="pd-log"></pre>
+</div>
+
 </div>
 
 <h3 style="margin-top: 2rem;">Page-wide log</h3>
@@ -118,6 +131,7 @@
 .pd-log { background: #f7f7f9; border-radius: 6px; padding: 0.5rem; font-size: 0.75rem; margin: 0.75rem 0 0; min-height: 1.5rem; max-height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
 .pd-global { max-height: 260px; }
 .pd-warn { color: #a12020; font-weight: 600; }
+.pd-modes { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
 .pd-scan { flex-basis: 100%; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; margin-top: 0.4rem; }
 .pd-scan-held { background: #fff3cd; color: #7a5300; }
 .pd-scan-fast { background: #eef; color: #335; }

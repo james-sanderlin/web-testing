@@ -31,9 +31,11 @@ function pdDescribeFiles(files) {
 
 function pdDescribeTransfer(dt) {
   if (!dt) return 'no dataTransfer';
+  // Reads only types/kinds: touching dt.files or getAsFile() would itself count as the page accessing the file.
   var types = Array.from(dt.types || []).join(', ') || 'none';
-  var files = pdDescribeFiles(dt.files);
-  return 'types=[' + types + ']' + (files ? ' files=' + files : ' no files');
+  var kinds = Array.from(dt.items || []).filter(function (i) { return i.kind === 'file'; })
+    .map(function (i) { return i.type || 'no type'; });
+  return 'types=[' + types + ']' + (kinds.length ? ' file items=[' + kinds.join(', ') + ']' : ' no files');
 }
 
 function pdFilesFrom(e) {
@@ -208,7 +210,7 @@ function pdInstrumentCard(card) {
       var dt = e.clipboardData || e.dataTransfer;
       pdLog(caseId, type + ' fired on <' + e.target.tagName.toLowerCase() + '>: ' + pdDescribeTransfer(dt) +
         ' | page prevented default: ' + (e.defaultPrevented ? 'yes' : 'no'));
-      var verdict = pdFilesFrom(e).length ? pdScanVerdict(type) : null;
+      var verdict = pdHasFiles(e) ? pdScanVerdict(type) : null;
       if (verdict) {
         pdShowScanBadge(card, type, verdict);
         pdLog(caseId, 'SCAN CHECK: ' + type + ' arrived ' + verdict.delay + ' ms after ' +
@@ -352,12 +354,62 @@ function pdWireRichEditor(card) {
   };
 }
 
+function pdDescribeElement(el) {
+  if (!el || !el.tagName) return 'none';
+  return '<' + el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + '>';
+}
+
+function pdHandleBodyPaste(e) {
+  var card = document.querySelector('.pd-card[data-case="PD-10"]');
+  var target = e.target;
+  if (!card || (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]'))) return;
+  var caseId = card.dataset.case;
+  var mode = (card.querySelector('input[name="pd10-mode"]:checked') || {}).value;
+  pdLog(caseId, 'paste fired on ' + pdDescribeElement(target) + ' (activeElement ' +
+    pdDescribeElement(document.activeElement) + '): ' + pdDescribeTransfer(e.clipboardData));
+  if (!pdHasFiles(e)) return;
+  var verdict = pdScanVerdict('paste');
+  if (verdict) pdShowScanBadge(card, 'paste', verdict);
+  if (mode === 'ignore') return pdLog(caseId, 'ignored — page never read the file');
+
+  var files = pdFilesFrom(e);
+  var preview = card.querySelector('.pd-preview');
+  preview.innerHTML = '';
+  files.forEach(function (file) {
+    pdReadAsDataUrl(file).then(function (url) {
+      pdLog(caseId, 'read ' + file.name + ' (' + file.size + ' B) with no input focused');
+      if (file.type.indexOf('image/') === 0) {
+        var img = document.createElement('img');
+        img.src = url;
+        preview.appendChild(img);
+      }
+    });
+  });
+  if (mode === 'send') {
+    var fd = new FormData();
+    files.forEach(function (f) { fd.append('file', f, f.name); });
+    pdLog(caseId, 'uploading ' + pdDescribeFiles(files));
+    pdUpload(caseId, fd);
+  }
+}
+
+function pdWireBodyPaste(card) {
+  card.querySelector('.pd-focus-body').onclick = function () {
+    document.activeElement.blur();
+    pdLog(card.dataset.case, 'focus is now on ' + pdDescribeElement(document.activeElement) + ' — press Cmd/Ctrl+V');
+  };
+  if (window.__pdBodyPasteInstalled) return;
+  window.__pdBodyPasteInstalled = true;
+  window.addEventListener('paste', pdHandleBodyPaste);
+}
+
 var PD_BEHAVIORS = {
   'PD-05': pdWireSwallow,
   'PD-06': pdWireLocalPreview,
   'PD-07': pdWireImmediateUpload,
   'PD-08': pdWireChatComposer,
   'PD-09': pdWireRichEditor,
+  'PD-10': pdWireBodyPaste,
 };
 
 function onNavigate_paste_drop_targets() {
@@ -372,7 +424,7 @@ function onNavigate_paste_drop_targets() {
   grid.querySelectorAll('.pd-card').forEach(function (card) {
     var caseId = card.dataset.case;
     card.querySelector('.pd-log').textContent = (logs[caseId] || []).join('\n');
-    pdInstrumentCard(card);
+    if (card.querySelector('.pd-target')) pdInstrumentCard(card);
     if (PD_BEHAVIORS[caseId]) PD_BEHAVIORS[caseId](card);
   });
 
