@@ -1,10 +1,9 @@
 // Browse page: category overview, plus a categorized, filterable catalog
 
 (function() {
-  var OVERVIEW = 'overview';
   var ALL = 'all';
 
-  var activeCat = OVERVIEW;
+  var activeCat = ALL;
   var filterText = '';
 
   function categories() {
@@ -34,7 +33,7 @@
 
   function setCat(id) {
     activeCat = id;
-    var hash = id === OVERVIEW ? '#/browse' : '#/browse?cat=' + id;
+    var hash = id === ALL ? '#/browse' : '#/browse?cat=' + id;
     history.replaceState({}, '', location.pathname + location.search + hash);
     render();
   }
@@ -136,8 +135,6 @@
       return;
     }
 
-    if (activeCat === OVERVIEW) return;
-
     var shown = categories().filter(function(cat) {
       return activeCat === ALL || cat.id === activeCat;
     });
@@ -167,7 +164,7 @@
 
   window.onNavigate_browse = function() {
     var params = window.routeParams;
-    activeCat = (params && params.get('cat')) || OVERVIEW;
+    activeCat = (params && params.get('cat')) || ALL;
     filterText = '';
 
     var filter = document.getElementById('browse-filter');
