@@ -7,13 +7,40 @@ function onNavigate_drag_timeout() {
   var browseBtn = document.getElementById('flow-browse-btn');
   var clearBtn = document.getElementById('flow-clear-log');
   var toggleKwOverlay = document.getElementById('toggle-kw-overlay');
+  var toggleHideOverlay = document.getElementById('toggle-hide-overlay');
   var kwOverlayStatus = document.getElementById('kw-overlay-status');
   var kwOverlayState = document.getElementById('kw-overlay-state');
+
+  var timeoutInput = document.getElementById('drop-timeout-ms');
+  var timeoutPresets = document.getElementById('drop-timeout-presets');
 
   var lostFiles = [];
   var receivedFiles = [];
 
   if (!logEl || !dropZone) return;
+
+  // Persisted so each fresh tab (the first drop is the slow one) keeps the same value.
+  var TIMEOUT_STORAGE_KEY = 'drag-timeout-ms';
+  var dropTimeoutMs = parseInt(localStorage.getItem(TIMEOUT_STORAGE_KEY), 10) || 300;
+
+  function setDropTimeout(ms, quiet) {
+    ms = parseInt(ms, 10);
+    if (!(ms > 0)) { timeoutInput.value = dropTimeoutMs; return; }
+    dropTimeoutMs = ms;
+    timeoutInput.value = ms;
+    localStorage.setItem(TIMEOUT_STORAGE_KEY, String(ms));
+    document.querySelectorAll('.drop-timeout-label').forEach(function(el) { el.textContent = ms; });
+    timeoutPresets.querySelectorAll('button').forEach(function(btn) {
+      btn.style.fontWeight = parseInt(btn.dataset.ms, 10) === ms ? 'bold' : '';
+    });
+    if (!quiet) log('Drop timeout set to ' + ms + 'ms', '#e65100');
+  }
+
+  timeoutInput.addEventListener('change', function() { setDropTimeout(this.value); });
+  timeoutPresets.addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-ms]');
+    if (btn) setDropTimeout(btn.dataset.ms);
+  });
 
   function log(msg, color) {
     var time = new Date().toLocaleTimeString('en-US', { hour12: false, fractionalSecondDigits: 3 });
@@ -149,7 +176,7 @@ function onNavigate_drag_timeout() {
 
   // ── Kiteworks overlay simulation ──
   // Reproduces the exact pattern from 3511.517893d9.chunk.js:
-  // - Document-level dragenter/dragover listeners set isDragging=true + start 300ms timer
+  // - Document-level dragenter/dragover listeners set isDragging=true + start the drop timer (300ms in Kiteworks)
   // - Timer fires () => setIsDragging(false)
   // - When isDragging=false, the invisible overlay dropzone is removed from the DOM
   // - The overlay is what Flow.js's drop listener is attached to
@@ -159,7 +186,7 @@ function onNavigate_drag_timeout() {
 
   function enableKwOverlay() {
     if (kwCleanup) return;
-    log('[kw-overlay] Enabled — 300ms timeout dropzone active', '#e65100');
+    log('[kw-overlay] Enabled — ' + dropTimeoutMs + 'ms timeout dropzone active', '#e65100');
     kwOverlayStatus.style.display = '';
     document.getElementById('label-kw-overlay').style.background = '#fff3e0';
     document.getElementById('label-kw-overlay').style.borderColor = '#ffb74d';
@@ -174,7 +201,11 @@ function onNavigate_drag_timeout() {
       kwOverlayState.textContent = val ? 'VISIBLE (accepting drops)' : 'idle';
       kwOverlayState.style.color = val ? '#2e7d32' : '#888';
 
-      if (val && !overlay) {
+      if (val && overlay && overlay.style.display === 'none') {
+        dropReceived = false;
+        overlay.style.display = '';
+        log('[kw-overlay] Overlay shown', '#888');
+      } else if (val && !overlay) {
         dropReceived = false;
         overlay = document.createElement('div');
         overlay.id = 'kw-invisible-overlay';
@@ -197,13 +228,16 @@ function onNavigate_drag_timeout() {
         overlay.addEventListener('drop', function(e) {
           e.preventDefault();
           e.stopPropagation();
-          if (!isDragging) {
+          // A drop on a removed node never bubbles to a real site's ancestor drop handler;
+          // a hidden node is still connected, so the drop reaches it.
+          if (!this.isConnected) {
             log('[kw-overlay] Drop on detached overlay IGNORED (simulates React unmount cleanup)', '#c62828');
             addLostFiles(e.dataTransfer);
             return;
           }
           dropReceived = true;
-          log('[kw-overlay] Drop received on overlay — forwarding to Flow.js', '#4caf50');
+          log('[kw-overlay] Drop received on ' + (this.style.display === 'none' ? 'hidden ' : '') +
+            'overlay — forwarding to Flow.js', '#4caf50');
           setDragging(false);
           var newEvt = new DragEvent('drop', {
             dataTransfer: e.dataTransfer,
@@ -213,6 +247,14 @@ function onNavigate_drag_timeout() {
         });
 
         log('[kw-overlay] Overlay mounted', '#888');
+      } else if (!val && overlay && toggleHideOverlay.checked) {
+        if (overlay.style.display === 'none') return;
+        overlay.style.display = 'none';
+        if (dropReceived) {
+          log('[kw-overlay] Overlay hidden (after drop — normal)', '#888');
+        } else {
+          log('[kw-overlay] Overlay hidden by timeout — display:none, still in DOM', '#e65100');
+        }
       } else if (!val && overlay) {
         overlay.remove();
         overlay = null;
@@ -228,7 +270,7 @@ function onNavigate_drag_timeout() {
       clearTimeout(timeoutRef);
       timeoutRef = window.setTimeout(function() {
         setDragging(false);
-      }, 300);
+      }, dropTimeoutMs);
     }
 
     function cancelTimer() {
@@ -306,7 +348,7 @@ function onNavigate_drag_timeout() {
       var args = Array.prototype.slice.call(arguments, 2);
       var isDragRelated = rpaDragging
         && typeof delay === 'number'
-        && delay >= 280 && delay <= 320;
+        && Math.abs(delay - dropTimeoutMs) <= 20;
 
       if (isDragRelated) {
         var wrappedCallback = function() {
@@ -347,6 +389,17 @@ function onNavigate_drag_timeout() {
   toggleKwOverlay.addEventListener('change', function() {
     if (this.checked) enableKwOverlay();
     else if (kwCleanup) kwCleanup();
+  });
+
+  setDropTimeout(dropTimeoutMs, true);
+
+  toggleHideOverlay.addEventListener('change', function() {
+    var label = document.getElementById('label-hide-overlay');
+    label.style.background = this.checked ? '#e3f2fd' : '#f5f5f5';
+    label.style.borderColor = this.checked ? '#90caf9' : '#ddd';
+    log(this.checked
+      ? '[kw-overlay] Timeout will HIDE the overlay (display:none) instead of removing it'
+      : '[kw-overlay] Timeout will REMOVE the overlay from the DOM', '#1565c0');
   });
 
   // Enable overlay by default

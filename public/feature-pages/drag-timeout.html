@@ -1,5 +1,5 @@
 <h2>Drag Timeout</h2>
-<p style="color:#666;margin-bottom:1rem;">Reproduces file loss from short-lived drop targets. An overlay dropzone mounts on dragenter and unmounts after a 300ms timeout — if the drop arrives after unmount, files are lost. This pattern matches Kiteworks' React-based upload UI.</p>
+<p style="color:#666;margin-bottom:1rem;">Reproduces file loss from short-lived drop targets. An overlay dropzone mounts on dragenter and unmounts after a configurable timeout — if the drop arrives after unmount, files are lost. This pattern matches Kiteworks' React-based upload UI (300ms); Elation uses 100ms.</p>
 
 <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;">
   <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#e8f5e9;border:1px solid #a5d6a7;">
@@ -8,12 +8,27 @@
   </label>
   <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-kw-overlay">
     <input type="checkbox" id="toggle-kw-overlay" />
-    <strong>Delayed drop overlay</strong> <span style="color:#888;font-size:0.8rem;">(300ms timeout — simulates the Kiteworks bug)</span>
+    <strong>Delayed drop overlay</strong> <span style="color:#888;font-size:0.8rem;">(<span class="drop-timeout-label">300</span>ms timeout — simulates the Kiteworks bug)</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-hide-overlay">
+    <input type="checkbox" id="toggle-hide-overlay" />
+    <strong>Hide instead of remove</strong> <span style="color:#888;font-size:0.8rem;">(control — timeout sets display:none and keeps the node; drops should succeed)</span>
   </label>
   <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;" id="label-rpa-fix">
     <input type="checkbox" id="toggle-rpa-fix" />
-    <strong>RPA fix</strong> <span style="color:#888;font-size:0.8rem;">(extends 300ms timeouts during drag)</span>
+    <strong>RPA fix</strong> <span style="color:#888;font-size:0.8rem;">(extends <span class="drop-timeout-label">300</span>ms timeouts during drag)</span>
   </label>
+  <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;padding:0.4rem 0.75rem;border-radius:6px;background:#f5f5f5;border:1px solid #ddd;">
+    <label for="drop-timeout-ms"><strong>Drop timeout</strong></label>
+    <input type="number" id="drop-timeout-ms" min="1" step="10" value="300" style="width:5.5rem;padding:0.2rem 0.4rem;" />
+    <span style="color:#888;font-size:0.8rem;">ms</span>
+    <span id="drop-timeout-presets" style="display:inline-flex;gap:0.25rem;">
+      <button type="button" data-ms="50">50</button>
+      <button type="button" data-ms="100">100</button>
+      <button type="button" data-ms="300">300</button>
+      <button type="button" data-ms="1000">1000</button>
+    </span>
+  </div>
 </div>
 
 <div style="display:flex;gap:2rem;flex-wrap:wrap;">
